@@ -2,5 +2,5 @@
 
 Author:
 ------
-Kyle Bricker
+Kyle Bricker <br>
 Ashutosh Lamba
