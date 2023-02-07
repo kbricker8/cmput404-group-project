@@ -5,3 +5,5 @@ Author:
 Kyle Bricker <br>
 Ashutosh Lamba <br>
 Sankalp Saini
+Jaden Huang
+Jacob Gerun
