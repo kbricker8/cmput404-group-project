@@ -4,6 +4,6 @@ Author:
 ------
 Kyle Bricker <br>
 Ashutosh Lamba <br>
-Sankalp Saini
-Jaden Huang
+Sankalp Saini <br>
+Jaden Huang <br>
 Jacob Gerun
