@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import "./index.css";
 import Root from "./routes/root";
+import HomePage from "./routes/home-page";
 import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
@@ -14,16 +15,22 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "HomePage",
+        element: <HomePage />,
+      },
+      {
+        path: "AboutUs",
+        element: <AboutUs />,
+      },
+      {
+        path: "SignIn",
+        element: <SignIn />,
+      }
+    ]
+  },
 
-  },
-  {
-    path: "AboutUs",
-    element: <AboutUs />,
-  },
-  {
-    path: "SignIn",
-    element: <SignIn />,
-  }
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

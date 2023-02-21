@@ -7,6 +7,9 @@ export default function Root() {
           <h1>Social Enterprise</h1>
           <nav>
             <ul>
+            <li>
+              <Link to={`HomePage`}>Home Page</Link>
+              </li>
               <li>
               <Link to={`AboutUs`}>About Us</Link>
               </li>
@@ -16,9 +19,6 @@ export default function Root() {
             </ul>
           </nav>
         </div>
-        <p>
-          Welcome to the Social Enterprise! This is a social media platform for the goons in cmput 404
-        </p>
         <div id="detail">
         <Outlet />
         </div>
