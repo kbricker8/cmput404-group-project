@@ -13,5 +13,7 @@ Jacob Gerun
 Requires node.js V > 15 and vite installed
 
 cd into the project folder containing src. For now it's cmput404-group-project
+<br>
 `npm install`
-`npm run dev' 
+<br>
+`npm run dev`
