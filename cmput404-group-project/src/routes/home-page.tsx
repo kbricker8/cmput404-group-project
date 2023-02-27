@@ -19,7 +19,7 @@ function Copyright(props: any) {
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
       <Link color="inherit" href="https://mui.com/">
-        Social Distribution
+        SocDist
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -66,7 +66,7 @@ function HomePage() {
           color="text.primary"
           gutterBottom
         >
-          Welcome to Social Distribution
+          Welcome to SocDist
         </Typography>
         <Typography variant="h6" align="center" color="text.secondary" component="p">
           The following is quoted from Hindle's project.org:<br/><br/>The web is fundamentally 

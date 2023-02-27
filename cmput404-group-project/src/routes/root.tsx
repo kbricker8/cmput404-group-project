@@ -4,7 +4,7 @@ export default function Root() {
     return (
       <>
         <div id="navbar">
-          <h1>Social Enterprise</h1>
+          <h1>SocDist</h1>
           <nav>
             <ul>
             <li>
@@ -14,7 +14,7 @@ export default function Root() {
               <Link to={`AboutUs`}>About Us</Link>
               </li>
               <li>
-              <Link to={`SignIn`}>Sign In / Up</Link>
+              <Link to={`SignIn`}>Sign In</Link>
               </li>
             </ul>
           </nav>
