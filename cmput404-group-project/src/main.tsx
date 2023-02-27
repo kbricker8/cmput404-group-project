@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {
   createBrowserRouter,
+  Outlet,
   RouterProvider,
 } from "react-router-dom";
 import "./index.css";
@@ -10,14 +11,25 @@ import HomePage from "./routes/home-page";
 import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
+import Navbar from "./components/NavBar";
+
+// const AppLayout = () => {
+//   return (
+//     <>
+//     <Navbar />
+//     <Outlet />
+//     </>
+//   )
+// }
+
 const router = createBrowserRouter([
   {
-    path: "/",
     element: <Root />,
+    // element: <AppLayout />,
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "HomePage",
+        path: "/",
         element: <HomePage />,
       },
       {

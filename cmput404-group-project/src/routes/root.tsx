@@ -3,12 +3,12 @@ import { Outlet, Link } from "react-router-dom";
 export default function Root() {
     return (
       <>
-        <div id="sidebar">
+        <div id="navbar">
           <h1>Social Enterprise</h1>
           <nav>
             <ul>
             <li>
-              <Link to={`HomePage`}>Home Page</Link>
+              <Link to={`/`}>Home Page</Link>
               </li>
               <li>
               <Link to={`AboutUs`}>About Us</Link>
