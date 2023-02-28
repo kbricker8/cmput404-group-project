@@ -9,6 +9,13 @@ Sankalp Saini <br>
 Jaden Huang <br>
 Jacob Gerun
 
+## Links/References
+
+## Templates Used
+https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/pricing/Pricing.tsx
+https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/sign-in/SignIn.tsx
+https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/sign-in/SignIn.tsx
+
 ## To run app
 Requires node.js V > 15 and vite installed
 
