@@ -4,6 +4,12 @@ from django.utils import timezone
 # IMPORTANT ----------------------
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 
+class Inbox(models.Model):
+    type = 'inbox'
+
+    author = models.CharField(max_length=255, default = '')
+    message = JSONField(default = list)
+
 class Post(models.Model):
     class Visibility(models.TextChoices):
         DM = 'PRIVATE'
