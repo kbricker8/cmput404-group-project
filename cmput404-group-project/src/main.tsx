@@ -11,8 +11,7 @@ import HomePage from "./routes/home-page";
 import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
-import SignUp from "./routes/sign-up";
-import Navbar from "./components/NavBar";
+// import Feed from "./routes/feed";
 
 // const AppLayout = () => {
 //   return (
@@ -41,10 +40,10 @@ const router = createBrowserRouter([
         path: "SignIn",
         element: <SignIn />,
       },
-      {
-        path: "SignUp",
-        element: <SignUp />,
-      }
+      // {
+      //   path: "Feed",
+      //   element: <Feed />,
+      // }
     ]
   },
 
