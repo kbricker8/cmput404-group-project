@@ -24,7 +24,7 @@ import Home from "./routes/home-page";
 
 const router = createBrowserRouter([
   {
-    element: <Home />,
+    element: <Root />,
     // element: <AppLayout />,
     errorElement: <ErrorPage />,
     children: [

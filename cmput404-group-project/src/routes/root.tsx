@@ -1,27 +1,24 @@
 import { Outlet, Link } from "react-router-dom";
+import {Route, Router, Routes} from "react-router";
+import Navbar from "../components/Navbar";
 
+import AboutUs from "./about-us";
+import SignIn from "./sign-in";
+import Home from "./home-page";
+import NavBar from "./navbar";
 export default function Root() {
     return (
-      <>
+
         <div id="navbar">
-          <h1>SocDist</h1>
-          <nav>
-            <ul>
-            <li>
-              <Link to={`/`}>Home Page</Link>
-              </li>
-              <li>
-              <Link to={`AboutUs`}>About Us</Link>
-              </li>
-              <li>
-              <Link to={`SignIn`}>Sign In</Link>
-              </li>
-            </ul>
-          </nav>
+            <div>
+              <Navbar/>
+              <Routes>
+                <Route path="/" element={<Home/>} />
+                <Route path="aboutUs" element={<AboutUs/>} />
+                <Route path="signIn" element={<SignIn/>} />
+                </Routes>
+            </div>
+            
         </div>
-        <div id="detail">
-        <Outlet />
-        </div>
-      </>
     );
   }

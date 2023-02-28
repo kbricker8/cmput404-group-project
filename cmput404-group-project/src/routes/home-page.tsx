@@ -56,7 +56,6 @@ const footers = [
 function HomePage() {
   return (
     <React.Fragment>
-      <NavBar />
       <GlobalStyles styles={{ ul: { margin: 0, padding: 0, listStyle: 'none' } }} />
       <CssBaseline />
       {/* Hero unit */}
