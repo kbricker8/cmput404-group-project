@@ -13,6 +13,8 @@ import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
 import SignUp from "./routes/sign-up";
 import Home from "./routes/home-page";
+
+// import Feed from "./routes/feed";
 // const AppLayout = () => {
 //   return (
 //     <>
@@ -40,10 +42,10 @@ const router = createBrowserRouter([
         path: "SignIn",
         element: <SignIn />,
       },
-      {
-        path: "SignUp",
-        element: <SignUp />,
-      }
+      // {
+      //   path: "Feed",
+      //   element: <Feed />,
+      // }
     ]
   },
 
