@@ -14,6 +14,7 @@ import Link from '@mui/material/Link';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import Container from '@mui/material/Container';
 
+import NavBar from '../components/Navbar';
 function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -55,9 +56,11 @@ const footers = [
 function HomePage() {
   return (
     <React.Fragment>
+      <NavBar />
       <GlobalStyles styles={{ ul: { margin: 0, padding: 0, listStyle: 'none' } }} />
       <CssBaseline />
       {/* Hero unit */}
+      
       <Container disableGutters maxWidth="sm" component="main" sx={{ pt: 8, pb: 6, padding: 0 }}>
         <Typography
           component="h1"

@@ -12,8 +12,7 @@ import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
 import SignUp from "./routes/sign-up";
-import Navbar from "./components/NavBar";
-
+import Home from "./routes/home-page";
 // const AppLayout = () => {
 //   return (
 //     <>
@@ -25,7 +24,7 @@ import Navbar from "./components/NavBar";
 
 const router = createBrowserRouter([
   {
-    element: <Root />,
+    element: <Home />,
     // element: <AppLayout />,
     errorElement: <ErrorPage />,
     children: [
