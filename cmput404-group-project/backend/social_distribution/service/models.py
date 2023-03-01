@@ -4,11 +4,13 @@ from django.utils import timezone
 # IMPORTANT ----------------------
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 
-class Inbox(models.Model):
-    type = 'inbox'
+class Followers(model.Model):
+    type: "followers"
 
-    author = models.CharField(max_length=255, default = '')
-    message = JSONField(default = list)
+class FollowRequestion(model.Model):
+    type: 'Follow'
+
+    
 
 class Post(models.Model):
     class Visibility(models.TextChoices):
@@ -33,8 +35,8 @@ class Post(models.Model):
     contentType = models.CharField(max_length = 20, choices = ContentType.choices, default = ContentType.plain) #change to different default?
 
     content = models.TextField(blank = True)
-    #author = 
-    categories = models.JSONField(default = default_list, null = True)
+    #author = #change to jsonfield?
+    categories = models.JSONField(default = list, null = True)
     count = models.IntegerField(default = 0, blank = True)
     comments = model.TextField(null = True)
     published = models.DateTimeField(default = timezone.now)
@@ -46,7 +48,7 @@ class Post(models.Model):
 
 class Comments(models.Model):
     type = 'comment'
-    author = models.CharField(max_length=120, default='')
+    author = models.CharField(max_length= 120, default='') #change to jsonfield?
     comment = models.CharField(default = '')
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
@@ -54,3 +56,23 @@ class Comments(models.Model):
 
     def _str_(self):
         return self.comment
+
+class Likes(models.Model):
+    type = 'likes'
+
+    context = models.CharField(max_length = 255, default = '')
+    summary = models.CharField(max_length = 255, default = '')
+    author = models.CharField(max_length=255, default = '') #change to jsonfield?
+    object = models.URLField(max_length=255, default ='')
+
+class Liked(models.Model):
+    type = 'liked'
+
+    items = models.JSONField(default = list)
+    author = models.CharField(max_length=255, default = '') #change to jsonfield?
+
+class Inbox(models.Model):
+    type = 'inbox'
+
+    author = models.CharField(max_length=255, default = '') #change to jsonfield?
+    message = JSONField(default = list)
