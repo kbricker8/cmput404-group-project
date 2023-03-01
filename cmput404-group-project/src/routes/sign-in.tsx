@@ -27,7 +27,7 @@ export default function SignIn() {
   };
 
   return (
-    <Container component="main">
+    <Container component="main" sx={{pt:15}}>
       <Grid container spacing={0}>
 
         {/* Sign In Section */}
@@ -186,7 +186,7 @@ export default function SignIn() {
 
       {/* Copyright Section */}
 
-      <Copyright sx={{ mt: 20 }} />
+      <Copyright sx={{ mt: 10 }} />
     </Container>
     
   );

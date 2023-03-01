@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import 'bootstrap/dist/css/bootstrap.css';
 import {
   createBrowserRouter,
   Outlet,
@@ -11,8 +12,6 @@ import HomePage from "./routes/home-page";
 import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
-import SignUp from "./routes/sign-up";
-import Home from "./routes/home-page";
 
 // import Feed from "./routes/feed";
 // const AppLayout = () => {
