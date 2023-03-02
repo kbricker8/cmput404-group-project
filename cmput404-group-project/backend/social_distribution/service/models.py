@@ -7,9 +7,15 @@ from django.utils import timezone
 class Followers(model.Model):
     type: "followers"
 
-class FollowRequestion(model.Model):
+    id models.URLField(primary_key = True, max_length = 255)
+    items = models.JSONField(default = list)
+
+class FollowRequest(model.Model):
     type: 'Follow'
 
+    summary = models.CharField(max_length = 255)
+    actor = models.CharField(max_length = 255)
+    object = models.CharField(max_length = 255)
     
 
 class Post(models.Model):
@@ -27,8 +33,8 @@ class Post(models.Model):
         APPLICATION = 'application/base64'
 
     type = 'post'
-    title = models.CharField(max_length = 120)
-    #id = models.URLField
+    title = models.CharField(max_length = 255)
+    id = models.URLField(primary_key = True, max_length = 255)
     source = models.URLField(max_length = 255) #where did you get this post from
     origin = models.URLField(max_length = 255) #where is it actually from
     description = models.TextField(max_length = 255, default = '')
@@ -46,22 +52,26 @@ class Post(models.Model):
     def _str_(self):
         return self.title
 
+class ImagePosts(models.Model):
+    type = 'ImagePost'
+    post = models.ForeignKey(Post, on_delete = models.CASCADE)
+    image = models.ImageField(null = True, blank = True)
+
 class Comments(models.Model):
     type = 'comment'
-    author = models.CharField(max_length= 120, default='') #change to jsonfield?
+    author = models.CharField(max_length= 255, default='') #change to jsonfield?
     comment = models.CharField(default = '')
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
-    # id = models.URLField
+    id = models.URLField(primary_key = True, max_length = 255)
 
     def _str_(self):
         return self.comment
 
 class Likes(models.Model):
-    type = 'likes'
-
     context = models.CharField(max_length = 255, default = '')
     summary = models.CharField(max_length = 255, default = '')
+    type = 'likes'
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
     object = models.URLField(max_length=255, default ='')
 
@@ -75,4 +85,4 @@ class Inbox(models.Model):
     type = 'inbox'
 
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    message = JSONField(default = list)
+    items = JSONField(default = list)
