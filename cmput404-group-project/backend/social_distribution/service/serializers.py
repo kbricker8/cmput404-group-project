@@ -2,8 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 # import models
-from .models import Post
-from .models import Author
+from .models import Post, Author, Followers, FollowRequest, ImagePosts, Comment, Likes, Liked, Inbox
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -38,10 +37,46 @@ class LoginSerializer(serializers.Serializer):
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['type', 'id', 'host', 'displayName', 'url', 'github', 'profileImage']
+        fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
-class PostsSerializer(serializers.ModelSerializer):
+class FollowersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Followers
+        fields = ('type, items')
+
+class FollowerRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FollowRequest
+        fields = ('type', 'summary', 'actor', 'object')
+
+class PostSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Post
-        fields = ['type', 'id', 'title', 'description']
+        fields = "__all__"
+
+class ImagePostsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagePosts
+        fields = ('post', 'image') #add type?
+
+class CommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('type', 'author', 'comment', 'contentType', 'published', 'id')
+
+class LikesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Likes
+        fields = ('context', 'summary', 'type', 'author', 'object')
+
+class LikedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Liked
+        fields = ('type', 'items', 'author')
+
+class Inbox(serializers.ModelSerializer):
+    class Meta:
+        model = Inbox
+        fields = ('type', 'author', 'items')
 
