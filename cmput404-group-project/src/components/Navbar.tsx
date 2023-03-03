@@ -5,16 +5,17 @@ import { NavLink } from "react-router-dom";
 
 function Navbar() {
   const [click, setClick] = useState(false);
-  const [user,setUser] = useState(null);
+  const [user, setUser] = useState(null);
   const handleClick = () => setClick(!click);
   const closeMobileMenu = () => setClick(false);
   let signInSignOut;
+  let homePageFeed;
   React.useEffect(() => {
-    if (localStorage.getItem('user') !=  null){
+    if (localStorage.getItem('user') != null) {
       setUser(JSON.parse(localStorage.getItem('user')!));
     }
-    
-  },[]);
+
+  }, []);
   if (user == null) {
     console.log("USER IS NULL", localStorage.getItem('user'));
     signInSignOut = <NavLink
@@ -27,6 +28,16 @@ function Navbar() {
     >
       Sign In
     </NavLink>
+    homePageFeed = <NavLink
+      to="/"
+      className={({ isActive }) =>
+        "nav-links" + (isActive ? " activated" : "")
+      }
+      onClick={closeMobileMenu}
+      style={{ textDecoration: 'none' }}
+    >
+      Home Page
+    </NavLink>
   } else {
     console.log("USER IS NOT NULL", localStorage.getItem('user'));
     signInSignOut = <NavLink
@@ -34,10 +45,20 @@ function Navbar() {
       className={({ isActive }) =>
         "nav-links" + (isActive ? " activated" : "")
       }
-      onClick={() => {setUser(null); localStorage.removeItem('user'); closeMobileMenu();}}
+      onClick={() => { setUser(null); localStorage.removeItem('user'); closeMobileMenu(); }}
       style={{ textDecoration: 'none', textDecorationColor: 'white' }}
     >
       Sign Out
+    </NavLink>
+    homePageFeed = <NavLink
+      to="/feed"
+      className={({ isActive }) =>
+        "nav-links" + (isActive ? " activated" : "")
+      }
+      onClick={closeMobileMenu}
+      style={{ textDecoration: 'none' }}
+    >
+      Feed
     </NavLink>
   }
 
@@ -51,16 +72,7 @@ function Navbar() {
           </Link>
           <ul className={click ? "nav-menu active" : "nav-menu"}>
             <li className="nav-item">
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  "nav-links" + (isActive ? " activated" : "")
-                }
-                onClick={closeMobileMenu}
-                style={{ textDecoration: 'none' }}
-              >
-                Home Page
-              </NavLink>
+              {homePageFeed}
             </li>
             <li className="nav-item">
 
