@@ -31,7 +31,7 @@ cd into the project folder containing src. For now it's cmput404-group-project
 ## To run backend
 
 ```
-pip install djangorestframework django-cors-headers
+pip install djangorestframework django-cors-headers Pillow
 
 python manage.py runserver
 ```
