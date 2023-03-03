@@ -59,6 +59,21 @@ export default function NewPost() {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormControl fullWidth>
+                                <InputLabel id="post-visibility-label">Post Visibility</InputLabel>
+                                    <Select
+                                        labelId="post-visibility"
+                                        id="post-visibility"
+                                        label="Post Visibility"
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value={"public"}>Public</MenuItem>
+                                        <MenuItem value={"friends"}>Private (Friends)</MenuItem>
+                                        <MenuItem value={"private"}>Private</MenuItem>
+                                    </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
                                 <InputLabel id="post-type-label">Post Type</InputLabel>
                                     <Select
                                         labelId="post-type"
@@ -66,9 +81,9 @@ export default function NewPost() {
                                         label="Post Type"
                                         onChange={handleChange}
                                     >
-                                        <MenuItem value={"public"}>Public</MenuItem>
-                                        <MenuItem value={"friends"}>Private (Friends)</MenuItem>
-                                        <MenuItem value={"private"}>Private</MenuItem>
+                                        <MenuItem value={"public"}>Plaintext</MenuItem>
+                                        <MenuItem value={"friends"}>CommonMark</MenuItem>
+                                        <MenuItem value={"private"}>Image</MenuItem>
                                     </Select>
                             </FormControl>
                         </Grid>
@@ -80,16 +95,6 @@ export default function NewPost() {
                             label="Post Title"
                             name="post-title"
                             autoComplete="post-title"
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                            required
-                            fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
                             />
                         </Grid>
                         <Grid item xs={12}>
