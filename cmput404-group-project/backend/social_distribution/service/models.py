@@ -4,11 +4,14 @@ from django.utils import timezone
 # IMPORTANT ----------------------
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 
+class Friends(models.Model):
+
+
 class Followers(model.Model):
     type: "followers"
 
     id models.URLField(primary_key = True, max_length = 255)
-    items = models.JSONField(default = list)
+    items = models.JSONField(default = list) #foreign key
 
 class FollowRequest(model.Model):
     type: 'Follow'
@@ -41,7 +44,7 @@ class Post(models.Model):
     contentType = models.CharField(max_length = 20, choices = ContentType.choices, default = ContentType.plain) #change to different default?
 
     content = models.TextField(blank = True)
-    #author = #change to jsonfield?
+    author = models.ForeignKey(Author, on_delete = CASCADE)
     categories = models.JSONField(default = list, null = True)
     count = models.IntegerField(default = 0, blank = True)
     comments = model.TextField(null = True)
@@ -57,7 +60,7 @@ class ImagePosts(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE)
     image = models.ImageField(null = True, blank = True)
 
-class Comments(models.Model):
+class Comment(models.Model):
     type = 'comment'
     author = models.CharField(max_length= 255, default='') #change to jsonfield?
     comment = models.CharField(default = '')
@@ -78,11 +81,11 @@ class Likes(models.Model):
 class Liked(models.Model):
     type = 'liked'
 
-    items = models.JSONField(default = list)
+    items = models.JSONField(default = list) #foreign key
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
 
 class Inbox(models.Model):
     type = 'inbox'
 
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    items = JSONField(default = list)
+    items = JSONField(default = list) #foreign key
