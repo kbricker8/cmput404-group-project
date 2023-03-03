@@ -76,7 +76,7 @@ function Navbar() {
             </li>
             <li className="nav-item">
 
-              <NavLink
+              {user == null? null : <NavLink
                 to="/AboutUs"
                 className={({ isActive }) =>
                   "nav-links" + (isActive ? " activated" : "")
@@ -84,8 +84,8 @@ function Navbar() {
                 onClick={closeMobileMenu}
                 style={{ textDecoration: 'none' }}
               >
-                About
-              </NavLink>
+                My Profile
+              </NavLink>}
 
             </li>
             <li className="nav-item">
