@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
@@ -18,44 +19,50 @@ import Copyright from "../assets/copyright";
 
 const theme = createTheme();
 
-const axiosConfig = {
-  headers: {
-      'Content-Type': 'application/json;charset=UTF-8',
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Header" : "*"
-  }
-};
 export default function SignIn() {
   const [signUpUsername, setSignUpUsername] = React.useState('');
   const [signUpEmail, setSignUpEmail] = React.useState('');
   const [signUpPassword, setSignUpPassword] = React.useState('');
+  const [signInUsername, setSignInUsername] = React.useState('');
+  const [signInPassword, setSignInPassword] = React.useState('');
+  const [signInError, setSignInError] = React.useState(false);
+  const [helperText, setHelperText] = React.useState('');
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-    // axios.post('http://127.0.0.1:8000/service/users',{
-    //   username: signUpUsername,
-    //   email: signUpEmail,
-    //   password: signUpPassword,}).then((response) => { console.log("RESPONSE:",response); }).catch((error) => { console.log(error); });
+
+    axios.post('http://127.0.0.1:8000/service/users/login/', {
+      username: signInUsername,
+      password: signInPassword,
+    })
+      .then((response) => {
+        console.log("RESPONSE:", response);
+        if (response.status == 200) {
+          nav("/feed", { state: { username: signInUsername, password: signInPassword } });
+        }
+      }).catch((error) => {
+        console.log("Invalid username or password")
+        setHelperText("Invalid username or password");
+        setSignInError(true);
+      });
+
   };
   const nav = useNavigate();
-  const onSignUpSubmit = (e: React.FormEvent<HTMLButtonElement>) =>{
+
+  const onSignUpSubmit = (e: React.FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
     console.log("SUBMIT SIGN IN CALLED");
-    
-    axios.post('http://127.0.0.1:8000/service/users/',{
+
+    axios.post('http://127.0.0.1:8000/service/users/', {
       username: signUpUsername,
       email: signUpEmail,
-      password: signUpPassword,}).then((response) => { console.log("RESPONSE:",response); });
-      //window.location.href="feed"
-      nav("/feed",{state:{username: signUpUsername,email: signUpEmail,password: signUpPassword}});
-    };
-  
-  return (  
-    <Container component="main" sx={{pt:15}}>
+      password: signUpPassword,
+    }).then((response) => { console.log("RESPONSE:", response); });
+    //window.location.href="feed"
+    nav("/feed", { state: { username: signUpUsername, email: signUpEmail, password: signUpPassword } });
+  };
+
+  return (
+    <Container component="main" sx={{ pt: 15 }}>
       <Grid container spacing={0}>
 
         {/* Sign In Section */}
@@ -79,6 +86,7 @@ export default function SignIn() {
                   Sign in to your SocDist Account
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                  
                   <TextField
                     margin="normal"
                     required
@@ -88,6 +96,7 @@ export default function SignIn() {
                     name="username"
                     autoComplete="username"
                     autoFocus
+                    onChange={(e) => { setSignInUsername(e.target.value) }}
                   />
                   <TextField
                     margin="normal"
@@ -98,17 +107,18 @@ export default function SignIn() {
                     type="password"
                     id="password"
                     autoComplete="current-password"
+                    onChange={(e) => { setSignInPassword(e.target.value) }}
                   />
                   <FormControlLabel
                     control={<Checkbox value="remember" color="primary" />}
                     label="Remember me"
                   />
+                  <FormHelperText>{helperText}</FormHelperText>
                   <Button
                     type="submit"
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
-                    href="./Feed"
                   >
                     Sign In
                   </Button>
@@ -122,7 +132,7 @@ export default function SignIn() {
                 </Box>
               </Box>
             </Container>
-          </ThemeProvider>          
+          </ThemeProvider>
         </Grid>
 
         {/* Sign Up Section */}
@@ -156,7 +166,7 @@ export default function SignIn() {
                           label="Username"
                           name="username"
                           autoComplete="username"
-                          onChange={(e) => {setSignUpUsername(e.target.value)}}
+                          onChange={(e) => { setSignUpUsername(e.target.value) }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -167,7 +177,7 @@ export default function SignIn() {
                           label="Email Address"
                           name="email"
                           autoComplete="email"
-                          onChange={(e) => {setSignUpEmail(e.target.value)}}
+                          onChange={(e) => { setSignUpEmail(e.target.value) }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -179,7 +189,7 @@ export default function SignIn() {
                           type="password"
                           id="password"
                           autoComplete="new-password"
-                          onChange={(e) => {setSignUpPassword(e.target.value)}}
+                          onChange={(e) => { setSignUpPassword(e.target.value) }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -210,6 +220,6 @@ export default function SignIn() {
 
       <Copyright sx={{ mt: 10 }} />
     </Container>
-    
+
   );
 }
