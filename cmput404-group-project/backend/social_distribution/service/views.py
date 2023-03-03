@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 
 # import serializers
-from .serializers import PostsSerializer
+from .serializers import PostSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import AuthorSerializer
@@ -109,7 +109,7 @@ class UsersViewSet(mixins.RetrieveModelMixin,
 
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
-    serializer_class = PostsSerializer
+    serializer_class = PostSerializer
 
     def list(self, request, *args, **kwargs): # overrides the default list method
         posts = Post.objects.all()
