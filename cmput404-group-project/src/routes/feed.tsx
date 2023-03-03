@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import CameraIcon from '@mui/icons-material/PhotoCamera';
@@ -23,6 +24,7 @@ const cards = [1, 2, 3, 4, 5, 6, 7, 8];
 const theme = createTheme();
 
 export default function Album() {
+    const location = useLocation();
   return (
     <ThemeProvider theme={theme}>
         <Container sx={{pt: 5}}>
@@ -49,20 +51,20 @@ export default function Album() {
                                 pt={8}
                                 gutterBottom
                                 >
-                                Welcome Sankalp!
+                                Welcome {location.state.username || "User"}!
                                 </Typography>
                                 <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
                                 This is your <em>dashboard</em>. View public posts here or publish your own!
                                 </Typography>
                             </Stack>
                             <Stack
-                            sx={{ pt: 10 }}
+                            sx={{ pt: 20 }}
                             direction="column"
                             spacing={2}
                             justifyContent="center"
                             >
-                            <Button variant="contained">New Public Post</Button>
-                            <Button variant="outlined">New Private Post</Button>
+                            <Button variant="contained" href='./NewPost'>New Public Post</Button>
+                            {/* <Button variant="outlined">New Private Post</Button> */}
                             </Stack>
                         </Stack>
                     </Container>

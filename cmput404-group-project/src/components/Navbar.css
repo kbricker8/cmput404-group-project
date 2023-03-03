@@ -124,10 +124,12 @@ display: none;
     color: #09bef0;
     transform: scale(1.2);
     transition: all 0.3s ease;
+    text-decoration: none;
 }
 
 .nav-item:hover {
     border: none;
+    text-decoration: none;
 }
 
 .nav-item {

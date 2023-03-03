@@ -92,6 +92,7 @@ Passwords are sent in plaintext then hashed on the serverside.
 ## /service/author/{authorId}/posts/
 
 
+
 ## /service/author/{authorId}/posts/{postId}/comments/
 
 Can do get requests for both:
