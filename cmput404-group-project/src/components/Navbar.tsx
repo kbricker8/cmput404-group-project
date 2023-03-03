@@ -18,18 +18,6 @@ function Navbar() {
             </Link>
             <ul className={click ? "nav-menu active" : "nav-menu"}>
               <li className="nav-item">
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    "nav-links" + (isActive ? " activated" : "")
-                  }
-                  onClick={closeMobileMenu}
-                  style={{textDecoration: 'none'}}
-                >
-                  Home Page
-                </NavLink>
-              </li>
-              <li className="nav-item">
 
                 <NavLink
                   to="/AboutUs"
