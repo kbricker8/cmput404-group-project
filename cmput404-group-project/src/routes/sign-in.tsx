@@ -37,7 +37,9 @@ export default function SignIn() {
       .then((response) => {
         console.log("RESPONSE:", response);
         if (response.status == 200) {
-          nav("/feed", { state: { username: signInUsername, password: signInPassword } });
+          localStorage.setItem('user', JSON.stringify(response.data));
+          localStorage.setItem('refreshed','false')
+          nav("/feed");
         }
       }).catch((error) => {
         console.log("Invalid username or password")
@@ -56,7 +58,11 @@ export default function SignIn() {
       username: signUpUsername,
       email: signUpEmail,
       password: signUpPassword,
-    }).then((response) => { console.log("RESPONSE:", response); });
+    }).then((response) => {
+      console.log("RESPONSE:", response);
+      localStorage.setItem('refreshed','false')
+      localStorage.setItem('user', JSON.stringify(response.data));
+    });
     //window.location.href="feed"
     nav("/feed", { state: { username: signUpUsername, email: signUpEmail, password: signUpPassword } });
   };
@@ -86,7 +92,7 @@ export default function SignIn() {
                   Sign in to your SocDist Account
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-                  
+
                   <TextField
                     margin="normal"
                     required
