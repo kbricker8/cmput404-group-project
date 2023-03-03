@@ -53,7 +53,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id','type','source','origin','description','contentType','author','categories','count','comments','published','visibility','unlisted')
+        fields = ('id','type', 'title','source','origin','description','contentType','author','categories','count','comments','published','visibility','unlisted')
 
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
