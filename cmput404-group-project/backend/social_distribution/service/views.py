@@ -34,7 +34,9 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         author.url = "http://127.0.0.1:8000/service/authors/" + str(author.id)
         author.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        author_serializer = AuthorSerializer(instance=author)
+
+        return Response(author_serializer.data, status=status.HTTP_201_CREATED)
     
     def list(self, request):
         recent_users = User.objects.all().order_by('-last_login')
@@ -71,8 +73,9 @@ class UsersViewSet(mixins.RetrieveModelMixin,
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                user_serializer = UserSerializer(instance=user)
-                return Response(user_serializer.data,
+                author = Author.get_author_from_user(user=user)
+                author_serializer = AuthorSerializer(instance=author)
+                return Response(author_serializer.data,
                         status=status.HTTP_200_OK)
             return Response({"detail": ["Wrong username or password."]}, 
                             status=status.HTTP_400_BAD_REQUEST)

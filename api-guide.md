@@ -91,7 +91,24 @@ Passwords are sent in plaintext then hashed on the serverside.
 
 ## /service/author/{authorId}/posts/
 
+- POST
 
+Format:
+```
+{
+    "source": "",
+    "origin": "",
+    "description": "",
+    "contentType": null,
+    "author": null,
+    "categories": null,
+    "count": null,
+    "comments": "",
+    "published": null,
+    "visibility": null,
+    "unlisted": false
+}
+```
 
 ## /service/author/{authorId}/posts/{postId}/comments/
 
