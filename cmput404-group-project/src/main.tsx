@@ -13,6 +13,7 @@ import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
 import FeedPage from "./routes/feed";
+import NewPost from "./components/NewPost";
 
 // import Feed from "./routes/feed";
 // const AppLayout = () => {
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
       {
         path: "Feed",
         element: <FeedPage />,
+      },
+      {
+        path: "newPost",
+        element: <NewPost />,
       }
     ]
   },

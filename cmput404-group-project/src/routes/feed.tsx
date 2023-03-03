@@ -56,13 +56,13 @@ export default function Album() {
                                 </Typography>
                             </Stack>
                             <Stack
-                            sx={{ pt: 10 }}
+                            sx={{ pt: 20 }}
                             direction="column"
                             spacing={2}
                             justifyContent="center"
                             >
-                            <Button variant="contained">New Public Post</Button>
-                            <Button variant="outlined">New Private Post</Button>
+                            <Button variant="contained" href='./NewPost'>New Public Post</Button>
+                            {/* <Button variant="outlined">New Private Post</Button> */}
                             </Stack>
                         </Stack>
                     </Container>
