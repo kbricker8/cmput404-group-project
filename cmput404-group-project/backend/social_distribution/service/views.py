@@ -11,10 +11,12 @@ from .serializers import ChangePasswordSerializer
 from .serializers import AuthorSerializer
 from .serializers import LoginSerializer
 from .serializers import CommentsSerializer
+from .serializers import FollowRequestSerializer
+from .serializers import FollowersSerializer
 
 # import models
 from django.contrib.auth.models import User
-from .models import Post, Author, Comment
+from .models import Post, Author, Comment, FollowRequest, Followers
 
 class UsersViewSet(mixins.RetrieveModelMixin,
                    viewsets.GenericViewSet):
@@ -33,6 +35,9 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         author.save()
         author.url = "http://127.0.0.1:8000/service/authors/" + str(author.id)
         author.save()
+
+        followers = Followers(user = author)
+        followers.save()
 
         author_serializer = AuthorSerializer(instance=author)
 
@@ -82,35 +87,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
-    
-# # From tutorial
-# # https://studygyaan.com/django/django-rest-framework-tutorial-change-password-and-reset-password
-# class ChangePasswordView(generics.UpdateAPIView):
-#     serializer_class = ChangePasswordSerializer
-#     model = User
-
-#     @action(detail=False)
-#     def get_object(self, queryset=None):
-#         queryset = self.request.user.all()
-#         return Response(self.request.user)
-    
-#     @action(detail=True, methods=['post'])
-#     def update_pass(self, request, *args, **kwargs):
-#         self.object = self.get_object()
-#         serializer = self.get_serializer(data=request.data)
-
-#         if serializer.is_valid():
-#             if not self.object.check_password(serializer.data.get("old_password")):
-#                 return Response({"old_password": ["Wrong Password."]}, 
-#                                 status=status.HTTP_400_BAD_REQUEST)
-#             self.object.set_password(serializer.data.get("new_password"))
-#             self.object.save()
-#             return Response({"status": "success",
-#                              "code": status.HTTP_200_OK,
-#                              "message": "Password updated successfully"})
-#         return Response(serializer.errors,
-#                         status=status.HTTP_400_BAD_REQUEST)
-
 
 class AuthorsViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
@@ -122,6 +98,75 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         return Response({"type": "authors",
                          "items": serializer.data})
     
+class FollowRequestViewSet(viewsets.GenericViewSet):
+    queryset = FollowRequest.objects.all()
+    serializer_class = FollowRequestSerializer
+
+    def list(self, request, author_pk=None, *args, **kwargs):
+        author = get_object_or_404(Author, id=author_pk)
+        queryset = FollowRequest.objects.all().filter(object=author)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, author_pk=None, *args, **kwargs):
+        object = get_object_or_404(Author, id=author_pk)
+        actor = get_object_or_404(Author, id=pk)
+        try: 
+            instance = FollowRequest.objects.get(object=object, actor=actor)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except:
+            return Response({"detail": ["Request does not exist."]},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True)
+    def send(self, request, pk=None, author_pk=None, *args, **kwargs):
+        object = Author.objects.get(id=author_pk)
+        actor = Author.objects.get(id=pk)
+        summary = f"{actor.displayName} wants to follow {object.displayName}."
+        if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
+            return Response({"detail": ["Request already exists."]},
+                            status=status.HTTP_400_BAD_REQUEST)
+        follow_request = FollowRequest(summary=summary, actor=actor, object=object)
+        follow_request.save()
+        serializer = FollowRequestSerializer(instance=follow_request)
+        return Response(serializer.data)
+    
+    @action(detail=True)
+    def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
+        object = get_object_or_404(Author, id=author_pk)
+        actor = get_object_or_404(Author, id=pk)
+        if FollowRequest.objects.filter(actor=actor, object=object).count():
+            instance = FollowRequest.objects.get(object=object, actor=actor)
+            followers = Followers.objects.get(author=object)
+            followers.items.add(actor)
+            instance.delete()
+            return Response({"detail": ["Follow request accepted."]},
+                        status=status.HTTP_200_OK)
+
+        return Response({"detail": ["Request does not exist."]},
+                        status=status.HTTP_404_NOT_FOUND)
+
+
+class FollowersViewSet(viewsets.ModelViewSet):
+    queryset = Followers.objects.all()
+    serializer_class = FollowersSerializer
+
+    # def update(self, request, pk=None, author_pk=None, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+
+    #     if getattr(instance, '_prefetched_objects_cache', None):
+    #         # If 'prefetch_related' has been applied to a queryset, we need to
+    #         # forcibly invalidate the prefetch cache on the instance.
+    #         instance._prefetched_objects_cache = {}
+
+    #     return Response(serializer.data)
+
+
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -142,6 +187,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         serializer.save(author=author)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()

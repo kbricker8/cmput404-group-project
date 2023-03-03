@@ -102,6 +102,34 @@ Requires:
 ```
 Passwords are sent in plaintext then hashed on the serverside.
 
+## /service/author/
+
+Returns list of all authors
+
+## /service/author/{authorId}/
+
+Returns the author obj at authorId
+
+## /service/author/{authorId}/followers/
+
+Return a list of authorId's followers
+
+## /service/author/{authorId}/follow-request/
+
+Return a list of follow requests sent to authorId
+
+## /service/author/{authorId}/follow-request/{senderId}
+
+Return the follow request sent by senderId to authorId, or 404 if doesnt exist
+
+## /service/author/{authorId}/follow-request/{senderId}/send
+
+Send follow request from senderId to authorId
+
+## /service/author/{authorId}/follow-request/{senderId}/accept
+
+Accept follow request from senderId to authorId, this also deletes the request and adds the sender to the authors followers list
+
 ## /service/author/{authorId}/posts/
 
 - POST
