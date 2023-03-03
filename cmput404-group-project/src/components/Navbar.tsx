@@ -13,7 +13,7 @@ function Navbar() {
     <>
         <nav className="navbar">
           <div className="navbar-container container">
-            <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
+            <Link to="/" className="navbar-logo" onClick={closeMobileMenu} style={{textDecoration: 'none'}}>
                 Social Distribution
             </Link>
             <ul className={click ? "nav-menu active" : "nav-menu"}>
@@ -24,6 +24,7 @@ function Navbar() {
                     "nav-links" + (isActive ? " activated" : "")
                   }
                   onClick={closeMobileMenu}
+                  style={{textDecoration: 'none'}}
                 >
                   Home Page
                 </NavLink>
@@ -36,6 +37,7 @@ function Navbar() {
                     "nav-links" + (isActive ? " activated" : "")
                   }
                   onClick={closeMobileMenu}
+                  style={{textDecoration: 'none'}}
                 >
                   About
                 </NavLink>
@@ -48,6 +50,7 @@ function Navbar() {
                     "nav-links" + (isActive ? " activated" : "")
                   }
                   onClick={closeMobileMenu}
+                  style={{textDecoration: 'none', textDecorationColor: 'white'}}
                 >
                   Sign In
                 </NavLink>
