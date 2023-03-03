@@ -45,10 +45,6 @@ class FollowersSerializer(serializers.ModelSerializer):
         model = Followers
         fields = ('type', 'author', 'items')
 
-class AddFollowerSerializer(serializers.ModelSerializer):
-    model = Followers
-    follower = 
-
 class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest

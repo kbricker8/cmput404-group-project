@@ -25,7 +25,7 @@ class Followers(models.Model):
     type = "Followers"
 
     id = models.URLField(primary_key = True, max_length = 255)
-    user = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers')
+    author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers')
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='following')
 
 class FollowRequest(models.Model):
