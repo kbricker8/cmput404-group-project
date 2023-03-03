@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class Author(models.Model):
     type = 'author'
-    user_id = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE)
     host = models.URLField(max_length=200, blank=True)
     displayName = models.CharField(max_length=150)
     url = models.URLField(max_length=200, blank=True)
