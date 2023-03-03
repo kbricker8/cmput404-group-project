@@ -15,19 +15,27 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
+from rest_framework_nested import routers
 from service import views
 
 # from service.views import ChangePasswordView
 
-router = routers.DefaultRouter()
-router.register(r'posts', views.PostsViewSet, 'post')
-router.register(r'authors', views.AuthorsViewSet, 'author')
+router = routers.SimpleRouter()
 router.register(r'users', views.UsersViewSet, 'user')
+router.register(r'authors', views.AuthorsViewSet, 'author')
+
+authors_router = routers.NestedSimpleRouter(router, r'authors', lookup='author')
+authors_router.register(r'posts', views.PostsViewSet, 'post')
+authors_router.register(r'followers', views.FollowersViewSet, 'followers')
+authors_router.register(r'follow-request', views.FollowRequestViewSet, 'follow-request')
+
+posts_router = routers.NestedSimpleRouter(authors_router, r'posts', lookup='post')
+posts_router.register(r'comments', views.CommentsViewSet, 'comment')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('service/', include(router.urls)),
-    # path('service/change-password/', ChangePasswordView.as_view(), name='change-password')
+    path('service/', include(authors_router.urls)),
+    path('service/', include(posts_router.urls)),
 ]

@@ -16,20 +16,24 @@ class Author(models.Model):
     github = models.URLField(max_length=200, blank=True)
     profileImage = models.URLField(max_length=200, blank=True)
 
-    user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE) # the user account that the author object is linked to
+    user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE, related_name='author') # the user account that the author object is linked to
+
+    def get_author_from_user(user):
+        return Author.objects.get(user=user)
 
 class Followers(models.Model):
-    type: "Followers"
+    type = "Followers"
 
     id = models.URLField(primary_key = True, max_length = 255)
-    items = models.ManyToManyField(Author, symmetrical=False)
+    author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers')
+    items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='following')
 
 class FollowRequest(models.Model):
-    type: 'FollowRequest'
+    type = 'FollowRequest'
 
     summary = models.CharField(max_length = 255)
-    actor = models.CharField(max_length = 255)
-    object = models.CharField(max_length = 255)
+    actor = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='sent_requests') # the person sending the follow req
+    object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
 
 class Post(models.Model):
     class Visibility(models.TextChoices):
@@ -53,7 +57,7 @@ class Post(models.Model):
     contentType = models.CharField(max_length = 20, choices = ContentType.choices, default = ContentType.PLAIN) #change to different default?
 
     content = models.TextField(blank = True)
-    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE)
+    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='posts')
     categories = models.JSONField(default = list, null = True)
     count = models.IntegerField(default = 0, blank = True)
     comments = models.TextField(null = True)
@@ -67,13 +71,14 @@ class Post(models.Model):
 class ImagePosts(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'ImagePost'
-    post = models.ForeignKey(Post, on_delete = models.CASCADE)
+    post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image_posts')
     image = models.ImageField(null = True, blank = True)
 
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'comment'
-    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE)
+    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='posts')
     comment = models.TextField(max_length = 255, default = '')
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)

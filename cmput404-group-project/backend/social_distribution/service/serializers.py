@@ -40,20 +40,30 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
 class FollowersSerializer(serializers.ModelSerializer):
+    author = serializers.Field(write_only=True)
     class Meta:
         model = Followers
-        fields = ('type, items')
+        fields = ('type', 'author', 'items')
 
-class FollowerRequestSerializer(serializers.ModelSerializer):
+class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
         fields = ('type', 'summary', 'actor', 'object')
+
+    def to_representation(self, instance):
+        self.fields['actor'] = AuthorSerializer(read_only=True)
+        self.fields['object'] = AuthorSerializer(read_only=True)
+        return super().to_representation(instance)
 
 class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = "__all__"
+        fields = ('id','type', 'title','source','origin','description','contentType','author','categories','count','comments','published','visibility','unlisted')
+
+    def to_representation(self, instance):
+        self.fields['author'] = AuthorSerializer(read_only=True)
+        return super().to_representation(instance)
 
 class ImagePostsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,9 +71,20 @@ class ImagePostsSerializer(serializers.ModelSerializer):
         fields = ('post', 'image') #add type?
 
 class CommentsSerializer(serializers.ModelSerializer):
+    author_id = serializers.CharField(
+        required=True,
+        write_only=True
+        )
+
     class Meta:
         model = Comment
-        fields = ('type', 'author', 'comment', 'contentType', 'published', 'id')
+        # fields = "__all__"
+        fields = ('id', 'type', 'author', 'author_id', 'comment', 'contentType', 'published', 'post')
+    
+    def to_representation(self, instance):
+        self.fields['author'] = AuthorSerializer(read_only=True)
+        # self.fields['post'] = PostSerializer(read_only=True)
+        return super().to_representation(instance)
 
 class LikesSerializer(serializers.ModelSerializer):
     class Meta:
