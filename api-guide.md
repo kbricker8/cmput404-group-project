@@ -88,3 +88,25 @@ Requires:
 }
 ```
 Passwords are sent in plaintext then hashed on the serverside.
+
+## /service/author/{authorId}/posts/
+
+
+
+## /service/author/{authorId}/posts/{postId}/comments/
+
+Can do get requests for both:
+/service/author/{authorId}/posts/{postId}/comments/
+/service/author/{authorId}/posts/{postId}/comments/{commendId}/
+
+- POST /service/author/{authorId}/posts/{postId}/comments/
+
+Format:
+```
+{
+    "author_id": "",
+    "comment": "",
+    "contentType": "",
+    "published": "YYYY-MM-DD",
+}
+```

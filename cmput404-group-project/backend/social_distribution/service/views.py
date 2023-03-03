@@ -10,10 +10,11 @@ from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import AuthorSerializer
 from .serializers import LoginSerializer
+from .serializers import CommentsSerializer
 
 # import models
 from django.contrib.auth.models import User
-from .models import Post, Author
+from .models import Post, Author, Comment
 
 class UsersViewSet(mixins.RetrieveModelMixin,
                    viewsets.GenericViewSet):
@@ -107,16 +108,6 @@ class UsersViewSet(mixins.RetrieveModelMixin,
 #         return Response(serializer.errors,
 #                         status=status.HTTP_400_BAD_REQUEST)
 
-class PostsViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-
-    def list(self, request, *args, **kwargs): # overrides the default list method
-        posts = Post.objects.all()
-        serializer = self.get_serializer(posts, many=True)
-        return Response({"type": "posts",
-                         "items": serializer.data})
-
 
 class AuthorsViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
@@ -127,3 +118,45 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+class PostsViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+    def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
+        posts = Post.objects.all()
+        serializer = self.get_serializer(posts, many=True)
+        return Response({"type": "posts",
+                         "items": serializer.data})
+    
+    def create(self, request, author_pk=None, *args, **kwargs):
+        
+        author = Author.objects.get(id=author_pk)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # self.perform_create(serializer)
+        serializer.save(author=author)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class CommentsViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentsSerializer
+
+    def list(self, request, author_pk=None, post_pk=None, *args, **kwargs): # overrides the default list method
+        comments = Comment.objects.filter(post=post_pk).all()
+        serializer = self.get_serializer(comments, many=True)
+        return Response({"type": "comments",
+                         "items": serializer.data})
+
+    def create(self, request, author_pk=None, post_pk=None, *args, **kwargs):
+        
+        post = Post.objects.get(id=post_pk)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # self.perform_create(serializer)
+        serializer.save(post=post)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
