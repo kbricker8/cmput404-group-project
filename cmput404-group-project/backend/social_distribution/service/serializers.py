@@ -40,14 +40,24 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
 class FollowersSerializer(serializers.ModelSerializer):
+    author = serializers.Field(write_only=True)
     class Meta:
         model = Followers
-        fields = ('type, items')
+        fields = ('type', 'author', 'items')
 
-class FollowerRequestSerializer(serializers.ModelSerializer):
+class AddFollowerSerializer(serializers.ModelSerializer):
+    model = Followers
+    follower = 
+
+class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
         fields = ('type', 'summary', 'actor', 'object')
+
+    def to_representation(self, instance):
+        self.fields['actor'] = AuthorSerializer(read_only=True)
+        self.fields['object'] = AuthorSerializer(read_only=True)
+        return super().to_representation(instance)
 
 class PostSerializer(serializers.ModelSerializer):
 
