@@ -1,4 +1,6 @@
 import * as React from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -16,7 +18,17 @@ import Copyright from "../assets/copyright";
 
 const theme = createTheme();
 
+const axiosConfig = {
+  headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Header" : "*"
+  }
+};
 export default function SignIn() {
+  const [signUpUsername, setSignUpUsername] = React.useState('');
+  const [signUpEmail, setSignUpEmail] = React.useState('');
+  const [signUpPassword, setSignUpPassword] = React.useState('');
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -24,9 +36,25 @@ export default function SignIn() {
       email: data.get('email'),
       password: data.get('password'),
     });
+    // axios.post('http://127.0.0.1:8000/service/users',{
+    //   username: signUpUsername,
+    //   email: signUpEmail,
+    //   password: signUpPassword,}).then((response) => { console.log("RESPONSE:",response); }).catch((error) => { console.log(error); });
   };
-
-  return (
+  const nav = useNavigate();
+  const onSignUpSubmit = (e: React.FormEvent<HTMLButtonElement>) =>{
+    e.preventDefault();
+    console.log("SUBMIT SIGN IN CALLED");
+    
+    axios.post('http://127.0.0.1:8000/service/users/',{
+      username: signUpUsername,
+      email: signUpEmail,
+      password: signUpPassword,}).then((response) => { console.log("RESPONSE:",response); });
+      //window.location.href="feed"
+      nav("/feed",{state:{username: signUpUsername,email: signUpEmail,password: signUpPassword}});
+    };
+  
+  return (  
     <Container component="main" sx={{pt:15}}>
       <Grid container spacing={0}>
 
@@ -128,6 +156,7 @@ export default function SignIn() {
                           label="Username"
                           name="username"
                           autoComplete="username"
+                          onChange={(e) => {setSignUpUsername(e.target.value)}}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -138,6 +167,7 @@ export default function SignIn() {
                           label="Email Address"
                           name="email"
                           autoComplete="email"
+                          onChange={(e) => {setSignUpEmail(e.target.value)}}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -149,6 +179,7 @@ export default function SignIn() {
                           type="password"
                           id="password"
                           autoComplete="new-password"
+                          onChange={(e) => {setSignUpPassword(e.target.value)}}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -159,7 +190,8 @@ export default function SignIn() {
                       </Grid>
                     </Grid>
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={onSignUpSubmit}
                       fullWidth
                       variant="contained"
                       sx={{ mt: 3, mb: 2 }}
