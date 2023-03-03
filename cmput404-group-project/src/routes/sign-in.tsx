@@ -51,7 +51,7 @@ export default function SignIn() {
       email: signUpEmail,
       password: signUpPassword,}).then((response) => { console.log("RESPONSE:",response); });
       //window.location.href="feed"
-      nav("/feed");
+      nav("/feed",{state:{username: signUpUsername,email: signUpEmail,password: signUpPassword}});
     };
   
   return (  
