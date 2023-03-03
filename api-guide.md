@@ -21,10 +21,19 @@ Post Format:
 ```
 Returns:
 ```
+HTTP 200 OK
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
 {
-    "id": {userId},
-    "username": "example_username",
-    "email": "example_email"
+    "type": "author",
+    "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
+    "url": "",
+    "host": "http://127.0.0.1:8000/",
+    "displayName": "kyle",
+    "github": "",
+    "profileImage": ""
 }
 ```
 it is important to note that passwords are sent as raw strings, and then saved in the database after hashing.  
@@ -46,9 +55,13 @@ Content-Type: application/json
 Vary: Accept
 
 {
-    "id": 1,
-    "username": "kyle",
-    "email": "kbricker@ualberta.ca"
+    "type": "author",
+    "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
+    "url": "",
+    "host": "http://127.0.0.1:8000/",
+    "displayName": "kyle",
+    "github": "",
+    "profileImage": ""
 }
 ```
 If not OK returns:
