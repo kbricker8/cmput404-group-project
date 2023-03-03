@@ -1,6 +1,6 @@
 import * as React from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import CameraIcon from '@mui/icons-material/PhotoCamera';
@@ -27,6 +27,9 @@ export default function NewPost() {
     const [postType, setPostType] = React.useState('')
     const [postTitle, setPostTitle] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
+    const user = JSON.parse(localStorage.getItem('user')!);
+
+    const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
@@ -36,16 +39,20 @@ export default function NewPost() {
         axios.post('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/', {
             source: 'http://127.0.0.1:8000',
             origin: 'http://127.0.0.1:8000',
+            title: postTitle,
             description: postContent,
             contentType: postType,
             //author: JSON.parse(localStorage.getItem('user')!).name,
-            author: "a35ea487-2bda-48ed-9503-94edbbb445fa",
-            categories: null,
+            author: user.id,
+            categories: {},
             count: 0,
             published: new Date().toISOString(),
             visibility: visibility,
             unlisted: false,
-        }).then((response) => { console.log("MAKE POST RESPONSE:", response); }).catch((error) => { console.log("MAKE POST ERROR:", error); })
+        }).then((response) => {
+            console.log("MAKE POST RESPONSE:", response);
+            navigate(-1)
+        }).catch((error) => { console.log("MAKE POST ERROR:", error); })
     };
 
 

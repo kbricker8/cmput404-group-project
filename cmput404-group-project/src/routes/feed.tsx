@@ -40,12 +40,13 @@ export default function Album() {
     
     
     React.useEffect(() => {
-        refreshPage();
+        //refreshPage();
         axios.get('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/').then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;
                 setPosts(response.data.items);
+                
         }
         )
     },[]);
@@ -75,7 +76,7 @@ export default function Album() {
                                         pt={8}
                                         gutterBottom
                                     >
-                                        Welcome {user.username || "User"}!
+                                        Welcome {user.displayName || "User"}!
                                     </Typography>
                                     <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
                                         This is your <em>dashboard</em>. View public posts here or publish your own!
@@ -108,10 +109,10 @@ export default function Album() {
                                         <CardActionArea>
                                             <CardContent sx={{ flexGrow: 1, bottom: "2px" }}>
                                                 <Typography gutterBottom variant="h6" component="h1">
-                                                    <b>Check out this cool post! {console.log(posts)}</b>
+                                                    <b>{post.title}</b>
                                                 </Typography>
                                                 <Typography gutterBottom variant="subtitle2" component="h3">
-                                                    {post.author.id}
+                                                    {post.author.displayName}
                                                 </Typography>
                                                 <Typography gutterBottom variant="subtitle1" component="h3">
                                                     {post.description}
