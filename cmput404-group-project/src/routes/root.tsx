@@ -5,7 +5,8 @@ import Navbar from "../components/Navbar";
 import AboutUs from "./about-us";
 import SignIn from "./sign-in";
 import Home from "./home-page";
-import NavBar from "./navbar";
+import Feed from "./feed";
+// import NavBar from "./navbar";
 export default function Root() {
     return (
 
@@ -16,6 +17,7 @@ export default function Root() {
                 <Route path="/" element={<Home/>} />
                 <Route path="aboutUs" element={<AboutUs/>} />
                 <Route path="signIn" element={<SignIn/>} />
+                <Route path="feed" element={<Feed/>} />
                 </Routes>
             </div>
             

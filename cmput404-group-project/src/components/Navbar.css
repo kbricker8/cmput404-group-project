@@ -42,6 +42,7 @@ text-decoration: none;
 font-size: 2rem;
 display: flex;
 align-items: center;
+padding-bottom: 16px;
 }
 
 .navbar-icon {
@@ -116,6 +117,7 @@ display: none;
     padding: 2rem;
     width: 100%;
     display: table;
+    text-decoration: none;
 }
 
 .nav-links:hover {
