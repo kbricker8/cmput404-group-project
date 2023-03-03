@@ -11,8 +11,10 @@ import HomePage from "./routes/home-page";
 import ErrorPage from "./error-page";
 import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
-// import Feed from "./routes/feed";
+import SignUp from "./routes/sign-up";
+import Home from "./routes/home-page";
 
+// import Feed from "./routes/feed";
 // const AppLayout = () => {
 //   return (
 //     <>
