@@ -43,29 +43,20 @@ export default function Album() {
                                     spacing={0}
                                     justifyContent="center"
                                 >
-                                    <Typography
-                                        component="h1"
-                                        variant="h2"
-                                        align="left"
-                                        color="text.primary"
-                                        pt={8}
-                                        gutterBottom
-                                    >
-                                        Welcome {location.state.username || "User"}!
-                                    </Typography>
-                                    <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
-                                        This is your <em>dashboard</em>. View public posts here or publish your own!
-                                    </Typography>
-                                </Stack>
-                                <Stack
-                                    sx={{ pt: 10 }}
-                                    direction="column"
-                                    spacing={2}
-                                    justifyContent="center"
-                                >
-                                    <Button variant="contained">New Public Post</Button>
-                                    <Button variant="outlined">New Private Post</Button>
-                                </Stack>
+                                Welcome {location.state.username || "User"}!
+                                </Typography>
+                                <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
+                                This is your <em>dashboard</em>. View public posts here or publish your own!
+                                </Typography>
+                            </Stack>
+                            <Stack
+                            sx={{ pt: 20 }}
+                            direction="column"
+                            spacing={2}
+                            justifyContent="center"
+                            >
+                            <Button variant="contained" href='./NewPost'>New Public Post</Button>
+                            {/* <Button variant="outlined">New Private Post</Button> */}
                             </Stack>
                         </Container>
                     </Box>
