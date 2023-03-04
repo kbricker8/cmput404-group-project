@@ -60,7 +60,8 @@ export default function SignIn() {
       password: signUpPassword,
     }).then((response) => {
       console.log("RESPONSE:", response);
-      localStorage.setItem('refreshed','false')
+      localStorage.setItem('refreshed','false');
+      console.log("RESPONSE:", response.data);
       localStorage.setItem('user', JSON.stringify(response.data));
     });
     //window.location.href="feed"
