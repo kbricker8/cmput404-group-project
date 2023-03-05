@@ -36,8 +36,9 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         author.url = "http://127.0.0.1:8000/service/authors/" + str(author.id)
         author.save()
 
-        # followers = Followers(author = author)
-        # followers.save()
+        followers_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/followers/'
+        followers = Followers(id=followers_id, author = author)
+        followers.save()
 
         author_serializer = AuthorSerializer(instance=author)
 
@@ -151,6 +152,12 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
 class FollowersViewSet(viewsets.ModelViewSet):
     queryset = Followers.objects.all()
     serializer_class = FollowersSerializer
+
+    def list(self, request, author_pk=None, *args, **kwargs):
+        author = get_object_or_404(Author, id=author_pk)
+        queryset = Followers.objects.all().filter(author=author)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     # def update(self, request, pk=None, author_pk=None, *args, **kwargs):
     #     partial = kwargs.pop('partial', False)
