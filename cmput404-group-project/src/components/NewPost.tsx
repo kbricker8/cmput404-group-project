@@ -1,4 +1,6 @@
 import * as React from 'react';
+import axios from 'axios';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import CameraIcon from '@mui/icons-material/PhotoCamera';
@@ -21,132 +23,153 @@ import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, Me
 const theme = createTheme();
 
 export default function NewPost() {
+    const [visibility, setVisibility] = React.useState('')
+    const [postType, setPostType] = React.useState('')
+    const [postTitle, setPostTitle] = React.useState('')
+    const [postContent, setPostContent] = React.useState('')
+    const user = JSON.parse(localStorage.getItem('user')!);
+
+    const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
-        };
-    
-    const [age, setAge] = React.useState('');
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(visibility, postType, postTitle, postContent);
 
-    const handleChange = (event: SelectChangeEvent) => {
-        setAge(event.target.value as string);
+        //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
+        axios.post('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/', {
+            source: 'http://127.0.0.1:8000',
+            origin: 'http://127.0.0.1:8000',
+            title: postTitle,
+            description: postContent,
+            contentType: postType,
+            //author: JSON.parse(localStorage.getItem('user')!).name,
+            author: user.id,
+            categories: {},
+            count: 0,
+            published: new Date().toISOString(),
+            visibility: visibility,
+            unlisted: false,
+        }).then((response) => {
+            console.log("MAKE POST RESPONSE:", response);
+            navigate(-1)
+        }).catch((error) => { console.log("MAKE POST ERROR:", error); })
     };
 
 
-  return (
-    <ThemeProvider theme={theme}>
-        <Container sx={{pt: 5}}>
-            <main>
-                <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
-                    <Container maxWidth="lg">
-                        <Typography
-                        component="h1"
-                        variant="h2"
-                        align="left"
-                        color="text.primary"
-                        pt={12}
-                        gutterBottom
-                        >
-                            Create Post
-                        </Typography>
-                    </Container>
-                </Box>
-                <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <InputLabel id="post-visibility-label">Post Visibility</InputLabel>
+
+    return (
+        <ThemeProvider theme={theme}>
+            <Container sx={{ pt: 5 }}>
+                <main>
+                    <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
+                        <Container maxWidth="lg">
+                            <Typography
+                                component="h1"
+                                variant="h2"
+                                align="left"
+                                color="text.primary"
+                                pt={12}
+                                gutterBottom
+                            >
+                                Create Post
+                            </Typography>
+                        </Container>
+                    </Box>
+                    <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="post-visibility-label">Post Visibility</InputLabel>
                                     <Select
                                         labelId="post-visibility"
                                         id="post-visibility"
                                         label="Post Visibility"
-                                        onChange={handleChange}
+                                        onChange={(e) => setVisibility(e.target.value as string)}
                                     >
-                                        <MenuItem value={"public"}>Public</MenuItem>
-                                        <MenuItem value={"friends"}>Private (Friends)</MenuItem>
-                                        <MenuItem value={"private"}>Private</MenuItem>
+                                        <MenuItem value={"PUBLIC"}>Public</MenuItem>
+                                        <MenuItem value={"PRIVATE"}>Private (Friends)</MenuItem>
+                                        <MenuItem value={"FRIENDS"}>Private</MenuItem>
                                     </Select>
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormControl fullWidth>
-                                <InputLabel id="post-type-label">Post Type</InputLabel>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="post-type-label">Post Type</InputLabel>
                                     <Select
                                         labelId="post-type"
                                         id="post-type"
                                         label="Post Type"
-                                        onChange={handleChange}
+                                        onChange={(e) => setPostType(e.target.value as string)}
                                     >
-                                        <MenuItem value={"public"}>Plaintext</MenuItem>
-                                        <MenuItem value={"friends"}>CommonMark</MenuItem>
-                                        <MenuItem value={"private"}>Image</MenuItem>
+                                        <MenuItem value={"text/plain"}>Plaintext</MenuItem>
+                                        <MenuItem value={"text/markdown"}>CommonMark</MenuItem>
+                                        {/* Change value based on  Image Type*/}
+                                        <MenuItem value={"image"}>Image</MenuItem>
                                     </Select>
-                            </FormControl>
+                                </FormControl>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    id="post-title"
+                                    label="Post Title"
+                                    name="post-title"
+                                    autoComplete="post-title"
+                                    onChange={(e) => setPostTitle(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Button variant="contained" component="label">
+                                    Upload Image
+                                    <input hidden accept="image/*" multiple type="file" />
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    multiline
+                                    rows={10}
+                                    maxRows={15}
+                                    name="text"
+                                    label="Text"
+                                    type="text"
+                                    id="post-text"
+                                    autoComplete="post-text"
+                                    onChange={(e) => setPostContent(e.target.value)}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                            required
+                        <Button
+                            type="submit"
                             fullWidth
-                            id="post-title"
-                            label="Post Title"
-                            name="post-title"
-                            autoComplete="post-title"
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button variant="contained" component="label">
-                                Upload Image
-                                <input hidden accept="image/*" multiple type="file" />
-                            </Button>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                            required
-                            fullWidth
-                            multiline
-                            rows={10}
-                            maxRows={15}
-                            name="text"
-                            label="Text"
-                            type="text"
-                            id="post-text"
-                            autoComplete="post-text"
-                            />
-                        </Grid>
-                    </Grid>
-                    <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      sx={{ mt: 3, mb: 2 }}
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                        >
+                            Post
+                        </Button>
+                    </Box>
+                </main>
+
+
+                {/* Footer */}
+                <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
+                    <Typography variant="h6" align="center" gutterBottom>
+                        Footer
+                    </Typography>
+                    <Typography
+                        variant="subtitle1"
+                        align="center"
+                        color="text.secondary"
+                        component="p"
                     >
-                      Post
-                    </Button>
-                  </Box>
-            </main>
-
-
-            {/* Footer */}
-            <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
-                <Typography variant="h6" align="center" gutterBottom>
-                Footer
-                </Typography>
-                <Typography
-                variant="subtitle1"
-                align="center"
-                color="text.secondary"
-                component="p"
-                >
-                Something here to give the footer a purpose!
-                </Typography>
-                <Copyright />
-            </Box>
-            {/* End footer */}
-      </Container>
-    </ThemeProvider>
-  );
+                        Something here to give the footer a purpose!
+                    </Typography>
+                    <Copyright />
+                </Box>
+                {/* End footer */}
+            </Container>
+        </ThemeProvider>
+    );
 }

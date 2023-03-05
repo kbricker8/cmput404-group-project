@@ -36,8 +36,8 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         author.url = "http://127.0.0.1:8000/service/authors/" + str(author.id)
         author.save()
 
-        followers = Followers(user = author)
-        followers.save()
+        # followers = Followers(author = author)
+        # followers.save()
 
         author_serializer = AuthorSerializer(instance=author)
 
