@@ -118,15 +118,15 @@ Return a list of authorId's followers
 
 Return a list of follow requests sent to authorId
 
-## /service/author/{authorId}/follow-request/{senderId}
+## /service/author/{authorId}/follow-request/{senderId}/
 
 Return the follow request sent by senderId to authorId, or 404 if doesnt exist
 
-## /service/author/{authorId}/follow-request/{senderId}/send
+## /service/author/{authorId}/follow-request/{senderId}/send/
 
 Send follow request from senderId to authorId
 
-## /service/author/{authorId}/follow-request/{senderId}/accept
+## /service/author/{authorId}/follow-request/{senderId}/accept/
 
 Accept follow request from senderId to authorId, this also deletes the request and adds the sender to the authors followers list
 
