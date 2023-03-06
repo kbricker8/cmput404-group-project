@@ -147,6 +147,19 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
 
         return Response({"detail": ["Request does not exist."]},
                         status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=True)
+    def decline(self, request, pk=None, author_pk=None, *args, **kwargs):
+        object = get_object_or_404(Author, id=author_pk)
+        actor = get_object_or_404(Author, id=pk)
+        if FollowRequest.objects.filter(actor=actor, object=object).count():
+            instance = FollowRequest.objects.get(object=object, actor=actor)
+            instance.delete()
+            return Response({"detail": ["Follow request declined."]},
+                        status=status.HTTP_200_OK)
+
+        return Response({"detail": ["Request does not exist."]},
+                        status=status.HTTP_404_NOT_FOUND)
 
 
 class FollowersViewSet(viewsets.ModelViewSet):
