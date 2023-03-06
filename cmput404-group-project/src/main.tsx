@@ -14,7 +14,7 @@ import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
 import FeedPage from "./routes/feed";
 import NewPost from "./components/NewPost";
-import Profile from "./routes/profile";
+
 // import Feed from "./routes/feed";
 // const AppLayout = () => {
 //   return (
@@ -50,11 +50,7 @@ const router = createBrowserRouter([
       {
         path: "newPost",
         element: <NewPost />,
-      },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
+      }
     ]
   },
 

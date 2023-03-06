@@ -10,7 +10,6 @@ function Navbar() {
   const closeMobileMenu = () => setClick(false);
   let signInSignOut;
   let homePageFeed;
-  let profile;
   React.useEffect(() => {
     if (localStorage.getItem('user') != null) {
       setUser(JSON.parse(localStorage.getItem('user')!));
@@ -89,22 +88,6 @@ function Navbar() {
               </NavLink>
 
             </li>
-            {user !== null ?
-              <li className="nav-item">
-
-                <NavLink
-                  to="/profile"
-                  className={({ isActive }) =>
-                    "nav-links" + (isActive ? " activated" : "")
-                  }
-                  onClick={closeMobileMenu}
-                  style={{ textDecoration: 'none' }}
-                >
-                  Profile
-                </NavLink>
-
-              </li>
-              : null}
             <li className="nav-item">
               {signInSignOut}
             </li>
