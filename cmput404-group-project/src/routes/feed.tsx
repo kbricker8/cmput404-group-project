@@ -19,12 +19,12 @@ import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea } from '@mui/material';
-
 const cards = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const theme = createTheme();
 
 export default function Album() {
+    console.log("LOCAL STORAGE IN FEED:")
     console.log(localStorage.getItem('user'))
 
     const [posts,setPosts] = React.useState([]);
