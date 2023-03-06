@@ -7,6 +7,7 @@ import SignIn from "./sign-in";
 import Home from "./home-page";
 import Feed from "./feed";
 import NewPost from "../components/NewPost";
+import Profile from "./profile";
 // import NavBar from "./navbar";
 export default function Root() {
     return (
@@ -20,6 +21,7 @@ export default function Root() {
                 <Route path="signIn" element={<SignIn/>} />
                 <Route path="feed" element={<Feed/>} />
                 <Route path="NewPost" element={<NewPost/>} />
+                <Route path="profile" element={<Profile/>} />
                 </Routes>
             </div>
         </div>
