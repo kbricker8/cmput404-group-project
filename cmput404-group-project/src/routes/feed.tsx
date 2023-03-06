@@ -41,7 +41,7 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/').then(
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;
