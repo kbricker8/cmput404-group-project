@@ -1,10 +1,6 @@
+
 export default function AboutUs() {
-    return (
-        <div id="about-us">
-          <div>
-            <p>
-                About Us page
-            </p>
-          </div>
-        </div>
-    )}
+
+  return <p>About us</p>
+
+};
