@@ -63,9 +63,9 @@ export default function SignIn() {
         console.log("RESPONSE:", response);
         localStorage.setItem('refreshed', 'false');
         console.log("RESPONSE:", response.data);
-        localStorage.setItem('user', JSON.stringify(response.data))
-        nav("/feed", { state: { username: signUpUsername, email: signUpEmail, password: signUpPassword } });
-      }else{
+        localStorage.setItem('user', JSON.stringify(response.data));
+        nav("/feed");
+      } else {
         console.log("Sign Up Error", response);
       }
     }).catch((error) => {
