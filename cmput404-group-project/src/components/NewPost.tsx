@@ -36,7 +36,7 @@ export default function NewPost() {
         console.log(visibility, postType, postTitle, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.post('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/', {
+        axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
             source: 'http://127.0.0.1:8000',
             origin: 'http://127.0.0.1:8000',
             title: postTitle,

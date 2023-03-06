@@ -19,12 +19,12 @@ import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea } from '@mui/material';
-
 const cards = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const theme = createTheme();
 
 export default function Album() {
+    console.log("LOCAL STORAGE IN FEED:")
     console.log(localStorage.getItem('user'))
 
     const [posts,setPosts] = React.useState([]);
@@ -41,7 +41,7 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get('http://127.0.0.1:8000/service/authors/a35ea487-2bda-48ed-9503-94edbbb445fa/posts/').then(
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;

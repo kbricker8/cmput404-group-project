@@ -38,7 +38,7 @@ export default function SignIn() {
         console.log("RESPONSE:", response);
         if (response.status == 200) {
           localStorage.setItem('user', JSON.stringify(response.data));
-          localStorage.setItem('refreshed','false')
+          localStorage.setItem('refreshed', 'false')
           nav("/feed");
         }
       }).catch((error) => {
@@ -59,13 +59,20 @@ export default function SignIn() {
       email: signUpEmail,
       password: signUpPassword,
     }).then((response) => {
-      console.log("RESPONSE:", response);
-      localStorage.setItem('refreshed','false');
-      console.log("RESPONSE:", response.data);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      if (response.status == 201) {
+        console.log("RESPONSE:", response);
+        localStorage.setItem('refreshed', 'false');
+        console.log("RESPONSE:", response.data);
+        localStorage.setItem('user', JSON.stringify(response.data));
+        nav("/feed");
+      } else {
+        console.log("Sign Up Error", response);
+      }
+    }).catch((error) => {
+      console.log("Sign Up Error", error);
     });
     //window.location.href="feed"
-    nav("/feed", { state: { username: signUpUsername, email: signUpEmail, password: signUpPassword } });
+
   };
 
   return (
