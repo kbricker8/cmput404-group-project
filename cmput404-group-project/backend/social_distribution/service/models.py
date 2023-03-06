@@ -96,8 +96,8 @@ class Likes(models.Model):
 class Liked(models.Model):
     type = 'liked'
 
-    items = models.JSONField(default = list) #foreign key
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
+    items = models.JSONField(default = list) #foreign key
 
 class Inbox(models.Model):
     type = 'inbox'
