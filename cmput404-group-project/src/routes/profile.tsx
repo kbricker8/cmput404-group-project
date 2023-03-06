@@ -34,7 +34,14 @@ export default function Profile() {
   };
 
   const handleRejectRequest = (request: FollowRequest) => {
-    //TODO
+    console.log('REJECT REQUEST:', request);
+    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/decline/`).then(
+      (response) => {
+        console.log('ACCEPT REQUEST RESPONSE:', response);
+      }).catch((error) => {
+        console.log('ACCEPT REQUEST ERROR:', error);
+      }
+      )
   };
   useEffect(() => {
     //Get Followers
