@@ -18,10 +18,23 @@ import Container from '@mui/material/Container';
 import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
-import { CardActionArea } from '@mui/material';
-const cards = [1, 2, 3, 4, 5, 6, 7, 8];
+import { CardActionArea, Modal } from '@mui/material';
 
 const theme = createTheme();
+
+const modalStyle = {
+    position: 'absolute' as 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 1000,
+    bgcolor: '#19191a',
+    color: "white",
+    border: '2px solid #000',
+    borderRadius: "30px",
+    boxShadow: 24,
+    p: 4,
+  };
 
 export default function Album() {
     console.log("LOCAL STORAGE IN FEED:")
@@ -50,6 +63,11 @@ export default function Album() {
         }
         )
     },[]);
+
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
     return (
         <ThemeProvider theme={theme}>
             <Container sx={{ pt: 5 }}>
@@ -89,7 +107,6 @@ export default function Album() {
                                     justifyContent="center"
                                 >
                                     <Button variant="contained" href='./NewPost'>New Public Post</Button>
-                                    {/* <Button variant="outlined">New Private Post</Button> */}
                                 </Stack>
                             </Stack>
                         </Container>
@@ -106,7 +123,8 @@ export default function Album() {
                                         variant="outlined"
                                         color='#09bef0'
                                     >
-                                        <CardActionArea>
+                                        <CardActionArea
+                                        onClick={handleOpen}>
                                             <CardContent sx={{ flexGrow: 1, bottom: "2px" }}>
                                                 <Typography gutterBottom variant="h6" component="h1">
                                                     <b>{post.title}</b>
@@ -115,7 +133,7 @@ export default function Album() {
                                                     {post.author.displayName}
                                                 </Typography>
                                                 <Typography gutterBottom variant="subtitle1" component="h3">
-                                                    {post.description}
+                                                    {post.content}
                                                 </Typography>
                                             </CardContent>
                                             <CardMedia
@@ -132,6 +150,54 @@ export default function Album() {
                                         <Button size="small">View</Button>
                                     </CardActions> */}
                                         </CardActionArea>
+                                        <Modal
+                                            open={open}
+                                            // sx={{overflow: scroll}}
+                                            onClose={handleClose}
+                                            aria-labelledby="modal-modal-title"
+                                            aria-describedby="modal-modal-content"
+                                        >
+                                            {/* <div> */}
+                                            <Box sx={modalStyle}>
+                                                    <Stack
+                                                        sx={{ pb: 2, overflow: scroll }}
+                                                        direction="row"
+                                                        spacing={20}
+                                                        // justifyContent="center"
+                                                    >
+                                                        <Stack
+                                                            sx={{ pb: 2 }}
+                                                            direction="column"
+                                                            spacing={6}
+                                                            justifyContent="center"
+                                                            marginRight={10}
+                                                            paddingLeft={3}
+                                                        >
+                                                            {/* <Container> */}
+                                                                <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2}>
+                                                                    Post Author: <em>{post.author.displayName}</em>
+                                                                </Typography>
+                                                                <Typography id="modal-title" variant="h4" component="h2">
+                                                                    <b>{post.title}</b>
+                                                                </Typography>
+                                                                <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                                    {post.content}
+                                                                </Typography>
+                                                            {/* </Container> */}
+                                                        </Stack>
+                                                        <Box
+                                                            component="img"
+                                                            sx={{height: 300,
+                                                            width: 300}}
+                                                            // display="flex"
+                                                            // justifyItems="right"
+                                                            alt="Post Picture"
+                                                            src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
+                                                        />
+                                                    </Stack>
+                                                </Box>
+                                            {/* </div> */}
+                                        </Modal>
                                     </Card>
                                 </Grid>
                             ))}

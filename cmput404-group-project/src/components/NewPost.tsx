@@ -40,7 +40,7 @@ export default function NewPost() {
             source: 'http://127.0.0.1:8000',
             origin: 'http://127.0.0.1:8000',
             title: postTitle,
-            description: postContent,
+            content: postContent,
             contentType: postType,
             //author: JSON.parse(localStorage.getItem('user')!).name,
             author: user.id,
