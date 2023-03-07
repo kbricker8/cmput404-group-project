@@ -18,8 +18,7 @@ from .serializers import FollowersSerializer
 from django.contrib.auth.models import User
 from .models import Post, Author, Comment, FollowRequest, Followers
 
-class UsersViewSet(mixins.RetrieveModelMixin,
-                   viewsets.GenericViewSet):
+class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
@@ -162,29 +161,29 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_404_NOT_FOUND)
 
 
-class FollowersViewSet(viewsets.ModelViewSet):
+class FollowersViewSet(viewsets.GenericViewSet):
     queryset = Followers.objects.all()
     serializer_class = FollowersSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
         author = get_object_or_404(Author, id=author_pk)
-        queryset = Followers.objects.all().filter(author=author)
+        queryset = Followers.objects.filter(author=author)
+        print(type(queryset))
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data[0])
+    
+    @action(detail=True)
+    def unfollow(self, request, pk=None, author_pk=None, *args, **kwargs):
+        author = get_object_or_404(Author, id=author_pk)
+        follower = get_object_or_404(Author, id=pk)
+        followers = Followers.objects.get(author=author)
+        if followers.items.contains(follower):
+            followers.items.remove(follower)
+            return Response({"detail": ["Unfollowed successfully."]},
+                            status=status.HTTP_200_OK)
 
-    # def update(self, request, pk=None, author_pk=None, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-
-    #     if getattr(instance, '_prefetched_objects_cache', None):
-    #         # If 'prefetch_related' has been applied to a queryset, we need to
-    #         # forcibly invalidate the prefetch cache on the instance.
-    #         instance._prefetched_objects_cache = {}
-
-    #     return Response(serializer.data)
+        return Response({"detail": ["User is not in following list."]},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostsViewSet(viewsets.ModelViewSet):

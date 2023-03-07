@@ -114,6 +114,23 @@ Returns the author obj at authorId
 
 Return a list of authorId's followers
 
+## /service/author/{authorId}/followers/{followerId}/unfollow
+
+Returns
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Unfollowed successfully."
+    ]
+}
+```
+Or 400 on failure
+
 ## /service/author/{authorId}/follow-request/
 
 Return a list of follow requests sent to authorId
