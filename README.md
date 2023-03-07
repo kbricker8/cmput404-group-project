@@ -14,6 +14,10 @@ Jacob Gerun
 For restful api with django:  
 https://www.digitalocean.com/community/tutorials/build-a-to-do-application-using-django-and-react
 
+For modal component:
+https://mui.com/material-ui/react-modal/
+https://stackoverflow.com/questions/49007357/how-to-make-the-whole-card-component-clickable-in-material-ui-using-react-js
+
 ## Templates Used
 https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/pricing/Pricing.tsx
 https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/sign-in/SignIn.tsx
