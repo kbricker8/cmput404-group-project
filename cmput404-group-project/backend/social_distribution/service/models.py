@@ -25,8 +25,11 @@ class Followers(models.Model):
     type = "Followers"
 
     id = models.URLField(primary_key = True, max_length = 255)
-    author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers')
+    author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers', unique=True)
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='following')
+
+    class Meta:
+        verbose_name_plural = "followers"
 
 class FollowRequest(models.Model):
     type = 'FollowRequest'
@@ -74,6 +77,9 @@ class ImagePosts(models.Model):
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image_posts')
     image = models.ImageField(null = True, blank = True)
 
+    class Meta:
+        verbose_name_plural = "image posts"
+
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'comment'
@@ -93,14 +99,23 @@ class Likes(models.Model):
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
     object = models.URLField(max_length=255, default ='')
 
+    class Meta:
+        verbose_name_plural = "likes"
+
 class Liked(models.Model):
     type = 'liked'
 
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
     items = models.JSONField(default = list) #foreign key
 
+    class Meta:
+        verbose_name_plural = "liked"
+
 class Inbox(models.Model):
     type = 'inbox'
 
     author = models.CharField(max_length=255, default = '') #change to jsonfield?
     items = models.JSONField(default = list) #foreign key
+
+    class Meta:
+        verbose_name_plural = "inbox's"

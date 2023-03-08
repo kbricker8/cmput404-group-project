@@ -5,11 +5,11 @@ all api calls are directed to 127.0.0.1:8000/service/
 ## /service/users/
 
 This is used to manage user accounts.  
-- GET /service/users/ will return all users with some information  
+## GET /service/users/ will return all users with some information  
 
 I don't think this should ever be needed but I will leave it for now  
 
-- POST /service/users/ will create a user if sent data is valid  
+## POST /service/users/ will create a user if sent data is valid  
 
 Post Format:  
 ```
@@ -21,15 +21,15 @@ Post Format:
 ```
 Returns:
 ```
-HTTP 200 OK
-Allow: POST, OPTIONS
+HTTP 201 Created
+Allow: GET, POST, HEAD, OPTIONS
 Content-Type: application/json
 Vary: Accept
 
 {
     "type": "author",
     "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "url": "",
+    "url": "http://127.0.0.1:8000/service/authors/42c49442-e641-407a-b20f-f05a3cc2bd7f",
     "host": "http://127.0.0.1:8000/",
     "displayName": "kyle",
     "github": "",
@@ -38,7 +38,7 @@ Vary: Accept
 ```
 it is important to note that passwords are sent as raw strings, and then saved in the database after hashing.  
 
-- POST /service/users/login/
+## POST /service/users/login/
 
 Post Format
 ```
@@ -57,7 +57,7 @@ Vary: Accept
 {
     "type": "author",
     "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "url": "",
+    "url": "http://127.0.0.1:8000/service/authors/42c49442-e641-407a-b20f-f05a3cc2bd7f",
     "host": "http://127.0.0.1:8000/",
     "displayName": "kyle",
     "github": "",
@@ -90,7 +90,15 @@ Vary: Accept
 ```
 There is also a decent chance that this GET functionality will be removed. Tell me if you want it to stay.
 
-- POST /service/users/{userId}/change_pass/
+## /service/author/
+
+Returns list of all authors
+
+## /service/author/{authorId}/
+
+Returns the author obj at authorId
+
+## POST /service/users/{userId}/update_pass/
 
 This is used to change the users password.  
 Requires:
@@ -102,17 +110,26 @@ Requires:
 ```
 Passwords are sent in plaintext then hashed on the serverside.
 
-## /service/author/
-
-Returns list of all authors
-
-## /service/author/{authorId}/
-
-Returns the author obj at authorId
-
 ## /service/author/{authorId}/followers/
 
 Return a list of authorId's followers
+
+## /service/author/{authorId}/followers/{followerId}/unfollow
+
+Returns
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Unfollowed successfully."
+    ]
+}
+```
+Or 400 on failure
 
 ## /service/author/{authorId}/follow-request/
 

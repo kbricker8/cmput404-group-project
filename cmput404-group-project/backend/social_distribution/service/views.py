@@ -18,8 +18,7 @@ from .serializers import FollowersSerializer
 from django.contrib.auth.models import User
 from .models import Post, Author, Comment, FollowRequest, Followers
 
-class UsersViewSet(mixins.RetrieveModelMixin,
-                   viewsets.GenericViewSet):
+class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
@@ -53,6 +52,25 @@ class UsersViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(recent_users, many=True)
         return Response(serializer.data)
     
+    
+    @action(detail=True, methods=['post'])
+    def update_pass(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong Password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({"status": "success",
+                             "code": status.HTTP_200_OK,
+                             "message": "Password updated successfully"})
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -98,6 +116,24 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True, methods=['post'])
+    def update_pass(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        user = self.object.user
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if not user.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong Password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            return Response({"status": "success",
+                             "code": status.HTTP_200_OK,
+                             "message": "Password updated successfully"})
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
     
 class FollowRequestViewSet(viewsets.GenericViewSet):
     queryset = FollowRequest.objects.all()
@@ -162,29 +198,27 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_404_NOT_FOUND)
 
 
-class FollowersViewSet(viewsets.ModelViewSet):
+class FollowersViewSet(viewsets.GenericViewSet):
     queryset = Followers.objects.all()
     serializer_class = FollowersSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        author = get_object_or_404(Author, id=author_pk)
-        queryset = Followers.objects.all().filter(author=author)
-        serializer = self.get_serializer(queryset, many=True)
+        instance = Followers.objects.get(author__id=author_pk)
+        serializer = FollowersSerializer(instance=instance)
         return Response(serializer.data)
+    
+    @action(detail=True)
+    def unfollow(self, request, pk=None, author_pk=None, *args, **kwargs):
+        author = get_object_or_404(Author, id=author_pk)
+        follower = get_object_or_404(Author, id=pk)
+        followers = Followers.objects.get(author=author)
+        if followers.items.contains(follower):
+            followers.items.remove(follower)
+            return Response({"detail": ["Unfollowed successfully."]},
+                            status=status.HTTP_200_OK)
 
-    # def update(self, request, pk=None, author_pk=None, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-
-    #     if getattr(instance, '_prefetched_objects_cache', None):
-    #         # If 'prefetch_related' has been applied to a queryset, we need to
-    #         # forcibly invalidate the prefetch cache on the instance.
-    #         instance._prefetched_objects_cache = {}
-
-    #     return Response(serializer.data)
+        return Response({"detail": ["User is not in following list."]},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostsViewSet(viewsets.ModelViewSet):
