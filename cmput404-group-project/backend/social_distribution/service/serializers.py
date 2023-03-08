@@ -40,7 +40,6 @@ class AuthorSerializer(serializers.ModelSerializer):
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
 class FollowersSerializer(serializers.ModelSerializer):
-    author = serializers.Field(write_only=True)
     class Meta:
         model = Followers
         fields = ('type', 'author', 'items')

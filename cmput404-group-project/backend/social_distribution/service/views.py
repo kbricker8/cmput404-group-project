@@ -52,6 +52,25 @@ class UsersViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(recent_users, many=True)
         return Response(serializer.data)
     
+    
+    @action(detail=True, methods=['post'])
+    def update_pass(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong Password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({"status": "success",
+                             "code": status.HTTP_200_OK,
+                             "message": "Password updated successfully"})
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -97,6 +116,24 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True, methods=['post'])
+    def update_pass(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        user = self.object.user
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if not user.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong Password."]}, 
+                                status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            return Response({"status": "success",
+                             "code": status.HTTP_200_OK,
+                             "message": "Password updated successfully"})
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
     
 class FollowRequestViewSet(viewsets.GenericViewSet):
     queryset = FollowRequest.objects.all()
@@ -166,11 +203,9 @@ class FollowersViewSet(viewsets.GenericViewSet):
     serializer_class = FollowersSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        author = get_object_or_404(Author, id=author_pk)
-        queryset = Followers.objects.filter(author=author)
-        print(type(queryset))
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data[0])
+        instance = Followers.objects.get(author__id=author_pk)
+        serializer = FollowersSerializer(instance=instance)
+        return Response(serializer.data)
     
     @action(detail=True)
     def unfollow(self, request, pk=None, author_pk=None, *args, **kwargs):
