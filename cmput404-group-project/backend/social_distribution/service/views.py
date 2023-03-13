@@ -4,6 +4,8 @@ from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 
+from .paginations import PostsPagination, CommentsPagination
+
 # import serializers
 from .serializers import PostSerializer
 from .serializers import UserSerializer
@@ -13,10 +15,11 @@ from .serializers import LoginSerializer
 from .serializers import CommentsSerializer
 from .serializers import FollowRequestSerializer
 from .serializers import FollowersSerializer
+from .serializers import FollowingSerializer
 
 # import models
 from django.contrib.auth.models import User
-from .models import Post, Author, Comment, FollowRequest, Followers
+from .models import Post, Author, Comment, FollowRequest, Followers, Following
 
 class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
@@ -38,6 +41,10 @@ class UsersViewSet(viewsets.GenericViewSet):
         followers_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/followers/'
         followers = Followers(id=followers_id, author = author)
         followers.save()
+
+        following_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/following/'
+        following = Following(id=following_id, author = author)
+        following.save()
 
         author_serializer = AuthorSerializer(instance=author)
 
@@ -177,6 +184,8 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
             instance = FollowRequest.objects.get(object=object, actor=actor)
             followers = Followers.objects.get(author=object)
             followers.items.add(actor)
+            following = Following.objects.get(author=actor)
+            following.items.add(object)
             instance.delete()
             return Response({"detail": ["Follow request accepted."]},
                         status=status.HTTP_200_OK)
@@ -212,21 +221,33 @@ class FollowersViewSet(viewsets.GenericViewSet):
         author = get_object_or_404(Author, id=author_pk)
         follower = get_object_or_404(Author, id=pk)
         followers = Followers.objects.get(author=author)
-        if followers.items.contains(follower):
+        following = Following.objects.get(author=follower)
+        if followers.items.contains(follower) & following.items.contains(author):
             followers.items.remove(follower)
+            following.items.remove(author)
             return Response({"detail": ["Unfollowed successfully."]},
                             status=status.HTTP_200_OK)
 
         return Response({"detail": ["User is not in following list."]},
                         status=status.HTTP_400_BAD_REQUEST)
 
+class FollowingViewSet(viewsets.ModelViewSet):
+    queryset = Following.objects.all()
+    serializer_class = FollowingSerializer
+
+    def list(self, request, author_pk=None, *args, **kwargs):
+        instance = Following.objects.get(author__id=author_pk)
+        serializer = FollowingSerializer(instance=instance)
+        return Response(serializer.data)
+
 
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    # pagination_class = PostsPagination
 
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
-        posts = Post.objects.all()
+        posts = Post.objects.filter(author__id = author_pk).all()
         serializer = self.get_serializer(posts, many=True)
         return Response({"type": "posts",
                          "items": serializer.data})
@@ -241,17 +262,48 @@ class PostsViewSet(viewsets.ModelViewSet):
         serializer.save(author=author)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    @action(detail=False)
+    def public(self, request, author_pk=None, *args, **kwargs):
+        self.pagination_class=PostsPagination
+        posts = Post.objects.filter(visibility='PUBLIC')
+        page = self.paginate_queryset(posts)
+        serializer = PostSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False)
+    def feed(self, request, author_pk=None, *args, **kwargs):
+        self.pagination_class=PostsPagination
+        following = Following.objects.get(author__id=author_pk)
+        followed_authors = following.items.all()
+        posts = Post.objects.filter(author__in=followed_authors)
+        page = self.paginate_queryset(posts)
+        serializer = PostSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentsSerializer
+    pagination_class = CommentsPagination
 
-    def list(self, request, author_pk=None, post_pk=None, *args, **kwargs): # overrides the default list method
-        comments = Comment.objects.filter(post=post_pk).all()
-        serializer = self.get_serializer(comments, many=True)
-        return Response({"type": "comments",
-                         "items": serializer.data})
+    # def list(self, request, author_pk=None, post_pk=None, *args, **kwargs): # overrides the default list method
+    #     comments = Comment.objects.filter(post=post_pk).all()
+    #     serializer = self.get_serializer(comments, many=True)
+    #     return Response({"type": "comments",
+    #                      "items": serializer.data})
+    
+    def list(self, request, author_pk=None, post_pk=None, *args, **kwargs):
+        queryset = Comment.objects.filter(post=post_pk).all()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         
