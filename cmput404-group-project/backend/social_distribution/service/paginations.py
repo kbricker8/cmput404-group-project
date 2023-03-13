@@ -28,6 +28,8 @@ class CommentsPagination(pagination.PageNumberPagination):
     def get_paginated_response(self, data):
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
+            ('page', self.page.number),
+            ('size', self.get_page_size(self.request)),
             ('next', self.get_next_link()),
             ('previous', self.get_previous_link()),
             ('comments', data)
