@@ -19,7 +19,7 @@ from .serializers import FollowersSerializer
 # Create your tests here.
 class CreateUserTest(APITestCase):
     def test_list_users(self):
-        url = reverse('users-list')
+        url = reverse('user-list')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -27,7 +27,7 @@ class CreateUserTest(APITestCase):
         self.assertEqual(response.data, [])
 
     def test_create_user(self):
-        url = reverse('users-list')
+        url = reverse('user-list')
         data = {
             "username": "test_user",
             "email": "test@test.ca",
@@ -43,7 +43,7 @@ class CreateUserTest(APITestCase):
 
 class PasswordTests(APITestCase):
     def setUp(self):
-        url = reverse('users-list')
+        url = reverse('user-list')
         data = {
             "username": "test_user",
             "email": "test@test.ca",
@@ -53,7 +53,7 @@ class PasswordTests(APITestCase):
         self.id = response.data.get("id")
 
     def test_login(self):
-        url = reverse('users-login')
+        url = reverse('user-login')
         data = {
             "username": "test_user",
             "password": "test123"
@@ -71,7 +71,7 @@ class PasswordTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        url = reverse('users-login')
+        url = reverse('user-login')
         data = {
             "username": "test_user",
             "password": "test321"
@@ -81,7 +81,7 @@ class PasswordTests(APITestCase):
 
 class AuthorTests(APITestCase):
     def setUp(self):
-        url = reverse('users-list')
+        url = reverse('user-list')
         data = {
             "username": "test_user",
             "email": "test@test.ca",
@@ -92,15 +92,57 @@ class AuthorTests(APITestCase):
 
 class FollowerTests(APITestCase):
     def setUp(self):
-        url = reverse('users-list')
-        data = {
+        url = reverse('user-list')
+        data1 = {
             "username": "test_user",
             "email": "test@test.ca",
             "password": "test123"
         }
-        response = self.client.post(url, data, format='json')
-        self.id = response.data.get("id")
-        # self.followersid = 'http://127.0.0.1:8000/service/authors/' + str(self.id) + '/followers/'
+        data2 = {
+            "username": "test_user2",
+            "email": "test@test.ca",
+            "password": "test123"
+        }
+        response1 = self.client.post(url, data1, format='json')
+        response2 = self.client.post(url, data2, format='json')
+        self.id1 = response1.data.get("id")
+        self.id2 = response2.data.get("id")
+        self.followersid = 'http://127.0.0.1:8000/service/authors/' + str(self.id1) + '/followers/'
+        url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + "/send/"
+        self.response = self.client.get(url)
     
     def test_list_followers(self):
-        url = "/service/authors/" + str(self.id) + '/followers/'
+        url = "/service/authors/" + str(self.id1) + '/followers/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+    
+    def test_list_follow_requests(self):
+        url = "/service/authors/" + str(self.id1) + '/follow-request/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+    
+    def test_get_follow_request(self):
+        url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + '/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, self.response.data)
+    
+    def test_accept_follow_request(self):
+        url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + "/accept/"
+        response = self.client.get(url)
+        followers = Followers.objects.get(id = self.followersid)
+        follower = Author.objects.get(id = self.id2)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(follower in followers.items.all())
+
+        url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + '/'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        

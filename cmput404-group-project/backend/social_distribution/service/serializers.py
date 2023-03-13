@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 # import models
-from .models import Post, Author, Followers, FollowRequest, ImagePosts, Comment, Likes, Liked, Inbox
+from .models import Post, Author, Followers, Following, FollowRequest, ImagePosts, Comment, Likes, Liked, Inbox
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -42,6 +42,11 @@ class AuthorSerializer(serializers.ModelSerializer):
 class FollowersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Followers
+        fields = ('type', 'author', 'items')
+
+class FollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Following
         fields = ('type', 'author', 'items')
 
 class FollowRequestSerializer(serializers.ModelSerializer):

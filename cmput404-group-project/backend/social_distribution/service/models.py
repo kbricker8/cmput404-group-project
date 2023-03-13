@@ -26,10 +26,20 @@ class Followers(models.Model):
 
     id = models.URLField(primary_key = True, max_length = 255)
     author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers', unique=True)
-    items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='following')
+    items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followingitem')
 
     class Meta:
         verbose_name_plural = "followers"
+    
+class Following(models.Model):
+    type = "Following"
+
+    id = models.URLField(primary_key = True, max_length = 255)
+    author = models.OneToOneField(Author, on_delete=models.CASCADE, related_name='following')
+    items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followeritem')
+
+    class Meta:
+        verbose_name_plural = "following"
 
 class FollowRequest(models.Model):
     type = 'FollowRequest'
@@ -67,6 +77,9 @@ class Post(models.Model):
     published = models.DateTimeField(default = timezone.now)
     visibility = models.CharField(max_length = 20, choices = Visibility.choices, default = Visibility.PUBLIC)
     unlisted = models.BooleanField(default = 'False')
+
+    class Meta:
+        ordering = ['-published']
 
     def _str_(self):
         return self.title

@@ -27,6 +27,7 @@ router.register(r'authors', views.AuthorsViewSet, 'author')
 authors_router = routers.NestedSimpleRouter(router, r'authors', lookup='author')
 authors_router.register(r'posts', views.PostsViewSet, 'post')
 authors_router.register(r'followers', views.FollowersViewSet, 'followers')
+authors_router.register(r'following', views.FollowingViewSet, 'following')
 authors_router.register(r'follow-request', views.FollowRequestViewSet, 'follow-request')
 
 posts_router = routers.NestedSimpleRouter(authors_router, r'posts', lookup='post')
