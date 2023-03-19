@@ -127,7 +127,11 @@ export default function SignIn() {
                     control={<Checkbox value="remember" color="primary" />}
                     label="Remember me"
                   />
-                  <FormHelperText>{helperText}</FormHelperText>
+                  <FormHelperText>
+                    <Typography style={{color:"red"}}>
+                        {helperText}
+                    </Typography>
+                  </FormHelperText>
                   <Button
                     type="submit"
                     fullWidth
@@ -212,6 +216,11 @@ export default function SignIn() {
                           label="I want to receive inspiration, marketing promotions and updates via email."
                         />
                       </Grid>
+                      {/* <FormHelperText>
+                        <Typography style={{color:"red"}}>
+                            {helperText}
+                        </Typography>
+                      </FormHelperText> */}
                     </Grid>
                     <Button
                       type="button"
