@@ -35,11 +35,15 @@ export default function NewPost() {
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(visibility, postType, postTitle, postContent);
 
+        const firstCharacters = postContent.slice(0, 27);
+        const postDescription = firstCharacters.concat("...");
+
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
         axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
             source: 'http://127.0.0.1:8000',
             origin: 'http://127.0.0.1:8000',
             title: postTitle,
+            description: postDescription,
             content: postContent,
             contentType: postType,
             //author: JSON.parse(localStorage.getItem('user')!).name,
