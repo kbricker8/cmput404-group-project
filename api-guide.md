@@ -131,6 +131,10 @@ Vary: Accept
 ```
 Or 400 on failure
 
+## /service/author/{authorId}/following/
+
+Return a list of people that authorId is following
+
 ## /service/author/{authorId}/follow-request/
 
 Return a list of follow requests sent to authorId
@@ -147,9 +151,13 @@ Send follow request from senderId to authorId
 
 Accept follow request from senderId to authorId, this also deletes the request and adds the sender to the authors followers list
 
-## /service/author/{authorId}/posts/
+## /service/author/{authorId}/follow-request/{senderId}/decline/
 
-- POST
+## GET /service/author/{authorId}/posts/
+
+Returns a list of authorId's posts
+
+## POST /service/author/{authorId}/posts/
 
 Format:
 ```
@@ -168,13 +176,104 @@ Format:
 }
 ```
 
+## GET /service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e/posts/public/?p=1&page_size=5
+
+Gets the first page of public posts with a page size of 5. (defualt page size is 5)
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "count": 6,
+    "page": 1,
+    "size": 5,
+    "next": "http://127.0.0.1:8000/service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e/posts/public/?p=2",
+    "previous": null,
+    "results": [
+        {
+            "id": "a8835c2a-87dc-4ec9-81f5-832e06fd8412",
+            "type": "post",
+            "title": "5",
+            "source": "http://127.0.0.1:8000",
+            "origin": "http://127.0.0.1:8000",
+            "description": "",
+            "contentType": "text/plain",
+            "author": {
+                "type": "author",
+                "id": "a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e",
+                "url": "http://127.0.0.1:8000/service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e",
+                "host": "http://127.0.0.1:8000/",
+                "displayName": "test2",
+                "github": "",
+                "profileImage": ""
+            },
+            "categories": {},
+            "count": 0,
+            "content": "5",
+            "comments": null,
+            "published": "2023-03-13T04:52:57.692000Z",
+            "visibility": "PUBLIC",
+            "unlisted": false
+        },
+        ...
+    ]
+}
+```
+
+## GET /service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e/posts/feed/?p=1&page_count=5
+
+Gets all of the posts of people that the user is following
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "count": 1,
+    "page": 1,
+    "size": 5,
+    "next": null,
+    "previous": null,
+    "comments": [
+        {
+            "id": "446f3d1f-05b3-433f-8812-c34545757502",
+            "type": "post",
+            "title": "this is a public test",
+            "source": "https://en.wikipedia.org/wiki/Main_Page",
+            "origin": "https://en.wikipedia.org/wiki/Main_Page",
+            "description": "this is a test",
+            "contentType": "text/plain",
+            "author": {
+                "type": "author",
+                "id": "17a8616a-360a-4bbf-ae75-040cb98c25eb",
+                "url": "http://127.0.0.1:8000/service/authors/17a8616a-360a-4bbf-ae75-040cb98c25eb",
+                "host": "http://127.0.0.1:8000/",
+                "displayName": "test1",
+                "github": "",
+                "profileImage": ""
+            },
+            "categories": null,
+            "count": 0,
+            "content": "this is a test",
+            "comments": null,
+            "published": "2023-03-13T04:02:15.540807Z",
+            "visibility": "PUBLIC",
+            "unlisted": false
+        }
+    ]
+}
+```
+
 ## /service/author/{authorId}/posts/{postId}/comments/
 
-Can do get requests for both:
-/service/author/{authorId}/posts/{postId}/comments/
-/service/author/{authorId}/posts/{postId}/comments/{commendId}/
+Can do get requests for both:  
+/service/author/{authorId}/posts/{postId}/comments/  
+/service/author/{authorId}/posts/{postId}/comments/{commendId}/  
 
-- POST /service/author/{authorId}/posts/{postId}/comments/
+## POST /service/author/{authorId}/posts/{postId}/comments/
 
 Format:
 ```
