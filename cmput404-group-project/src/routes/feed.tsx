@@ -168,8 +168,8 @@ export default function Album() {
                                     <Stack
                                         sx={{ pb: 2}}
                                         direction="row"
-                                        spacing={20}
-                                        // justifyContent="center"
+                                        spacing={10}
+                                        justifyContent="end"
                                     >
                                         <Stack
                                             sx={{ pb: 2 }}
@@ -200,6 +200,32 @@ export default function Album() {
                                             alt="Post Picture"
                                             src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
                                         />
+                                        <Stack
+                                            // justifyItems={"end"}
+                                            //sx={{ right:0, top: 0}}
+                                            sx = {{position: "flex", top: 5}}
+                                            direction="column"
+                                            spacing={2}
+                                            justifyContent="front"
+                                        >
+                                            <Button
+                                                type="submit"
+                                                
+                                                color='error'
+                                                variant="contained"
+                                                sx={{ height: 50, width: 100 }}
+                                            >
+                                                Delete
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                
+                                                variant="outlined"
+                                                sx={{ height: 50, width: 100 }}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </Stack>
                                     </Stack>
                                 </Box>
                             {/* </div> */}
