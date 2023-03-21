@@ -12,19 +12,22 @@ import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, Me
 
 const theme = createTheme();
 
-export default function NewPost() {
-    const [visibility, setVisibility] = React.useState('')
-    const [postType, setPostType] = React.useState('')
+// *******************************************************************
+// TODO:
+// -fix bug for helper text (doesn't update till you type)
+// *******************************************************************
+
+export default function EditPost() {
     const [postTitle, setPostTitle] = React.useState('')
     const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
+    const post = JSON.parse(localStorage.getItem('post_id')!);
 
     const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(visibility, postType, postTitle, postDescription, postContent);
+        console.log(postTitle, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
         axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
@@ -33,13 +36,11 @@ export default function NewPost() {
             title: postTitle,
             description: postDescription,
             content: postContent,
-            contentType: postType,
             //author: JSON.parse(localStorage.getItem('user')!).name,
             author: user.id,
             categories: {},
             count: 0,
             published: new Date().toISOString(),
-            visibility: visibility,
             unlisted: false,
         }).then((response) => {
             console.log("MAKE POST RESPONSE:", response);
@@ -62,43 +63,12 @@ export default function NewPost() {
                                 pt={12}
                                 gutterBottom
                             >
-                                Create Post
+                                Edit Post
                             </Typography>
                         </Container>
                     </Box>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
                         <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="post-visibility-label">Post Visibility</InputLabel>
-                                    <Select
-                                        labelId="post-visibility"
-                                        id="post-visibility"
-                                        label="Post Visibility"
-                                        onChange={(e) => setVisibility(e.target.value as string)}
-                                    >
-                                        <MenuItem value={"PUBLIC"}>Public</MenuItem>
-                                        <MenuItem value={"PRIVATE"}>Private (Friends)</MenuItem>
-                                        <MenuItem value={"FRIENDS"}>Private</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="post-type-label">Post Type</InputLabel>
-                                    <Select
-                                        labelId="post-type"
-                                        id="post-type"
-                                        label="Post Type"
-                                        onChange={(e) => setPostType(e.target.value as string)}
-                                    >
-                                        <MenuItem value={"text/plain"}>Plaintext</MenuItem>
-                                        <MenuItem value={"text/markdown"}>CommonMark</MenuItem>
-                                        {/* Change value based on  Image Type*/}
-                                        <MenuItem value={"image"}>Image</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
                             <Grid item xs={12}>
                                 <TextField
                                     required
@@ -110,6 +80,7 @@ export default function NewPost() {
                                     name="post-title"
                                     autoComplete="post-title"
                                     onChange={(e) => setPostTitle(e.target.value)}
+                                    defaultValue={post.title}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -123,6 +94,7 @@ export default function NewPost() {
                                     name="post-description"
                                     autoComplete="post-description"
                                     onChange={(e) => setPostDescription(e.target.value)}
+                                    defaultValue={post.description}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -144,6 +116,7 @@ export default function NewPost() {
                                     id="post-text"
                                     autoComplete="post-text"
                                     onChange={(e) => setPostContent(e.target.value)}
+                                    defaultValue={post.content}
                                 />
                             </Grid>
                         </Grid>
@@ -153,7 +126,7 @@ export default function NewPost() {
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            Post
+                            Update
                         </Button>
                     </Box>
                 </main>

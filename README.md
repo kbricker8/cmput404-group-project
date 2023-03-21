@@ -18,6 +18,9 @@ For modal component:
 https://mui.com/material-ui/react-modal/
 https://stackoverflow.com/questions/49007357/how-to-make-the-whole-card-component-clickable-in-material-ui-using-react-js
 
+For Forms:
+https://codesandbox.io/s/n4t82?file=/src/index.js:572-655
+
 ## Templates Used
 https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/pricing/Pricing.tsx
 https://github.com/mui/material-ui/blob/v5.11.10/docs/data/material/getting-started/templates/sign-in/SignIn.tsx
