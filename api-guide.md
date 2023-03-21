@@ -2,7 +2,7 @@
 
 all api calls are directed to 127.0.0.1:8000/service/
 
-## /service/users/
+# Users
 
 This is used to manage user accounts.  
 ## GET /service/users/ will return all users with some information  
@@ -66,7 +66,7 @@ Vary: Accept
 ```
 If not OK returns:
 ```
-HTTP 400 Bad Request
+HTTP 401 Unauthorized
 Allow: POST, OPTIONS
 Content-Type: application/json
 Vary: Accept
@@ -78,48 +78,123 @@ Vary: Accept
 }
 ```
 
-## /service/users/{userId}/
-
-- GET /service/users/{userId}/ will return
-```
-{
-    "id": {userId},
-    "username": "example_username",
-    "email": "example_email"
-}
-```
-There is also a decent chance that this GET functionality will be removed. Tell me if you want it to stay.
-
-## /service/author/
-
-Returns list of all authors
-
-## /service/author/{authorId}/
-
-Returns the author obj at authorId
-
 ## POST /service/users/{userId}/update_pass/
-
-This is used to change the users password.  
-Requires:
+Post format:
 ```
 {
-    "old_password": "this_must_be_correct",
-    "new_passowrd": "new_pass"
+    "old_password": "pass",
+    "new_password": "newpass"
 }
 ```
-Passwords are sent in plaintext then hashed on the serverside.
+On success:
+```
+HTTP 200 OK
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-## /service/author/{authorId}/followers/
+{
+    "status": "success",
+    "code": 200,
+    "message": "Password updated successfully"
+}
+```
+On fail:
+```
+HTTP 401 Unauthorized
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-Return a list of authorId's followers
+{
+    "old_password": [
+        "Wrong Password."
+    ]
+}
+```
 
-## /service/author/{authorId}/followers/{followerId}/unfollow
+# Authors
 
-Returns
+## GET /service/authors/
+
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "type": "authors",
+    "items": [
+        {
+            "type": "author",
+            "id": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+            "url": "http://127.0.0.1:8000/service/authors/6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+            "host": "http://127.0.0.1:8000/",
+            "displayName": "testfollow1",
+            "github": "",
+            "profileImage": ""
+        },
+        {
+            "type": "author",
+            "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+            "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+            "host": "http://127.0.0.1:8000/",
+            "displayName": "testfollow2",
+            "github": "",
+            "profileImage": ""
+        }
+    ]
+}
+```
+
+## GET /service/author/{authorId}/
+
+```
+HTTP 200 OK
+Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "type": "author",
+    "id": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+    "url": "http://127.0.0.1:8000/service/authors/6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+    "host": "http://127.0.0.1:8000/",
+    "displayName": "testfollow1",
+    "github": "",
+    "profileImage": ""
+}
+```
+# Followers
+## GET /service/author/{authorId}/followers/
+
 ```
 HTTP 200 OK
 Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "type": "Followers",
+    "author": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+    "items": [
+        "6443bb45-91d3-433c-9ff5-d152942308a8"
+    ]
+}
+```
+
+## POST /service/author/{authorId}/followers/unfollow/
+Post format:
+```
+{
+    "id": "{followerId}"
+}
+```
+Returns
+```
+HTTP 200 OK
+Allow: POST, OPTIONS
 Content-Type: application/json
 Vary: Accept
 
@@ -129,49 +204,291 @@ Vary: Accept
     ]
 }
 ```
-Or 400 on failure
+```
+HTTP 404 Not Found
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-## /service/author/{authorId}/following/
+{
+    "detail": [
+        "User is not in following list."
+    ]
+}
+```
+# Following
+## GET /service/author/{authorId}/following/
 
-Return a list of people that authorId is following
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-## /service/author/{authorId}/follow-request/
+{
+    "type": "Following",
+    "author": "6443bb45-91d3-433c-9ff5-d152942308a8",
+    "items": [
+        "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a"
+    ]
+}
+```
+# Follow Requests
+## GET /service/author/{authorId}/follow-request/
 
-Return a list of follow requests sent to authorId
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-## /service/author/{authorId}/follow-request/{senderId}/
+[
+    {
+        "type": "FollowRequest",
+        "summary": "testfollow1 wants to follow testfollow2.",
+        "actor": {
+            "type": "author",
+            "id": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+            "url": "http://127.0.0.1:8000/service/authors/6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+            "host": "http://127.0.0.1:8000/",
+            "displayName": "testfollow1",
+            "github": "",
+            "profileImage": ""
+        },
+        "object": {
+            "type": "author",
+            "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+            "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+            "host": "http://127.0.0.1:8000/",
+            "displayName": "testfollow2",
+            "github": "",
+            "profileImage": ""
+        }
+    }
+]
+```
 
-Return the follow request sent by senderId to authorId, or 404 if doesnt exist
+## GET /service/author/{authorId}/follow-request/{senderId}/
 
-## /service/author/{authorId}/follow-request/{senderId}/send/
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-Send follow request from senderId to authorId
+{
+    "type": "FollowRequest",
+    "summary": "testfollow1 wants to follow testfollow2.",
+    "actor": {
+        "type": "author",
+        "id": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+        "url": "http://127.0.0.1:8000/service/authors/6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow1",
+        "github": "",
+        "profileImage": ""
+    },
+    "object": {
+        "type": "author",
+        "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+        "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow2",
+        "github": "",
+        "profileImage": ""
+    }
+}
+```
 
-## /service/author/{authorId}/follow-request/{senderId}/accept/
+## GET/POST /service/author/{authorId}/follow-request/{senderId}/send/
+On success
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-Accept follow request from senderId to authorId, this also deletes the request and adds the sender to the authors followers list
+{
+    "type": "FollowRequest",
+    "summary": "testfollow1 wants to follow testfollow2.",
+    "actor": {
+        "type": "author",
+        "id": "6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+        "url": "http://127.0.0.1:8000/service/authors/6e603d57-a12e-4482-a6fb-4fa5e8a7b15a",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow1",
+        "github": "",
+        "profileImage": ""
+    },
+    "object": {
+        "type": "author",
+        "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+        "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow2",
+        "github": "",
+        "profileImage": ""
+    }
+}
+```
+On fail
+```
+HTTP 400 Bad Request
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-## /service/author/{authorId}/follow-request/{senderId}/decline/
+{
+    "detail": [
+        "Request already exists."
+    ]
+}
+```
 
+## GET/POST /service/author/{authorId}/follow-request/{senderId}/accept/
+On success
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Follow request accepted."
+    ]
+}
+```
+If does not exist
+```
+HTTP 404 Not Found
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Request does not exist."
+    ]
+}
+```
+
+## GET/POST /service/author/{authorId}/follow-request/{senderId}/decline/
+On success
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Follow request declined."
+    ]
+}
+```
+If does not exist
+```
+HTTP 404 Not Found
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Request does not exist."
+    ]
+}
+```
+# Posts
 ## GET /service/author/{authorId}/posts/
 
 Returns a list of authorId's posts
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "type": "posts",
+    "items": [
+        {
+            "id": "da822edf-7ddd-4fe5-968b-5d65137d4f2c",
+            "type": "post",
+            "title": "The Title",
+            "source": "http://www.thesourceurl.com",
+            "origin": "http://www.theoriginurl.com",
+            "description": "briefdescription",
+            "contentType": "text/plain",
+            "author": {
+                "type": "author",
+                "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+                "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+                "host": "http://127.0.0.1:8000/",
+                "displayName": "testfollow2",
+                "github": "",
+                "profileImage": ""
+            },
+            "categories": null,
+            "count": 0,
+            "content": "the content of the post",
+            "comments": null,
+            "published": "2023-03-21T22:18:56.972384Z",
+            "visibility": "PUBLIC",
+            "unlisted": false
+        }
+    ]
+}
+```
 
 ## POST /service/author/{authorId}/posts/
 
 Format:
 ```
 {
-    "source": "",
-    "origin": "",
-    "description": "",
-    "contentType": null,
-    "author": null,
+    "title": "The Title",
+    "source": "http://www.thesourceurl.com",
+    "origin": "http://www.theoriginurl.com",
+    "description": "briefdescription",
+    "contentType": "text/plain",
+    "content": "the content of the post",
     "categories": null,
-    "count": null,
-    "comments": "",
-    "published": null,
-    "visibility": null,
+    "count": 0,
+    "visibility": "PUBLIC",
+    "unlisted": false
+}
+```
+Returns:
+```
+HTTP 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "id": "da822edf-7ddd-4fe5-968b-5d65137d4f2c",
+    "type": "post",
+    "title": "The Title",
+    "source": "http://www.thesourceurl.com",
+    "origin": "http://www.theoriginurl.com",
+    "description": "briefdescription",
+    "contentType": "text/plain",
+    "author": {
+        "type": "author",
+        "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+        "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow2",
+        "github": "",
+        "profileImage": ""
+    },
+    "categories": null,
+    "count": 0,
+    "content": "the content of the post",
+    "comments": null,
+    "published": "2023-03-21T22:18:56.972384Z",
+    "visibility": "PUBLIC",
     "unlisted": false
 }
 ```
