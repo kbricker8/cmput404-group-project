@@ -1,21 +1,11 @@
 import * as React from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
-import CameraIcon from '@mui/icons-material/PhotoCamera';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
@@ -26,6 +16,7 @@ export default function NewPost() {
     const [visibility, setVisibility] = React.useState('')
     const [postType, setPostType] = React.useState('')
     const [postTitle, setPostTitle] = React.useState('')
+    const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
 
@@ -33,10 +24,7 @@ export default function NewPost() {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(visibility, postType, postTitle, postContent);
-
-        const firstCharacters = postContent.slice(0, 27);
-        const postDescription = firstCharacters.concat("...");
+        console.log(visibility, postType, postTitle, postDescription, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
         axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
@@ -58,7 +46,6 @@ export default function NewPost() {
             navigate(-1)
         }).catch((error) => { console.log("MAKE POST ERROR:", error); })
     };
-
 
 
     return (
@@ -116,11 +103,26 @@ export default function NewPost() {
                                 <TextField
                                     required
                                     fullWidth
+                                    inputProps={{maxLength: 40}}
+                                    helperText={`${postTitle.length}/40`}
                                     id="post-title"
                                     label="Post Title"
                                     name="post-title"
                                     autoComplete="post-title"
                                     onChange={(e) => setPostTitle(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    inputProps={{maxLength: 70}}
+                                    helperText={`${postDescription.length}/70`}
+                                    id="post-description"
+                                    label="Post Description"
+                                    name="post-description"
+                                    autoComplete="post-description"
+                                    onChange={(e) => setPostDescription(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={12}>

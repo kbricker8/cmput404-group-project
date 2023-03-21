@@ -12,8 +12,14 @@ import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, Me
 
 const theme = createTheme();
 
+// *******************************************************************
+// TODO:
+// -fix bug for helper text (doesn't update till you type)
+// *******************************************************************
+
 export default function EditPost() {
     const [postTitle, setPostTitle] = React.useState('')
+    const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
     const post = JSON.parse(localStorage.getItem('post_id')!);
@@ -22,9 +28,6 @@ export default function EditPost() {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(postTitle, postContent);
-
-        const firstCharacters = postContent.slice(0, 27);
-        const postDescription = firstCharacters.concat("...");
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
         axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
@@ -44,7 +47,6 @@ export default function EditPost() {
             navigate(-1)
         }).catch((error) => { console.log("MAKE POST ERROR:", error); })
     };
-
 
 
     return (
@@ -71,12 +73,28 @@ export default function EditPost() {
                                 <TextField
                                     required
                                     fullWidth
+                                    inputProps={{maxLength: 40}}
+                                    helperText={`${postTitle.length}/40`}
                                     id="post-title"
                                     label="Post Title"
                                     name="post-title"
                                     autoComplete="post-title"
                                     onChange={(e) => setPostTitle(e.target.value)}
                                     defaultValue={post.title}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    inputProps={{maxLength: 70}}
+                                    helperText={`${postDescription.length}/70`}
+                                    id="post-description"
+                                    label="Post Description"
+                                    name="post-description"
+                                    autoComplete="post-description"
+                                    onChange={(e) => setPostDescription(e.target.value)}
+                                    defaultValue={post.description}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -108,7 +126,7 @@ export default function EditPost() {
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            Post
+                            Update
                         </Button>
                     </Box>
                 </main>
