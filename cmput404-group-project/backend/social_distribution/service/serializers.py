@@ -84,15 +84,17 @@ class ImagePostsSerializer(serializers.ModelSerializer):
         fields = ('post', 'image') #add type?
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author_id = serializers.CharField(
-        required=True,
-        write_only=True
-        )
+    # author_id = serializers.CharField(
+    #     required=True,
+    #     write_only=True
+    #     )
+    published = serializers.DateTimeField(required=False, read_only=True)
+    post = serializers.UUIDField(required=False, read_only=True)
 
     class Meta:
         model = Comment
         # fields = "__all__"
-        fields = ('id', 'type', 'author', 'author_id', 'comment', 'contentType', 'published', 'post')
+        fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'post')
     
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
