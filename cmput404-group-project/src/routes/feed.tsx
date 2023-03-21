@@ -46,7 +46,6 @@ export default function Album() {
         }
     }
     
-    
     React.useEffect(() => {
         refreshPage();
         axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
@@ -59,11 +58,22 @@ export default function Album() {
         )
     },[]);
 
+    // DELETE NOT WORKING YET -- NEED ASH TO FINISH AUTHENTICATION
+
+    const handleDelete = (clickedPost: { id: any; } | null) => {
+        // clickedPost.preventDefault();
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(clickedPost.id);
+
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}`)
+        .then((response) => {
+            console.log("MAKE DELETE RESPONSE:", response);
+            navigate(-1)
+        }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
+    };
+
     const [open, setOpen] = React.useState(false);
-    // const handleOpen = () => setOpen(true);
-    // const handleClose = () => setOpen(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
-    // const handleOpen = (item) => setOpen(item);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
         setOpen(true);
         setSelectedPost(clickedPost);
@@ -174,13 +184,13 @@ export default function Album() {
                                         <Stack
                                             sx={{ pb: 2 }}
                                             direction="column"
-                                            spacing={6}
-                                            justifyContent="center"
+                                            spacing={3}
+                                            justifyContent="start"
                                             marginRight={10}
                                             paddingLeft={3}
                                         >
                                             {/* <Container> */}
-                                                <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2}>
+                                                <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2} top={0}>
                                                     Post Author: <em>{selectedPost?.author?.displayName ?? 'No author'}</em>
                                                 </Typography>
                                                 <Typography id="modal-title" variant="h4" component="h2">
@@ -210,18 +220,19 @@ export default function Album() {
                                         >
                                             <Button
                                                 type="submit"
-                                                
                                                 color='error'
                                                 variant="contained"
+                                                onClick={()=>handleDelete(selectedPost)}
                                                 sx={{ height: 50, width: 100 }}
                                             >
                                                 Delete
                                             </Button>
                                             <Button
                                                 type="submit"
-                                                
+                                                href='./EditPost'
                                                 variant="outlined"
                                                 sx={{ height: 50, width: 100 }}
+                                                onClick={()=>localStorage.setItem('post_id', JSON.stringify(selectedPost))}
                                             >
                                                 Edit
                                             </Button>
