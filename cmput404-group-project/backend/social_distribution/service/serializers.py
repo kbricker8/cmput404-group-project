@@ -39,6 +39,13 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
+class AuthorIdSerializer(serializers.ModelSerializer):
+    model = Author
+    id = serializers.UUIDField(required=True,)
+    class Meta:
+        model = Author
+        fields = ['id']
+
 class FollowersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Followers
@@ -60,6 +67,8 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 class PostSerializer(serializers.ModelSerializer):
+    comments = serializers.CharField(required=False)
+    published = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Post

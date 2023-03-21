@@ -16,6 +16,7 @@ from .serializers import CommentsSerializer
 from .serializers import FollowRequestSerializer
 from .serializers import FollowersSerializer
 from .serializers import FollowingSerializer
+from .serializers import AuthorIdSerializer
 
 # import models
 from django.contrib.auth.models import User
@@ -58,25 +59,6 @@ class UsersViewSet(viewsets.GenericViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(recent_users, many=True)
         return Response(serializer.data)
-    
-    
-    @action(detail=True, methods=['post'])
-    def update_pass(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        serializer = ChangePasswordSerializer(data=request.data)
-
-        if serializer.is_valid():
-            if not self.object.check_password(serializer.data.get("old_password")):
-                return Response({"old_password": ["Wrong Password."]}, 
-                                status=status.HTTP_400_BAD_REQUEST)
-            self.object.set_password(serializer.data.get("new_password"))
-            self.object.save()
-            return Response({"status": "success",
-                             "code": status.HTTP_200_OK,
-                             "message": "Password updated successfully"})
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
@@ -86,7 +68,7 @@ class UsersViewSet(viewsets.GenericViewSet):
         if serializer.is_valid():
             if not self.object.check_password(serializer.data.get("old_password")):
                 return Response({"old_password": ["Wrong Password."]}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_401_UNAUTHORIZED)
             self.object.set_password(serializer.data.get("new_password"))
             self.object.save()
             return Response({"status": "success",
@@ -109,7 +91,7 @@ class UsersViewSet(viewsets.GenericViewSet):
                 return Response(author_serializer.data,
                         status=status.HTTP_200_OK)
             return Response({"detail": ["Wrong username or password."]}, 
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -163,7 +145,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
             return Response({"detail": ["Request does not exist."]},
                             status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True)
+    @action(detail=True, methods=['get', 'post'])
     def send(self, request, pk=None, author_pk=None, *args, **kwargs):
         object = Author.objects.get(id=author_pk)
         actor = Author.objects.get(id=pk)
@@ -176,7 +158,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         serializer = FollowRequestSerializer(instance=follow_request)
         return Response(serializer.data)
     
-    @action(detail=True)
+    @action(detail=True, methods=['get', 'post'])
     def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
         object = get_object_or_404(Author, id=author_pk)
         actor = get_object_or_404(Author, id=pk)
@@ -193,7 +175,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["Request does not exist."]},
                         status=status.HTTP_404_NOT_FOUND)
     
-    @action(detail=True)
+    @action(detail=True, methods=['get', 'post'])
     def decline(self, request, pk=None, author_pk=None, *args, **kwargs):
         object = get_object_or_404(Author, id=author_pk)
         actor = get_object_or_404(Author, id=pk)
@@ -216,19 +198,27 @@ class FollowersViewSet(viewsets.GenericViewSet):
         serializer = FollowersSerializer(instance=instance)
         return Response(serializer.data)
     
-    @action(detail=True)
-    def unfollow(self, request, pk=None, author_pk=None, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def unfollow(self, request, author_pk=None, *args, **kwargs):
         author = get_object_or_404(Author, id=author_pk)
-        follower = get_object_or_404(Author, id=pk)
-        followers = Followers.objects.get(author=author)
-        following = Following.objects.get(author=follower)
-        if followers.items.contains(follower) & following.items.contains(author):
-            followers.items.remove(follower)
-            following.items.remove(author)
-            return Response({"detail": ["Unfollowed successfully."]},
-                            status=status.HTTP_200_OK)
+        serializer = AuthorIdSerializer(data=request.data)
+        if serializer.is_valid():
+            print(serializer.data)
+            pk = serializer.data.get("id")
+            print(pk)
+            follower = get_object_or_404(Author, id=pk)
+            followers = Followers.objects.get(author=author)
+            following = Following.objects.get(author=follower)
+            if followers.items.contains(follower) & following.items.contains(author):
+                followers.items.remove(follower)
+                following.items.remove(author)
+                return Response({"detail": ["Unfollowed successfully."]},
+                                status=status.HTTP_200_OK)
 
-        return Response({"detail": ["User is not in following list."]},
+            return Response({"detail": ["User is not in following list."]},
+                            status=status.HTTP_404_NOT_FOUND)
+        
+        return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
 class FollowingViewSet(viewsets.ModelViewSet):
