@@ -583,21 +583,102 @@ Vary: Accept
     ]
 }
 ```
+# Comments
+## GET /service/author/{authorId}/posts/{postId}/comments/
 
-## /service/author/{authorId}/posts/{postId}/comments/
+```
+HTTP 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
 
-Can do get requests for both:  
-/service/author/{authorId}/posts/{postId}/comments/  
-/service/author/{authorId}/posts/{postId}/comments/{commendId}/  
+{
+    "count": 1,
+    "page": 1,
+    "size": 5,
+    "next": null,
+    "previous": null,
+    "comments": [
+        {
+            "id": "80ecb586-ae11-4322-8ddf-f46c5aeb99c9",
+            "type": "comment",
+            "author": {
+                "type": "author",
+                "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+                "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+                "host": "http://127.0.0.1:8000/",
+                "displayName": "testfollow2",
+                "github": "",
+                "profileImage": ""
+            },
+            "comment": "this is a test comment by the author",
+            "contentType": "text/plain",
+            "published": "2023-03-21T22:31:50.032448Z",
+            "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
+        }
+    ]
+}
+```
+
+## GET /service/author/{authorId}/posts/{postId}/comments/{commentId}/
+
+```
+HTTP 200 OK
+Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "id": "80ecb586-ae11-4322-8ddf-f46c5aeb99c9",
+    "type": "comment",
+    "author": {
+        "type": "author",
+        "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+        "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow2",
+        "github": "",
+        "profileImage": ""
+    },
+    "comment": "this is a test comment by the author",
+    "contentType": "text/plain",
+    "published": "2023-03-21T22:31:50.032448Z",
+    "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
+}
+```
 
 ## POST /service/author/{authorId}/posts/{postId}/comments/
 
-Format:
+Post format:
 ```
 {
-    "author_id": "",
-    "comment": "",
-    "contentType": "",
-    "published": "YYYY-MM-DD",
+    "author": "{authorId of comment}",
+    "comment": "comment content",
+    "contentType": "text/plain"
+}
+```
+On success returns:
+```
+HTTP 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "id": "80ecb586-ae11-4322-8ddf-f46c5aeb99c9",
+    "type": "comment",
+    "author": {
+        "type": "author",
+        "id": "6443bb45-91d3-433c-9ff5-d152942308a8",
+        "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8",
+        "host": "http://127.0.0.1:8000/",
+        "displayName": "testfollow2",
+        "github": "",
+        "profileImage": ""
+    },
+    "comment": "this is a test comment by the author",
+    "contentType": "text/plain",
+    "published": "2023-03-21T22:31:50.032448Z",
+    "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
 }
 ```
