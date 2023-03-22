@@ -284,7 +284,7 @@ class PostsViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
             like = Likes(summary=summary, author=author, object=object)
             like.save()
-            object.count += 1
+            object.numLikes += 1
             object.save()
             liked = Liked.objects.get(author=author)
             liked.items.add(like)
@@ -343,6 +343,8 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
         serializer.save(post=post)
+        post.count += 1
+        post.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
@@ -366,7 +368,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
             like = Likes(summary=summary, author=author, object=object)
             like.save()
-            object.count += 1
+            object.numLikes += 1
             object.save()
             liked = Liked.objects.get(author=author)
             liked.items.add(like)

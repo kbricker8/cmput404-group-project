@@ -98,6 +98,7 @@ class Post(models.Model):
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='posts')
     categories = models.JSONField(default = list, null = True)
     count = models.IntegerField(default = 0, blank = True)
+    numLikes = models.IntegerField(default = 0, blank = True)
     comments = models.TextField(null = True)
     published = models.DateTimeField(default = timezone.now)
     visibility = models.CharField(max_length = 20, choices = Visibility.choices, default = Visibility.PUBLIC)
@@ -129,7 +130,7 @@ class Comment(models.Model):
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
 
-    count = models.IntegerField(default = 0, blank = True)
+    numLikes = models.IntegerField(default = 0, blank = True)
 
     likes = GenericRelation(Likes)
 
