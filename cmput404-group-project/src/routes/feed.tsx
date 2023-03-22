@@ -73,8 +73,13 @@ export default function Album() {
     };
 
     const handleLike = (clickedPost: { id: any; } | null) => {
-        //use GET service/authors/{authorId}/posts/{postId}/likes/ to add likes to post
-        axios.get(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/likes/`)
+        //use POST service/authors/{authorId}/posts/{postId}/like/ to add likes to post
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(clickedPost.id);
+
+        axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/like/`, {
+            author: user.id,
+            })
         .then((response) => {
             console.log("MAKE LIKE RESPONSE:", response);
             navigate(1)
