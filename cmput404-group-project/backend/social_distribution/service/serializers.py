@@ -72,7 +72,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id','type', 'title','source','origin','description','contentType','author','categories','count', 'content','comments','published','visibility','unlisted')
+        fields = ('id','type', 'title','source','origin','description','contentType','author','categories','count', 'numLikes','content','comments','published','visibility','unlisted')
 
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
@@ -102,7 +102,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         # fields = "__all__"
-        fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'count', 'post')
+        fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'numLikes', 'post')
     
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
