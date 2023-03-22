@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Card, CardContent, Typography, Grid } from '@mui/material';
+import { Autocomplete } from '@mui/lab';
+import { Box, Button, Card, CardContent, Typography, TextField, Grid } from '@mui/material';
 import axios from 'axios';
 import { Container } from '@mui/system';
+import { Author } from '../types/author';
 
 type Follower = {
   id: string;
@@ -20,8 +22,35 @@ type FollowRequest = {
 export default function Profile() {
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [followRequests, setFollowRequests] = useState<FollowRequest[]>([]);
-
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const user = JSON.parse(localStorage.getItem('user')!);
+  const handleAddFollower = () => {
+    if (selectedAuthor) {
+      console.log('ADD FOLLOWER:', selectedAuthor);
+      axios
+        .post(`http://127.0.0.1:8000/service/authors/${selectedAuthor.id}/follow-request/${user.id}/send/`, {})
+        .then((response) => {
+          console.log('ADD FOLLOWER RESPONSE:', response);
+        })
+        .catch((error) => {
+          console.log('ADD FOLLOWER ERROR:', error);
+        });
+    }
+  };
+  const handleRemoveFollower = (followerId: string) => {
+    setConfirmRemove(followerId);
+  };
+  const handleConfirmRemove = (followerId: string) => {
+    setConfirmRemove(null);
+    // Dummy API call
+    axios.delete(`http://127.0.0.1:8000/dummy-remove${followerId}`).then((response) => {
+      console.log('REMOVE FOLLOWER RESPONSE:', response);
+    }).catch((error) => {
+      console.log('REMOVE FOLLOWER ERROR:', error);
+    });
+  };
   const handleAcceptRequest = (request: FollowRequest) => {
     console.log('ACCEPT REQUEST:', request);
     axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`).then(
@@ -44,13 +73,21 @@ export default function Profile() {
       )
   };
   useEffect(() => {
+    //Get all authors for sending friend requests
+    axios.get(`http://127.0.0.1:8000/service/authors/`).then((response) => {
+      console.log('GET ALL AUTHORS RESPONSE:', response);
+      console.log(response.data.items);
+      setAuthors(response.data.items.filter((author: Author) => author.id !== user.id));
+      console.log(authors);
+    });
+
     //Get Followers
     axios
       .get(`http://127.0.0.1:8000/service/authors/${user.id}/followers/`)
       .then((response) => {
         console.log('GET FOLLOWERS RESPONSE:', response);
 
-        const followerPromises: Promise<Follower>[] = response.data[0].items.map((follower: string) => {
+        const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
           console.log('FOR EACH FOLLOWER:', follower);
           return axios.get(`http://127.0.0.1:8000/service/authors/${follower}/`).then((response) => {
             console.log('GET FOLLOWER INFO :', response);
@@ -90,11 +127,42 @@ export default function Profile() {
     <>
       <Container sx={{ paddingTop: '112px' }}>
         <Box sx={{ marginBottom: '32px' }}>
+          <Typography variant="h2">Send a Follow Request</Typography>
+          <Grid container spacing={2} alignItems="center" sx={{marginTop: '16px'}}>
+            <Grid item>
+              <Autocomplete
+                sx={{width: '300px'}}
+                options={authors}
+                getOptionLabel={(option) => option.displayName}
+                value={selectedAuthor}
+                onChange={(_, newValue) => setSelectedAuthor(newValue)}
+                renderInput={(params) => (
+                  <TextField {...params} label="Select an author" />
+                )}
+              />
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                onClick={handleAddFollower}
+                disabled={!selectedAuthor}
+              >
+                Confirm
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+        <Box sx={{ marginBottom: '32px' }}>
           <Typography variant="h2">Followers</Typography>
           {followers.map((follower) => (
             <Card key={follower.id}>
               <CardContent>
                 <Typography>{follower.name}</Typography>
+                {confirmRemove === follower.id ? (
+                  <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
+                ) : (
+                  <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
+                )}
               </CardContent>
             </Card>
           ))}
