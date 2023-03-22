@@ -69,10 +69,11 @@ class FollowRequestSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     comments = serializers.CharField(required=False)
     published = serializers.DateTimeField(required=False)
+    count = serializers.IntegerField(required=False)
 
     class Meta:
         model = Post
-        fields = ('id','type', 'title','source','origin','description','contentType','author','categories','count', 'numLikes','content','comments','published','visibility','unlisted')
+        fields = ('id', 'url','type', 'title','source','origin','description','contentType','author','categories','count', 'numLikes','content','comments','published','visibility','unlisted')
 
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
@@ -89,7 +90,7 @@ class PostIdSerializer(serializers.ModelSerializer):
 class ImagePostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagePosts
-        fields = ('post', 'image') #add type?
+        fields = ('id', 'type', 'post', 'image')
 
 class CommentsSerializer(serializers.ModelSerializer):
     # author_id = serializers.CharField(
