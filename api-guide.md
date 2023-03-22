@@ -454,7 +454,6 @@ Format:
     "contentType": "text/plain",
     "content": "the content of the post",
     "categories": null,
-    "count": 0,
     "visibility": "PUBLIC",
     "unlisted": false
 }
@@ -468,6 +467,7 @@ Vary: Accept
 
 {
     "id": "da822edf-7ddd-4fe5-968b-5d65137d4f2c",
+    "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8/posts/da822edf-7ddd-4fe5-968b-5d65137d4f2c",
     "type": "post",
     "title": "The Title",
     "source": "http://www.thesourceurl.com",
