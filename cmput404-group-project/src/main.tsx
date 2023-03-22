@@ -14,21 +14,12 @@ import AboutUs from "./routes/about-us";
 import SignIn from "./routes/sign-in";
 import FeedPage from "./routes/feed";
 import NewPost from "./components/NewPost";
+import EditPost from "./components/EditPost";
 import Profile from "./routes/profile";
-// import Feed from "./routes/feed";
-// const AppLayout = () => {
-//   return (
-//     <>
-//     <Navbar />
-//     <Outlet />
-//     </>
-//   )
-// }
 
 const router = createBrowserRouter([
   {
     element: <Root />,
-    // element: <AppLayout />,
     errorElement: <ErrorPage />,
     children: [
       {
@@ -54,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile />,
+      },
+      {
+        path: "editPost",
+        element: <EditPost />,
       },
     ]
   },
