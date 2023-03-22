@@ -45,8 +45,10 @@ export default function Profile() {
   const handleConfirmRemove = (followerId: string) => {
     setConfirmRemove(null);
     // Dummy API call
-    axios.delete(`http://127.0.0.1:8000/dummy-remove${followerId}`).then((response) => {
+    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/followers/unfollow/`, { "id": followerId }).then((response) => {
+      console.log(followers);
       console.log('REMOVE FOLLOWER RESPONSE:', response);
+      setFollowers(followers.filter((follower) => follower.id !== followerId));
     }).catch((error) => {
       console.log('REMOVE FOLLOWER ERROR:', error);
     });
@@ -56,6 +58,8 @@ export default function Profile() {
     axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
+        setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
+        setFollowers([...followers, { id: request.id, name: request.name }]);
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
       }
@@ -67,6 +71,7 @@ export default function Profile() {
     axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/decline/`).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
+        setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
       }
@@ -127,11 +132,45 @@ export default function Profile() {
     <>
       <Container sx={{ paddingTop: '112px' }}>
         <Box sx={{ marginBottom: '32px' }}>
-          <Typography variant="h2">Send a Follow Request</Typography>
-          <Grid container spacing={2} alignItems="center" sx={{marginTop: '16px'}}>
+        <Typography variant="h2">{user.displayName}'s Profile</Typography>
+          <Typography variant="h3">Followers</Typography>
+
+          {followers.length == 0 ?
+            <Typography>No followers yet!</Typography>
+            : followers.map((follower) => (
+              <Card key={follower.id}>
+                <CardContent>
+                  <Typography>{follower.name}</Typography>
+                  {confirmRemove === follower.id ? (
+                    <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
+                  ) : (
+                    <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+        </Box>
+        <Box sx={{ marginBottom: '32px' }}>
+          <Typography variant="h3">Follow Requests</Typography>
+          {followRequests.length == 0 ?
+            <Typography>No follow requests yet!</Typography>
+            : followRequests.map((request) => (
+              <Card key={request.id}>
+                <CardContent>
+                  <Typography>{request.name}</Typography>
+                  <Button onClick={() => handleAcceptRequest(request)}>Accept</Button>
+                  <Button onClick={() => handleRejectRequest(request)}>Reject</Button>
+                </CardContent>
+              </Card>
+            ))}
+        </Box>
+        <Box sx={{ marginBottom: '32px' }}>
+          
+          <Typography variant="h3">Send a Follow Request</Typography>
+          <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
             <Grid item>
               <Autocomplete
-                sx={{width: '300px'}}
+                sx={{ width: '300px' }}
                 options={authors}
                 getOptionLabel={(option) => option.displayName}
                 value={selectedAuthor}
@@ -151,33 +190,6 @@ export default function Profile() {
               </Button>
             </Grid>
           </Grid>
-        </Box>
-        <Box sx={{ marginBottom: '32px' }}>
-          <Typography variant="h2">Followers</Typography>
-          {followers.map((follower) => (
-            <Card key={follower.id}>
-              <CardContent>
-                <Typography>{follower.name}</Typography>
-                {confirmRemove === follower.id ? (
-                  <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
-                ) : (
-                  <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-        <Box sx={{ marginBottom: '32px' }}>
-          <Typography variant="h2">Follow Requests</Typography>
-          {followRequests.map((request) => (
-            <Card key={request.id}>
-              <CardContent>
-                <Typography>{request.name}</Typography>
-                <Button onClick={() => handleAcceptRequest(request)}>Accept</Button>
-                <Button onClick={() => handleRejectRequest(request)}>Reject</Button>
-              </CardContent>
-            </Card>
-          ))}
         </Box>
       </Container>
 
