@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 
 # IMPORTANT ----------------------
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
@@ -48,6 +50,29 @@ class FollowRequest(models.Model):
     actor = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='sent_requests') # the person sending the follow req
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
 
+class Likes(models.Model):
+    context = models.CharField(max_length = 255, default = '')
+    summary = models.CharField(max_length = 255, default = '')
+    type = 'Like'
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes')
+
+    content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
+    object_id = models.UUIDField(null=True)
+    object = GenericForeignKey()
+
+    class Meta:
+        verbose_name_plural = "likes"
+
+class Liked(models.Model):
+    type = 'liked'
+
+    id = models.URLField(primary_key = True, max_length = 255)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='liked', unique=True)
+    items = models.ManyToManyField(Likes, blank=True, symmetrical=False, related_name='liked')
+
+    class Meta:
+        verbose_name_plural = "liked"
+
 class Post(models.Model):
     class Visibility(models.TextChoices):
         FOLLOWERS = 'PRIVATE'
@@ -78,6 +103,8 @@ class Post(models.Model):
     visibility = models.CharField(max_length = 20, choices = Visibility.choices, default = Visibility.PUBLIC)
     unlisted = models.BooleanField(default = 'False')
 
+    likes = GenericRelation(Likes)
+
     class Meta:
         ordering = ['-published']
 
@@ -102,27 +129,12 @@ class Comment(models.Model):
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
 
+    count = models.IntegerField(default = 0, blank = True)
+
+    likes = GenericRelation(Likes)
+
     def _str_(self):
         return self.comment
-
-class Likes(models.Model):
-    context = models.CharField(max_length = 255, default = '')
-    summary = models.CharField(max_length = 255, default = '')
-    type = 'likes'
-    author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    object = models.URLField(max_length=255, default ='')
-
-    class Meta:
-        verbose_name_plural = "likes"
-
-class Liked(models.Model):
-    type = 'liked'
-
-    author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    items = models.JSONField(default = list) #foreign key
-
-    class Meta:
-        verbose_name_plural = "liked"
 
 class Inbox(models.Model):
     type = 'inbox'

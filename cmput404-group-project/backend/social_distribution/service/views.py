@@ -17,10 +17,13 @@ from .serializers import FollowRequestSerializer
 from .serializers import FollowersSerializer
 from .serializers import FollowingSerializer
 from .serializers import AuthorIdSerializer
+from .serializers import LikesSerializer
+from .serializers import LikedSerializer
+from .serializers import LikeSerializer
 
 # import models
 from django.contrib.auth.models import User
-from .models import Post, Author, Comment, FollowRequest, Followers, Following
+from .models import Post, Author, Comment, FollowRequest, Followers, Following, Liked, Likes
 
 class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
@@ -47,16 +50,20 @@ class UsersViewSet(viewsets.GenericViewSet):
         following = Following(id=following_id, author = author)
         following.save()
 
+        liked_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/liked/'
+        liked = Liked(id=liked_id, author=author)
+        liked.save()
+
         author_serializer = AuthorSerializer(instance=author)
 
         return Response(author_serializer.data, status=status.HTTP_201_CREATED)
     
     def list(self, request):
         recent_users = User.objects.all().order_by('-last_login')
-        page = self.paginate_queryset(recent_users)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        # page = self.paginate_queryset(recent_users)
+        # if page is not None:
+        #     serializer = self.get_serializer(page, many=True)
+        #     return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(recent_users, many=True)
         return Response(serializer.data)
 
@@ -105,6 +112,12 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True)
+    def liked(self, request, pk, *args, **kwargs):
+        liked = Liked.objects.get(author=pk)
+        serializer = LikedSerializer(instance=liked)
+        return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
@@ -203,9 +216,7 @@ class FollowersViewSet(viewsets.GenericViewSet):
         author = get_object_or_404(Author, id=author_pk)
         serializer = AuthorIdSerializer(data=request.data)
         if serializer.is_valid():
-            print(serializer.data)
             pk = serializer.data.get("id")
-            print(pk)
             follower = get_object_or_404(Author, id=pk)
             followers = Followers.objects.get(author=author)
             following = Following.objects.get(author=follower)
@@ -253,6 +264,36 @@ class PostsViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
+    @action(detail=True)
+    def likes(self, request, author_pk, pk, *args, **kwargs):
+        # queryset = Likes.objects.filter(author__id = author_pk, object__id = pk).all()
+        likes = Likes.objects.filter(object_id = pk).all()
+        serializer = LikesSerializer(instance=likes, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['Post'])
+    def like(self, request, author_pk, pk, *args, **kwargs):
+        object = self.get_object()
+        serializer = LikeSerializer(data=request.data)
+        if serializer.is_valid():
+            authorid = serializer.data.get('author')
+            author = get_object_or_404(Author, id=authorid)
+            summary = f"{author.displayName} liked your post"
+            if Likes.objects.filter(author=author, object_id=pk).count():
+                return Response({"detail": ["Request already exists."]},
+                            status=status.HTTP_400_BAD_REQUEST)
+            like = Likes(summary=summary, author=author, object=object)
+            like.save()
+            object.count += 1
+            object.save()
+            liked = Liked.objects.get(author=author)
+            liked.items.add(like)
+            return Response({"detail": ["Liked post."]},
+                        status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
@@ -270,7 +311,6 @@ class PostsViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
-
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
@@ -305,3 +345,30 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.save(post=post)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    @action(detail=True)
+    def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
+        # queryset = Likes.objects.filter(author__id = author_pk, object__id = pk).all()
+        likes = Likes.objects.filter(object_id = pk).all()
+        serializer = LikesSerializer(instance=likes, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['Post'])
+    def like(self, request, author_pk, post_pk, pk, *args, **kwargs):
+        object = self.get_object()
+        serializer = LikeSerializer(data=request.data)
+        if serializer.is_valid():
+            authorid = serializer.data.get('author')
+            author = get_object_or_404(Author, id=authorid)
+            summary = f"{author.displayName} liked your comment"
+            if Likes.objects.filter(author=author, object_id=pk).count():
+                return Response({"detail": ["Request already exists."]},
+                            status=status.HTTP_400_BAD_REQUEST)
+            like = Likes(summary=summary, author=author, object=object)
+            like.save()
+            object.count += 1
+            object.save()
+            liked = Liked.objects.get(author=author)
+            liked.items.add(like)
+            return Response({"detail": ["Liked comment."]},
+                        status=status.HTTP_200_OK)
