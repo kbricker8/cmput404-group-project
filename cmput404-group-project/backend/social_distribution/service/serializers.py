@@ -78,6 +78,14 @@ class PostSerializer(serializers.ModelSerializer):
         self.fields['author'] = AuthorSerializer(read_only=True)
         return super().to_representation(instance)
 
+class PostIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['type', 'id']
+
+    # def to_representation(self, instance):
+    #     return instance.id
+
 class ImagePostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagePosts
@@ -94,7 +102,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         # fields = "__all__"
-        fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'post')
+        fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'count', 'post')
     
     def to_representation(self, instance):
         self.fields['author'] = AuthorSerializer(read_only=True)
@@ -102,14 +110,32 @@ class CommentsSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 class LikesSerializer(serializers.ModelSerializer):
+    context = serializers.CharField(required=False)
     class Meta:
         model = Likes
         fields = ('context', 'summary', 'type', 'author', 'object')
 
+    def to_representation(self, instance):
+        # self.fields['author'] = AuthorSerializer(read_only=True)
+        self.fields['object'] = PostIdSerializer(read_only=True)
+        return super().to_representation(instance)
+    
+class LikeSerializer(serializers.ModelSerializer):
+    model = Likes
+    author = serializers.UUIDField(required=True,)
+    class Meta:
+        model = Likes
+        fields = ['author']
+
+
 class LikedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Liked
-        fields = ('type', 'items', 'author')
+        fields = ('type', 'author', 'items')
+
+    def to_representation(self, instance):
+        self.fields['items'] = LikesSerializer(read_only=True, many=True)
+        return super().to_representation(instance)
 
 class Inbox(serializers.ModelSerializer):
     class Meta:

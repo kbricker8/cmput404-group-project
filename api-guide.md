@@ -554,7 +554,7 @@ Vary: Accept
     "size": 5,
     "next": null,
     "previous": null,
-    "comments": [
+    "posts": [
         {
             "id": "446f3d1f-05b3-433f-8812-c34545757502",
             "type": "post",
@@ -614,6 +614,7 @@ Vary: Accept
             "comment": "this is a test comment by the author",
             "contentType": "text/plain",
             "published": "2023-03-21T22:31:50.032448Z",
+            "count": 0,
             "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
         }
     ]
@@ -643,6 +644,7 @@ Vary: Accept
     "comment": "this is a test comment by the author",
     "contentType": "text/plain",
     "published": "2023-03-21T22:31:50.032448Z",
+    "count": 0,
     "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
 }
 ```
@@ -679,6 +681,155 @@ Vary: Accept
     "comment": "this is a test comment by the author",
     "contentType": "text/plain",
     "published": "2023-03-21T22:31:50.032448Z",
+    "count": 0,
     "post": "Post object (da822edf-7ddd-4fe5-968b-5d65137d4f2c)"
+}
+```
+
+# Likes
+
+## GET service/authors/{authorId}/posts/{postId}/likes/
+Returns a list of likes
+```
+[
+    {
+        "context": "",
+        "summary": "testlike2 liked your post",
+        "type": "Like",
+        "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c",
+        "object": {
+            "type": "post",
+            "id": "1102fd2c-a143-49c6-9498-53dcd69c1be0"
+        }
+    }
+    ...
+]
+```
+
+## POST service/authors/{authorId}/posts/{postId}/like/
+Post format:
+```
+{
+    "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c"
+}
+```
+Result on success:
+```
+HTTP 200 OK
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Liked post."
+    ]
+}
+```
+If already exists:
+```
+HTTP 400 Bad Request
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Request already exists."
+    ]
+}
+```
+
+## GET service/authors/{authorId}/posts/{postId}/comments/{commentId}/likes
+Returns a list of likes
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+[
+    {
+        "context": "",
+        "summary": "testlike2 liked your comment",
+        "type": "Like",
+        "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c",
+        "object": {
+            "type": "comment",
+            "id": "7e8b30e0-8f86-4b4a-b06b-a69fad06ca6e"
+        }
+    }
+]
+```
+
+## POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like
+Post format:
+```
+{
+    "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c"
+}
+```
+Result on success:
+```
+HTTP 200 OK
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Liked comment."
+    ]
+}
+```
+If already exists:
+```
+HTTP 400 Bad Request
+Allow: POST, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": [
+        "Request already exists."
+    ]
+}
+```
+
+# Liked
+
+## GET /service/authors/{authorId}/liked/
+Returns a list of objects liked by the author
+```
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "type": "liked",
+    "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c",
+    "items": [
+        {
+            "context": "",
+            "summary": "testlike2 liked your post",
+            "type": "Like",
+            "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c",
+            "object": {
+                "type": "post",
+                "id": "1102fd2c-a143-49c6-9498-53dcd69c1be0"
+            }
+        },
+        {
+            "context": "",
+            "summary": "testlike2 liked your comment",
+            "type": "Like",
+            "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c",
+            "object": {
+                "type": "comment",
+                "id": "7e8b30e0-8f86-4b4a-b06b-a69fad06ca6e"
+            }
+        }
+    ]
 }
 ```
