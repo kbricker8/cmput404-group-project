@@ -72,6 +72,20 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
     };
 
+    const handleLike = (clickedPost: { id: any; } | null) => {
+        //use GET service/authors/{authorId}/posts/{postId}/likes/ to add likes to post
+        axios.get(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/likes/`)
+        .then((response) => {
+            console.log("MAKE LIKE RESPONSE:", response);
+            navigate(1)
+        }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
+    };
+        
+
+        
+
+
+
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
@@ -149,6 +163,9 @@ export default function Album() {
                                                 </Typography>
                                                 <Typography gutterBottom variant="subtitle1" component="h3">
                                                     {post.description}
+                                                </Typography>
+                                                <Typography gutterBottom variant="caption" component="h3">
+                                                    {post.count}{" comments"}
                                                 </Typography>
                                             </CardContent>
                                             <CardMedia
@@ -235,6 +252,23 @@ export default function Album() {
                                                 onClick={()=>localStorage.setItem('post_id', JSON.stringify(selectedPost))}
                                             >
                                                 Edit
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                variant="outlined"
+                                                sx={{ height: 50, width: 100 }}
+                                                onClick={()=> handleLike(selectedPost)}
+                                            >
+                                                Like
+                                            </Button>
+                                            <Button
+                                                type="submit"
+                                                href='./EditPost'
+                                                variant="outlined"
+                                                sx={{ height: 50, width: 100 }}
+                                                onClick={()=>localStorage.setItem('post_id', JSON.stringify(selectedPost))}
+                                            >
+                                                Comment
                                             </Button>
                                         </Stack>
                                     </Stack>
