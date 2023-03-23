@@ -75,7 +75,7 @@ function Navbar() {
             <li className="nav-item">
               {homePageFeed}
             </li>
-            <li className="nav-item">
+            {/* <li className="nav-item">
 
               <NavLink
                 to="/AboutUs"
@@ -88,7 +88,7 @@ function Navbar() {
                 About
               </NavLink>
 
-            </li>
+            </li> */}
             {user !== null ?
               <li className="nav-item">
 

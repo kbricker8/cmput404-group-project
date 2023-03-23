@@ -18,7 +18,7 @@ export default function Root() {
               <Navbar/>
               <Routes>
                 <Route path="/" element={<Home/>} />
-                <Route path="aboutUs" element={<AboutUs/>} />
+                {/* <Route path="aboutUs" element={<AboutUs/>} /> */}
                 <Route path="signIn" element={<SignIn/>} />
                 <Route path="feed" element={<Feed/>} />
                 <Route path="NewPost" element={<NewPost/>} />
