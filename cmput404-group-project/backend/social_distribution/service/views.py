@@ -3,6 +3,7 @@ from rest_framework import viewsets, status, generics, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
+from django.db.models import Q
 
 from .paginations import PostsPagination, CommentsPagination
 
@@ -116,6 +117,17 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True)
+    def friends(self, request, pk, *args, **kwargs):
+        author = self.get_object()
+        followers = Followers.objects.filter(author=author).values_list('items', flat=True)
+        following = Following.objects.filter(author=author).values_list('items', flat=True)
+        friends = Author.objects.filter(
+            Q(id__in=followers) & Q(id__in=following)
+        ).values_list('id', flat=True)
+        return Response({"type": "friends",
+                         "items": friends})
     
     @action(detail=True)
     def liked(self, request, pk, *args, **kwargs):
