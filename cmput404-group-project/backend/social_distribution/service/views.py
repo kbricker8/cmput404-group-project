@@ -3,11 +3,13 @@ from rest_framework import viewsets, status, generics, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
+from django.db.models import Q
 
 from .paginations import PostsPagination, CommentsPagination
 
 # import serializers
 from .serializers import PostSerializer
+from .serializers import ImagePostsSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import AuthorSerializer
@@ -23,7 +25,10 @@ from .serializers import LikeSerializer
 
 # import models
 from django.contrib.auth.models import User
-from .models import Post, Author, Comment, FollowRequest, Followers, Following, Liked, Likes
+from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes
+
+baseURL = "http://127.0.0.1:8000/"
+
 
 class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
@@ -37,20 +42,20 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        author = Author(host="http://127.0.0.1:8000/", displayName=serializer.data.get("username"), user=user)
+        author = Author(host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
-        author.url = "http://127.0.0.1:8000/service/authors/" + str(author.id)
+        author.url = baseURL + "service/authors/" + str(author.id)
         author.save()
 
-        followers_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/followers/'
+        followers_id = baseURL + 'service/authors/' + str(author.id) + '/followers/'
         followers = Followers(id=followers_id, author = author)
         followers.save()
 
-        following_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/following/'
+        following_id = baseURL + 'service/authors/' + str(author.id) + '/following/'
         following = Following(id=following_id, author = author)
         following.save()
 
-        liked_id = 'http://127.0.0.1:8000/service/authors/' + str(author.id) + '/liked/'
+        liked_id = baseURL + 'service/authors/' + str(author.id) + '/liked/'
         liked = Liked(id=liked_id, author=author)
         liked.save()
 
@@ -112,6 +117,17 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True)
+    def friends(self, request, pk, *args, **kwargs):
+        author = self.get_object()
+        followers = Followers.objects.filter(author=author).values_list('items', flat=True)
+        following = Following.objects.filter(author=author).values_list('items', flat=True)
+        friends = Author.objects.filter(
+            Q(id__in=followers) & Q(id__in=following)
+        ).values_list('id', flat=True)
+        return Response({"type": "friends",
+                         "items": friends})
     
     @action(detail=True)
     def liked(self, request, pk, *args, **kwargs):
@@ -254,15 +270,40 @@ class PostsViewSet(viewsets.ModelViewSet):
                          "items": serializer.data})
     
     def create(self, request, author_pk=None, *args, **kwargs):
-        
         author = Author.objects.get(id=author_pk)
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # self.perform_create(serializer)
-        serializer.save(author=author)
+        post = serializer.save(author=author)
+        url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id)
+        comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id) + '/comments'
+        post.url = url
+        post.comments = comments_url
+        post.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        title = serializer.validated_data['title']
+        description = serializer.validated_data['description']
+        content = serializer.validated_data['content']
+        instance.title = title
+        instance.description = description
+        instance.content = content
+        instance.save()
+        serializer = PostSerializer(instance=instance)
+
+        return Response(serializer.data)
+    
+    @action(detail=True)
+    def image(self, request, author_pk, pk, *args, **kwargs):
+        post=self.get_object()
+        image = get_object_or_404(ImagePosts, post=post)
+        serializer = ImagePostsSerializer(instance=image)
+        return Response(serializer.data)
     
     @action(detail=True)
     def likes(self, request, author_pk, pk, *args, **kwargs):
@@ -347,6 +388,18 @@ class CommentsViewSet(viewsets.ModelViewSet):
         post.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.validated_data['comment']
+        instance.comment = comment
+        instance.save()
+        serializer = CommentsSerializer(instance=instance)
+
+        return Response(serializer.data)
     
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):

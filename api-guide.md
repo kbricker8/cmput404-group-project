@@ -454,7 +454,6 @@ Format:
     "contentType": "text/plain",
     "content": "the content of the post",
     "categories": null,
-    "count": 0,
     "visibility": "PUBLIC",
     "unlisted": false
 }
@@ -468,6 +467,7 @@ Vary: Accept
 
 {
     "id": "da822edf-7ddd-4fe5-968b-5d65137d4f2c",
+    "url": "http://127.0.0.1:8000/service/authors/6443bb45-91d3-433c-9ff5-d152942308a8/posts/da822edf-7ddd-4fe5-968b-5d65137d4f2c",
     "type": "post",
     "title": "The Title",
     "source": "http://www.thesourceurl.com",
@@ -508,7 +508,7 @@ Vary: Accept
     "size": 5,
     "next": "http://127.0.0.1:8000/service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e/posts/public/?p=2",
     "previous": null,
-    "results": [
+    "posts": [
         {
             "id": "a8835c2a-87dc-4ec9-81f5-832e06fd8412",
             "type": "post",

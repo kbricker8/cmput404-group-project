@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Autocomplete } from '@mui/lab';
-import { Box, Button, Card, CardContent, Typography, TextField, Grid } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Grid } from '@mui/material';
 import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
@@ -23,9 +22,7 @@ type FollowRequest = {
 export default function Profile() {
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [followRequests, setFollowRequests] = useState<FollowRequest[]>([]);
-  const [authors, setAuthors] = useState<Author[]>([]);
-  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+
   const user = JSON.parse(localStorage.getItem('user')!);
   const handleAddFollower = () => {
     if (selectedAuthor) {
@@ -97,7 +94,7 @@ export default function Profile() {
       .then((response) => {
         console.log('GET FOLLOWERS RESPONSE:', response);
 
-        const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
+        const followerPromises: Promise<Follower>[] = response.data[0].items.map((follower: string) => {
           console.log('FOR EACH FOLLOWER:', follower);
           return axios.get(`http://127.0.0.1:8000/service/authors/${follower}/`).then((response) => {
             console.log('GET FOLLOWER INFO :', response);
