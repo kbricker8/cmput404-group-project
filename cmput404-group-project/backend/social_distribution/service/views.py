@@ -1,3 +1,4 @@
+from itertools import chain
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status, generics, mixins
 from rest_framework.decorators import api_view, action
@@ -346,9 +347,24 @@ class PostsViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def feed(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
-        following = Following.objects.get(author__id=author_pk)
-        followed_authors = following.items.all()
-        posts = Post.objects.filter(author__in=followed_authors)
+        author = Author.objects.get(id=author_pk)
+        followers = Followers.objects.filter(author=author).values_list('items', flat=True)
+        following = Following.objects.filter(author=author).values_list('items', flat=True)
+        friends = Author.objects.filter(
+            Q(id__in=followers) & Q(id__in=following)
+        ).values_list('id', flat=True)
+
+        my_posts = Post.objects.filter(Q(author__id=author_pk))
+        following_posts = Post.objects.filter(
+            Q(author__id__in=following) & ~Q(visibility='FRIENDS')
+        )
+        friend_posts = Post.objects.filter(
+            Q(author__id__in=friends) & Q(visibility='FRIENDS')
+        )
+        # public_posts = Post.objects.filter(visibility='PUBLIC')
+
+        posts = my_posts | following_posts | friend_posts
+
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
