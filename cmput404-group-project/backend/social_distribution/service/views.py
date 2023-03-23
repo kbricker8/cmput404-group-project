@@ -377,6 +377,18 @@ class CommentsViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.validated_data['comment']
+        instance.comment = comment
+        instance.save()
+        serializer = CommentsSerializer(instance=instance)
+
+        return Response(serializer.data)
+    
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
         # queryset = Likes.objects.filter(author__id = author_pk, object__id = pk).all()
