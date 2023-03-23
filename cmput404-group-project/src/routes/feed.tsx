@@ -63,7 +63,7 @@ export default function Album() {
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(clickedPost.id);
+        // console.log(clickedPost.id);
 
         axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`)
         .then((response) => {
