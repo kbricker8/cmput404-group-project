@@ -270,6 +270,22 @@ class PostsViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        title = serializer.validated_data['title']
+        description = serializer.validated_data['description']
+        content = serializer.validated_data['content']
+        instance.title = title
+        instance.description = description
+        instance.content = content
+        instance.save()
+        serializer = PostSerializer(instance=instance)
+
+        return Response(serializer.data)
+    
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
         post=self.get_object()
