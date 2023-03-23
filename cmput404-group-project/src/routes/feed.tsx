@@ -14,6 +14,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
+//import CommentPost from '../components/CommentPost';
 
 const theme = createTheme();
 
@@ -82,13 +83,12 @@ export default function Album() {
             })
         .then((response) => {
             console.log("MAKE LIKE RESPONSE:", response);
-            navigate(1)
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
     };
-        
 
-        
-
+    const handleCommentPost = (clickedPost: { id: any; } | null) => {
+        CommentPost(clickedPost);
+    };
 
 
     const [open, setOpen] = React.useState(false);
@@ -168,6 +168,9 @@ export default function Album() {
                                                 </Typography>
                                                 <Typography gutterBottom variant="subtitle1" component="h3">
                                                     {post.description}
+                                                </Typography>
+                                                <Typography gutterBottom variant="caption" component="h3">
+                                                    {post.likes}{" likes"}
                                                 </Typography>
                                                 <Typography gutterBottom variant="caption" component="h3">
                                                     {post.count}{" comments"}
@@ -268,10 +271,9 @@ export default function Album() {
                                             </Button>
                                             <Button
                                                 type="submit"
-                                                href='./EditPost'
                                                 variant="outlined"
                                                 sx={{ height: 50, width: 100 }}
-                                                onClick={()=>localStorage.setItem('post_id', JSON.stringify(selectedPost))}
+                                                onClick={()=> handleCommentPost(selectedPost)}
                                             >
                                                 Comment
                                             </Button>
