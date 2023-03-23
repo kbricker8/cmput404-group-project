@@ -9,6 +9,8 @@ from django.contrib.contenttypes.models import ContentType
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 # also makemigations and migrate
 
+baseURL = "http://127.0.0.1:8000/"
+
 class Author(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'author'
@@ -20,7 +22,7 @@ class Author(models.Model):
 
     user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE, related_name='author') # the user account that the author object is linked to
 
-    def get_author_from_user(user):
+    def get_author_from_user(self, user):
         return Author.objects.get(user=user)
 
 class Followers(models.Model):
@@ -87,6 +89,7 @@ class Post(models.Model):
         APPLICATION = 'application/base64'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField(default='')
     type = 'post'
     title = models.CharField(max_length = 255)
     source = models.URLField(max_length = 255, null = True) #where did you get this post from
@@ -98,7 +101,8 @@ class Post(models.Model):
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='posts')
     categories = models.JSONField(default = list, null = True)
     count = models.IntegerField(default = 0, blank = True)
-    comments = models.TextField(null = True)
+    numLikes = models.IntegerField(default = 0, blank = True)
+    comments = models.URLField(max_length = 255, null = True)
     published = models.DateTimeField(default = timezone.now)
     visibility = models.CharField(max_length = 20, choices = Visibility.choices, default = Visibility.PUBLIC)
     unlisted = models.BooleanField(default = 'False')
@@ -114,11 +118,11 @@ class Post(models.Model):
 class ImagePosts(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'ImagePost'
-    post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image_posts')
+    post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image', null=True)
     image = models.ImageField(null = True, blank = True)
 
     class Meta:
-        verbose_name_plural = "image posts"
+        verbose_name_plural = "images"
 
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -129,7 +133,7 @@ class Comment(models.Model):
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
 
-    count = models.IntegerField(default = 0, blank = True)
+    numLikes = models.IntegerField(default = 0, blank = True)
 
     likes = GenericRelation(Likes)
 

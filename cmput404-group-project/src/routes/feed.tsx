@@ -43,7 +43,7 @@ export default function Album() {
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
             localStorage.setItem('refreshed', 'true');       
-            navigate(0);
+            window.location.reload(true);
         }
     }
     
@@ -66,10 +66,9 @@ export default function Album() {
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}`)
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`)
         .then((response) => {
             console.log("MAKE DELETE RESPONSE:", response);
-            navigate(-1)
         }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
     };
 
@@ -247,7 +246,11 @@ export default function Album() {
                                                 type="submit"
                                                 color='error'
                                                 variant="contained"
-                                                onClick={()=>handleDelete(selectedPost)}
+                                                onClick={() => {
+                                                    handleDelete(selectedPost);
+                                                    handleClose();
+                                                    window.location.reload(true);
+                                                }}
                                                 sx={{ height: 50, width: 100 }}
                                             >
                                                 Delete

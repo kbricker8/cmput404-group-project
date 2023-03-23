@@ -14,15 +14,17 @@ const theme = createTheme();
 
 // *******************************************************************
 // TODO:
-// -fix bug for helper text (doesn't update till you type)
+// - fix bug for helper text (doesn't update till you type)
 // *******************************************************************
 
 export default function EditPost() {
-    const [postTitle, setPostTitle] = React.useState('')
-    const [postDescription, setPostDescription] = React.useState('')
-    const [postContent, setPostContent] = React.useState('')
+
     const user = JSON.parse(localStorage.getItem('user')!);
     const post = JSON.parse(localStorage.getItem('post_id')!);
+
+    const [postTitle, setPostTitle] = React.useState(post.title)
+    const [postDescription, setPostDescription] = React.useState(post.description)
+    const [postContent, setPostContent] = React.useState(post.content)
 
     const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -30,22 +32,18 @@ export default function EditPost() {
         console.log(postTitle, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+        axios.put(`http://127.0.0.1:8000/service/authors/${user.id}/posts/${post.id}/`, {
             source: 'http://127.0.0.1:8000',
             origin: 'http://127.0.0.1:8000',
             title: postTitle,
             description: postDescription,
             content: postContent,
             //author: JSON.parse(localStorage.getItem('user')!).name,
-            author: user.id,
-            categories: {},
-            count: 0,
-            published: new Date().toISOString(),
             unlisted: false,
         }).then((response) => {
-            console.log("MAKE POST RESPONSE:", response);
+            console.log("MAKE PUT RESPONSE:", response);
             navigate(-1)
-        }).catch((error) => { console.log("MAKE POST ERROR:", error); })
+        }).catch((error) => { console.log("MAKE PUT ERROR:", error); })
     };
 
 
@@ -79,8 +77,8 @@ export default function EditPost() {
                                     label="Post Title"
                                     name="post-title"
                                     autoComplete="post-title"
+                                    value={postTitle}
                                     onChange={(e) => setPostTitle(e.target.value)}
-                                    defaultValue={post.title}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -93,15 +91,9 @@ export default function EditPost() {
                                     label="Post Description"
                                     name="post-description"
                                     autoComplete="post-description"
+                                    value={postDescription}
                                     onChange={(e) => setPostDescription(e.target.value)}
-                                    defaultValue={post.description}
                                 />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button variant="contained" component="label">
-                                    Upload Image
-                                    <input hidden accept="image/*" multiple type="file" />
-                                </Button>
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
@@ -115,8 +107,8 @@ export default function EditPost() {
                                     type="text"
                                     id="post-text"
                                     autoComplete="post-text"
+                                    value={postContent}
                                     onChange={(e) => setPostContent(e.target.value)}
-                                    defaultValue={post.content}
                                 />
                             </Grid>
                         </Grid>
