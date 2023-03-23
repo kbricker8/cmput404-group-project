@@ -22,7 +22,7 @@ class Author(models.Model):
 
     user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE, related_name='author') # the user account that the author object is linked to
 
-    def get_author_from_user(self, user):
+    def get_author_from_user(user):
         return Author.objects.get(user=user)
 
 class Followers(models.Model):
