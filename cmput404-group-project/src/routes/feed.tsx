@@ -170,7 +170,7 @@ export default function Album() {
                                                     {post.description}
                                                 </Typography>
                                                 <Typography gutterBottom variant="caption" component="h3">
-                                                    {post.likes}{" likes"}
+                                                    {post.numLikes}{" likes"}
                                                 </Typography>
                                                 <Typography gutterBottom variant="caption" component="h3">
                                                     {post.count}{" comments"}
