@@ -4,6 +4,7 @@ import { Box, Button, Card, CardContent, Typography, TextField, Grid } from '@mu
 import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
+import { ConstructionOutlined } from '@mui/icons-material';
 
 type Follower = {
   id: string;
@@ -42,9 +43,12 @@ export default function Profile() {
   const handleRemoveFollower = (followerId: string) => {
     setConfirmRemove(followerId);
   };
+  const handleCancelRemoveFollower = () => {
+    console.log('CANCEL REMOVE FOLLOWER')
+    setConfirmRemove(null);
+  };
   const handleConfirmRemove = (followerId: string) => {
     setConfirmRemove(null);
-    // Dummy API call
     axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/followers/unfollow/`, { "id": followerId }).then((response) => {
       console.log(followers);
       console.log('REMOVE FOLLOWER RESPONSE:', response);
@@ -85,10 +89,11 @@ export default function Profile() {
       setAuthors(response.data.items.filter((author: Author) => author.id !== user.id));
       console.log(authors);
     });
-
+    // Get froemds
+    axios.get(`http://
     //Get Followers
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/followers/`)
+      .get(`http://127.0.0.1:8000/service/authors/127.0.0.1:8000/service/authors/${user.id}/followers/`)
       .then((response) => {
         console.log('GET FOLLOWERS RESPONSE:', response);
 
@@ -132,7 +137,7 @@ export default function Profile() {
     <>
       <Container sx={{ paddingTop: '112px' }}>
         <Box sx={{ marginBottom: '32px' }}>
-        <Typography variant="h2">{user.displayName}'s Profile</Typography>
+          <Typography variant="h2">{user.displayName}'s Profile</Typography>
           <Typography variant="h3">Followers</Typography>
 
           {followers.length == 0 ?
@@ -142,9 +147,15 @@ export default function Profile() {
                 <CardContent>
                   <Typography>{follower.name}</Typography>
                   {confirmRemove === follower.id ? (
-                    <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
+                    <Box>
+                      <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
+                      <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
+                      
+                    </Box>
                   ) : (
                     <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
+                    // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
+
                   )}
                 </CardContent>
               </Card>
@@ -165,7 +176,7 @@ export default function Profile() {
             ))}
         </Box>
         <Box sx={{ marginBottom: '32px' }}>
-          
+
           <Typography variant="h3">Send a Follow Request</Typography>
           <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
             <Grid item>
