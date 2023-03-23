@@ -301,8 +301,8 @@ class PostsViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
         post=self.get_object()
-        image = post.image.all()
-        serializer = ImagePostsSerializer(instance=image, many=True)
+        image = get_object_or_404(ImagePosts, post=post)
+        serializer = ImagePostsSerializer(instance=image)
         return Response(serializer.data)
     
     @action(detail=True)

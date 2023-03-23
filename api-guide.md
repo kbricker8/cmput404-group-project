@@ -508,7 +508,7 @@ Vary: Accept
     "size": 5,
     "next": "http://127.0.0.1:8000/service/authors/a43dd7ba-12e9-4e38-ba9b-1baf2fb2291e/posts/public/?p=2",
     "previous": null,
-    "results": [
+    "posts": [
         {
             "id": "a8835c2a-87dc-4ec9-81f5-832e06fd8412",
             "type": "post",
