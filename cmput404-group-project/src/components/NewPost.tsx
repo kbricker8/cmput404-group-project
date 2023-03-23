@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Markdown from 'markdown-to-jsx';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 
@@ -50,7 +51,7 @@ export default function NewPost() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container sx={{ pt: 5 }}>
+            <Container sx={{ pt: 5 , pb: 12,marginTop:4}}>
                 <main>
                     <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
                         <Container maxWidth="lg">
@@ -103,7 +104,7 @@ export default function NewPost() {
                                 <TextField
                                     required
                                     fullWidth
-                                    inputProps={{maxLength: 40}}
+                                    inputProps={{ maxLength: 40 }}
                                     helperText={`${postTitle.length}/40`}
                                     id="post-title"
                                     label="Post Title"
@@ -116,7 +117,7 @@ export default function NewPost() {
                                 <TextField
                                     required
                                     fullWidth
-                                    inputProps={{maxLength: 70}}
+                                    inputProps={{ maxLength: 70 }}
                                     helperText={`${postDescription.length}/70`}
                                     id="post-description"
                                     label="Post Description"
@@ -131,21 +132,57 @@ export default function NewPost() {
                                     <input hidden accept="image/*" multiple type="file" />
                                 </Button>
                             </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    required
-                                    fullWidth
-                                    multiline
-                                    rows={10}
-                                    maxRows={15}
-                                    name="text"
-                                    label="Text"
-                                    type="text"
-                                    id="post-text"
-                                    autoComplete="post-text"
-                                    onChange={(e) => setPostContent(e.target.value)}
-                                />
-                            </Grid>
+                            {postType !== "text/markdown" ?
+                                <Grid item xs={12}>
+                                    <TextField
+                                        required
+                                        fullWidth
+                                        multiline
+                                        rows={10}
+                                        maxRows={15}
+                                        name="text"
+                                        label="Text"
+                                        type="text"
+                                        id="post-text"
+                                        autoComplete="post-text"
+                                        onChange={(e) => setPostContent(e.target.value)}
+                                    />
+                                </Grid>
+                                :
+                                <Grid container spacing={1} sx={{padding:2}} >
+                                    <Grid item xs={6}>
+                                        <TextField
+                                            required
+                                            fullWidth
+                                            multiline
+                                            rows={10}
+                                            maxRows={15}
+                                            name="text"
+                                            label="Text"
+                                            type="text"
+                                            id="post-text"
+                                            autoComplete="post-text"
+                                            onChange={(e) => setPostContent(e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <Box
+                                            display="flex"
+                                            height={'100%'}
+                                            sx={{
+
+                                                padding: '20px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '4px',
+                                                boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06)',
+
+                                                overflow: 'auto'
+                                            }}>
+                                            <Markdown>{postContent}</Markdown>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            }
                         </Grid>
                         <Button
                             type="submit"
