@@ -359,8 +359,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         post.url = url
         post.comments = comments_url
         post.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, author_pk=None, *args, **kwargs):
         user = request.user
@@ -491,8 +490,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer.save(post=post)
         post.count += 1
         post.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, *args, **kwargs):
         user = request.user
