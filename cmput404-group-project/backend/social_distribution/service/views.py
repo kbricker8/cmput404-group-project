@@ -249,7 +249,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
             return Response({"detail": ["Request already exists."]},
                             status=status.HTTP_400_BAD_REQUEST)
-        id = baseURL + "service/authors/"+object.id+"/follow-request"+actor.id+"/"
+        id = baseURL + "service/authors/"+str(object.id)+"/follow-request"+str(actor.id)+"/"
         follow_request = FollowRequest(id=id, summary=summary, actor=actor, object=object)
         follow_request.save()
         serializer = FollowRequestSerializer(instance=follow_request)
