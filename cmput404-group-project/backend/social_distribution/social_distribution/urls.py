@@ -17,7 +17,20 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_nested import routers
 from service import views
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Social Distribution API",
+        default_version='v1',
+        description="API documentation for the Social Distribution project by group 21",
+        contact=openapi.Contact(email="alamba@ualberta.ca"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 # from service.views import ChangePasswordView
 
 router = routers.SimpleRouter()
@@ -39,4 +52,5 @@ urlpatterns = [
     path('service/', include(router.urls)),
     path('service/', include(authors_router.urls)),
     path('service/', include(posts_router.urls)),
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-doc'),
 ]
