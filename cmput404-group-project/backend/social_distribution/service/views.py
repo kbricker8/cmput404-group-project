@@ -94,25 +94,25 @@ class UsersViewSet(viewsets.GenericViewSet):
     #     serializer = self.get_serializer(recent_users, many=True)
     #     return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
-    def update_pass(self, request, *args, **kwargs):
-        object = self.get_object()
-        if request.user != object:
-            return Response({"detail:" ["Not authorized to do that."]},
-                            status=status.HTTP_401_UNAUTHORIZED)
-        serializer = ChangePasswordSerializer(data=request.data)
+    # @action(detail=True, methods=['post'])
+    # def update_pass(self, request, *args, **kwargs):
+    #     object = self.get_object()
+    #     if request.user != object:
+    #         return Response({"detail:" ["Not authorized to do that."]},
+    #                         status=status.HTTP_401_UNAUTHORIZED)
+    #     serializer = ChangePasswordSerializer(data=request.data)
 
-        if serializer.is_valid():
-            if not object.check_password(serializer.data.get("old_password")):
-                return Response({"old_password": ["Wrong Password."]}, 
-                                status=status.HTTP_401_UNAUTHORIZED)
-            object.set_password(serializer.data.get("new_password"))
-            object.save()
-            return Response({"status": "success",
-                             "code": status.HTTP_200_OK,
-                             "message": "Password updated successfully"})
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+    #     if serializer.is_valid():
+    #         if not object.check_password(serializer.data.get("old_password")):
+    #             return Response({"old_password": ["Wrong Password."]}, 
+    #                             status=status.HTTP_401_UNAUTHORIZED)
+    #         object.set_password(serializer.data.get("new_password"))
+    #         object.save()
+    #         return Response({"status": "success",
+    #                          "code": status.HTTP_200_OK,
+    #                          "message": "Password updated successfully"})
+    #     return Response(serializer.errors,
+    #                     status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
     def login(self, request, *args, **kwargs):
@@ -171,6 +171,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
 
         return Response(serializer.data)
     
+    @swagger_auto_schema(responses={200: openapi.Response('',UserSerializer)})
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
         user = request.user
@@ -182,6 +183,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         serializer = UserSerializer(instance=user)
         return Response(serializer.data)
     
+    @swagger_auto_schema(responses={200: openapi.Response('{\n"type": "friends",\n"items": friends\n}')})
     @action(detail=True)
     def friends(self, request, pk, *args, **kwargs):
         author = self.get_object()
@@ -200,6 +202,8 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         serializer = LikedSerializer(instance=liked)
         return Response(serializer.data)
     
+    @swagger_auto_schema(responses={401: openapi.Response('"old_password": ["Wrong Password."]'),
+                                    200: openapi.Response('"message": "Password updated successfully"')})
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -209,7 +213,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         if serializer.is_valid():
             if not user.check_password(serializer.data.get("old_password")):
                 return Response({"old_password": ["Wrong Password."]}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_401_UNAUTHORIZED)
             user.set_password(serializer.data.get("new_password"))
             user.save()
             return Response({"status": "success",
