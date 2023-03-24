@@ -14,7 +14,8 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
-
+import { TEAM18_API } from '../consts/api_connections';
+// import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
 const modalStyle = {
@@ -30,52 +31,87 @@ const modalStyle = {
     boxShadow: 24,
     p: 4,
 };
-
+function convertTeam18PostToOurPost(obj: any): Post {
+    const post: Post = {
+        id: obj.id,
+        url: obj.url,
+        type: obj.type,
+        title: obj.title,
+        source: obj.source,
+        origin: obj.origin,
+        description: obj.description,
+        contentType: obj.content_type,
+        author: {
+            type: obj.author.type,
+            id: obj.author.id,
+            url: obj.author.url,
+            host: obj.author.host,
+            displayName: obj.author.displayName,
+            github: obj.author.github,
+            profileImage: obj.author.profile_image,
+        },
+        categories: {},
+        count: obj.count,
+        numLikes: obj.likes.length,
+        content: obj.content,
+        comments: obj.comments,
+        published: obj.published,
+        visibility: obj.visibility,
+        unlisted: obj.unlisted,
+    };
+    return post;
+}
 export default function Album() {
     console.log("LOCAL STORAGE IN FEED:")
     console.log(localStorage.getItem('user'))
 
-    const [posts,setPosts] = React.useState([]);
+    const [posts, setPosts] = React.useState([]);
+    const [team18Posts, setTeam18Posts] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
     const postsRef = React.useRef(null);
     const navigate = useNavigate();
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
-            localStorage.setItem('refreshed', 'true');       
+            localStorage.setItem('refreshed', 'true');
             window.location.reload(true);
         }
     }
-    
+
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/feed/?=p1`, {
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         }).then(
-            (response) => { 
+            (response) => {
                 console.log("GET POSTS IN FEED RESPONSE:", response);
-                postsRef.current = response.data.posts;
-                setPosts(response.data.posts);
-                
-        }
-        )
-    },[]);
-
+                const authorPosts = response.data.posts;
+                axios.get(`${TEAM18_API}service/authors/6952efd6743149eb86c472b96d84109a/posts`).then(
+                    (response) => {
+                        console.log("GET GROUP 18 POSTS RESPONSE:", response);
+                        const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));
+                        console.log("TEAM 18 POSTS:", team18Posts);
+                        setPosts(authorPosts.concat(team18Posts));
+                    }
+                );
+            }
+        );
+    }, []);
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`,  {
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
-            })
-        .then((response) => {
-            console.log("MAKE DELETE RESPONSE:", response);
-        }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
+        })
+            .then((response) => {
+                console.log("MAKE DELETE RESPONSE:", response);
+            }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
     };
 
     const [open, setOpen] = React.useState(false);
@@ -127,7 +163,7 @@ export default function Album() {
                                     spacing={2}
                                     justifyContent="center"
                                 >
-                                    <Button variant="contained" href='./NewPost' startIcon={<AddIcon />}>New Public Post</Button>
+                                    <Button variant="contained" href='./NewPost' startIcon={<AddIcon />}>New Post</Button>
                                 </Stack>
                             </Stack>
                         </Container>
@@ -140,12 +176,12 @@ export default function Album() {
                             {posts?.map((post) => (
                                 <Grid item key={post} md={3}>
                                     <Card
-                                        sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px"}}
+                                        sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px" }}
                                         variant="outlined"
                                         color='#09bef0'
                                     >
                                         <CardActionArea
-                                            onClick={()=>handleOpen(post)}>
+                                            onClick={() => handleOpen(post)}>
                                             <CardContent sx={{ flexGrow: 1, bottom: "2px" }}>
                                                 <Typography gutterBottom variant="h6" component="h1">
                                                     <b>{post.title}</b>
@@ -181,49 +217,56 @@ export default function Album() {
                         >
                             {/* <div> */}
                             <Box sx={modalStyle}>
+                                <Stack
+                                    sx={{ pb: 2 }}
+                                    direction="row"
+                                    spacing={10}
+                                    justifyContent="end"
+                                >
                                     <Stack
-                                        sx={{ pb: 2}}
-                                        direction="row"
-                                        spacing={10}
-                                        justifyContent="end"
+                                        sx={{ pb: 2 }}
+                                        direction="column"
+                                        spacing={3}
+                                        justifyContent="start"
+                                        marginRight={10}
+                                        paddingLeft={3}
                                     >
-                                        <Stack
-                                            sx={{ pb: 2 }}
-                                            direction="column"
-                                            spacing={3}
-                                            justifyContent="start"
-                                            marginRight={10}
-                                            paddingLeft={3}
-                                        >
-                                            {/* <Container> */}
-                                                <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2} top={0}>
-                                                    Post Author: <em>{selectedPost?.author?.displayName ?? 'No author'}</em>
-                                                </Typography>
-                                                <Typography id="modal-title" variant="h4" component="h2">
-                                                    <b>{selectedPost?.title ?? 'No title'}</b>
-                                                </Typography>
-                                                <Typography id="modal-modal-content" sx={{ mt: 2 }}>
-                                                    {selectedPost?.content ?? 'No content'}
-                                                </Typography>
-                                            {/* </Container> */}
-                                        </Stack>
-                                        <Box
-                                            component="img"
-                                            sx={{height: 300,
-                                            width: 300}}
-                                            // display="flex"
-                                            // justifyItems="right"
-                                            alt="Post Picture"
-                                            src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                        />
+                                        {/* <Container> */}
+                                        <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2} top={0}>
+                                            Post Author: <em>{selectedPost?.author?.displayName ?? 'No author'}</em>
+                                        </Typography>
+                                        <Typography id="modal-title" variant="h4" component="h2">
+                                            <b>{selectedPost?.title ?? 'No title'}</b>
+                                        </Typography>
+                                        <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                            {selectedPost?.content ?? 'No content'}
+                                        </Typography>
+                                        <Typography id="modal-modal-source" sx={{ mt: 2 }}>
+                                            Source (for proving ): {selectedPost?.source ?? 'No source'}
+                                        </Typography>
+                                        {/* </Container> */}
+                                    </Stack>
+                                    <Box
+                                        component="img"
+                                        sx={{
+                                            height: 300,
+                                            width: 300
+                                        }}
+                                        // display="flex"
+                                        // justifyItems="right"
+                                        alt="Post Picture"
+                                        src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
+                                    />
+                                    {user.id === selectedPost?.author?.id ?
                                         <Stack
                                             // justifyItems={"end"}
                                             //sx={{ right:0, top: 0}}
-                                            sx = {{position: "flex", top: 5}}
+                                            sx={{ position: "flex", top: 5 }}
                                             direction="column"
                                             spacing={2}
                                             justifyContent="front"
                                         >
+
                                             <Button
                                                 type="submit"
                                                 color='error'
@@ -242,13 +285,15 @@ export default function Album() {
                                                 href='./EditPost'
                                                 variant="outlined"
                                                 sx={{ height: 50, width: 100 }}
-                                                onClick={()=>localStorage.setItem('post_id', JSON.stringify(selectedPost))}
+                                                onClick={() => localStorage.setItem('post_id', JSON.stringify(selectedPost))}
                                             >
                                                 Edit
                                             </Button>
+
                                         </Stack>
-                                    </Stack>
-                                </Box>
+                                        : null}
+                                </Stack>
+                            </Box>
                             {/* </div> */}
                         </Modal>
                     </Container>
