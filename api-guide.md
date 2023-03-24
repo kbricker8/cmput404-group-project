@@ -193,9 +193,7 @@ Vary: Accept
 ## POST /service/author/{authorId}/followers/unfollow/
 Post format:
 ```
-{
-    "id": "{followerId}"
-}
+
 ```
 Returns
 ```
