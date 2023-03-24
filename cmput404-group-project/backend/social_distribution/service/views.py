@@ -94,15 +94,18 @@ class UsersViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        object = self.get_object()
+        if request.user != object:
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         serializer = ChangePasswordSerializer(data=request.data)
 
         if serializer.is_valid():
-            if not self.object.check_password(serializer.data.get("old_password")):
+            if not object.check_password(serializer.data.get("old_password")):
                 return Response({"old_password": ["Wrong Password."]}, 
                                 status=status.HTTP_401_UNAUTHORIZED)
-            self.object.set_password(serializer.data.get("new_password"))
-            self.object.save()
+            object.set_password(serializer.data.get("new_password"))
+            object.save()
             return Response({"status": "success",
                              "code": status.HTTP_200_OK,
                              "message": "Password updated successfully"})
@@ -305,7 +308,8 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -318,7 +322,12 @@ class PostsViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
+        author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -333,6 +342,16 @@ class PostsViewSet(viewsets.ModelViewSet):
         serializer = PostSerializer(instance=instance)
 
         return Response(serializer.data)
+    
+    def destroy(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
+        author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
