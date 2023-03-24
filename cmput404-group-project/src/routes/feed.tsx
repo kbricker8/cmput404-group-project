@@ -108,7 +108,7 @@ export default function Album() {
                                         pt={8}
                                         gutterBottom
                                     >
-                                        Welcome {user.displayName || "User"}!
+                                        Welcome {user.author.displayName || "User"}!
                                     </Typography>
                                     <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
                                         This is your <em>dashboard</em>. View public posts here or publish your own!

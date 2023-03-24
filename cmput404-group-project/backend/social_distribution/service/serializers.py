@@ -12,6 +12,7 @@ class GithubSocialAuthSerializer(serializers.Serializer):
     auth_token = serializers.CharField()
 
     def validate_auth_token(self, auth_token):
+        print("auth_token: " + auth_token)
         user_data = github.Github.validate(auth_token)
 
         try:

@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
 import { ConstructionOutlined } from '@mui/icons-material';
-
+import GithubAuth from '../components/GithubAuth';
 type Follower = {
   id: string;
   name: string;
@@ -235,6 +235,7 @@ export default function Profile() {
               </Button>
             </Grid>
           </Grid>
+          <GithubAuth />
         </Box>
       </Container>
 
