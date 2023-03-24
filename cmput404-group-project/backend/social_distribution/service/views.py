@@ -230,8 +230,13 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=['get', 'post'])
     def send(self, request, pk=None, author_pk=None, *args, **kwargs):
+        user = request.user
         object = Author.objects.get(id=author_pk)
         actor = Author.objects.get(id=pk)
+        if (actor.user != user): # user must be the actor
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        
         summary = f"{actor.displayName} wants to follow {object.displayName}."
         if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
             return Response({"detail": ["Request already exists."]},
@@ -243,8 +248,14 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     
     @action(detail=True, methods=['get', 'post'])
     def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
+        user = request.user
         object = get_object_or_404(Author, id=author_pk)
         actor = get_object_or_404(Author, id=pk)
+
+        if (object.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
         if FollowRequest.objects.filter(actor=actor, object=object).count():
             instance = FollowRequest.objects.get(object=object, actor=actor)
             followers = Followers.objects.get(author=object)
@@ -327,7 +338,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         
         serializer = self.get_serializer(data=request.data)
@@ -345,7 +356,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -366,7 +377,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         instance = self.get_object()
         self.perform_destroy(instance)
