@@ -21,6 +21,7 @@ export default function EditPost() {
 
     const user = JSON.parse(localStorage.getItem('user')!);
     const post = JSON.parse(localStorage.getItem('post_id')!);
+    const token = JSON.parse(localStorage.getItem('token')!);
 
     const [postTitle, setPostTitle] = React.useState(post.title)
     const [postDescription, setPostDescription] = React.useState(post.description)
@@ -40,6 +41,10 @@ export default function EditPost() {
             content: postContent,
             //author: JSON.parse(localStorage.getItem('user')!).name,
             unlisted: false,
+        }, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
         }).then((response) => {
             console.log("MAKE PUT RESPONSE:", response);
             localStorage.setItem('refreshed', 'false');

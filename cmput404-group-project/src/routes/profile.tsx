@@ -30,11 +30,16 @@ export default function Profile() {
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const user = JSON.parse(localStorage.getItem('user')!);
+  const token = JSON.parse(localStorage.getItem('token')!);
   const handleAddFollower = () => {
     if (selectedAuthor) {
       console.log('ADD FOLLOWER:', selectedAuthor);
       axios
-        .post(`http://127.0.0.1:8000/service/authors/${selectedAuthor.id}/follow-request/${user.id}/send/`, {})
+        .post(`http://127.0.0.1:8000/service/authors/${selectedAuthor.id}/follow-request/${user.id}/send/`, {}, {
+          headers: {
+              'Authorization': `Token ${token}`
+          }
+          })
         .then((response) => {
           console.log('ADD FOLLOWER RESPONSE:', response);
         })
@@ -52,7 +57,11 @@ export default function Profile() {
   };
   const handleConfirmRemove = (followerId: string) => {
     setConfirmRemove(null);
-    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/followers/unfollow/`, { "id": followerId }).then((response) => {
+    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/followers/unfollow/`, { "id": followerId }, {
+      headers: {
+          'Authorization': `Token ${token}`
+      }
+      }).then((response) => {
       console.log(followers);
       console.log('REMOVE FOLLOWER RESPONSE:', response);
       setFollowers(followers.filter((follower) => follower.id !== followerId));
@@ -63,7 +72,11 @@ export default function Profile() {
   };
   const handleAcceptRequest = (request: FollowRequest) => {
     console.log('ACCEPT REQUEST:', request);
-    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`).then(
+    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`, {
+      headers: {
+          'Authorization': `Token ${token}`
+      }
+      }).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
@@ -76,7 +89,11 @@ export default function Profile() {
 
   const handleRejectRequest = (request: FollowRequest) => {
     console.log('REJECT REQUEST:', request);
-    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/decline/`).then(
+    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/decline/`, {
+      headers: {
+          'Authorization': `Token ${token}`
+      }
+      }).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
@@ -87,7 +104,11 @@ export default function Profile() {
   };
   useEffect(() => {
     //Get all authors for sending friend requests
-    axios.get(`http://127.0.0.1:8000/service/authors/`).then((response) => {
+    axios.get(`http://127.0.0.1:8000/service/authors/`, {
+      headers: {
+          'Authorization': `Token ${token}`
+      }
+      }).then((response) => {
       console.log('GET ALL AUTHORS RESPONSE:', response);
       console.log(response.data.items);
       setAuthors(response.data.items.filter((author: Author) => author.id !== user.id));
@@ -95,12 +116,20 @@ export default function Profile() {
     });
     // Get Friends
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/friends/`)
+      .get(`http://127.0.0.1:8000/service/authors/${user.id}/friends/`, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
+        })
       .then((response) => {
         console.log('GET FRIENDS RESPONSE:', response);
         const friendPromises: Promise<Follower>[] = response.data.items.map((friend: string) => {
           console.log('FOR EACH FRIEND:', friend);
-          return axios.get(`http://127.0.0.1:8000/service/authors/${friend}/`).then((response) => {
+          return axios.get(`http://127.0.0.1:8000/service/authors/${friend}/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+            }).then((response) => {
             console.log('GET FRIEND INFO :', response);
             return { id: friend, name: response.data.displayName };
           });
@@ -115,13 +144,21 @@ export default function Profile() {
       });
     //Get Followers
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/followers/`)
+      .get(`http://127.0.0.1:8000/service/authors/${user.id}/followers/`, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
+        })
       .then((response) => {
         console.log('GET FOLLOWERS RESPONSE:', response);
 
         const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
           console.log('FOR EACH FOLLOWER:', follower);
-          return axios.get(`http://127.0.0.1:8000/service/authors/${follower}/`).then((response) => {
+          return axios.get(`http://127.0.0.1:8000/service/authors/${follower}/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+            }).then((response) => {
             console.log('GET FOLLOWER INFO :', response);
             return { id: follower, name: response.data.displayName };
           });
@@ -138,7 +175,11 @@ export default function Profile() {
 
     //Get Follow Requests
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/`)
+      .get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/`, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
+        })
       .then((response) => {
         console.log('GET FOLLOW REQUESTS RESPONSE:', response);
         const followRequests: FollowRequest[] = [];
@@ -312,7 +353,7 @@ export default function Profile() {
                         // onDelete={handleRejectRequest(request)}
                       />
                   ))} */}
-                  
+
                 </Box>
               </Container>
             </Box>

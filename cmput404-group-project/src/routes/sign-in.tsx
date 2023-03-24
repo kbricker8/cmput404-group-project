@@ -37,7 +37,8 @@ export default function SignIn() {
       .then((response) => {
         console.log("RESPONSE:", response);
         if (response.status == 200) {
-          localStorage.setItem('user', JSON.stringify(response.data));
+          localStorage.setItem('user', JSON.stringify(response.data.author));
+          localStorage.setItem('token', JSON.stringify(response.data.token));
           localStorage.setItem('refreshed', 'false')
           nav("/feed");
         }
@@ -63,7 +64,9 @@ export default function SignIn() {
         console.log("RESPONSE:", response);
         localStorage.setItem('refreshed', 'false');
         console.log("RESPONSE:", response.data);
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem('user', JSON.stringify(response.data.author));
+        localStorage.setItem('token', JSON.stringify(response.data.token));
+        console.log("TOKEN:", response.data.token);
         nav("/feed");
       } else {
         console.log("Sign Up Error", response);
