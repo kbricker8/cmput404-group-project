@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 from django.db.models import Q
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
 
 from .paginations import PostsPagination, CommentsPagination
 
@@ -34,6 +36,7 @@ baseURL = "http://127.0.0.1:8000/"
 class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
     
     def create(self, request, *args, **kwargs):
         # create corresponding author
@@ -60,10 +63,26 @@ class UsersViewSet(viewsets.GenericViewSet):
         liked = Liked(id=liked_id, author=author)
         liked.save()
 
+        token = Token.objects.create(user=user)
+
         author_serializer = AuthorSerializer(instance=author)
 
-        return Response(author_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'author': author_serializer.data,
+                'token': token.key,
+            },
+            status=status.HTTP_201_CREATED)
     
+    @action(detail=False)
+    def auth_test(self, request, *args, **kwargs):
+        content = {
+            'user': str(request.user),  # `django.contrib.auth.User` instance.
+            'auth': str(request.auth),  # None
+        }
+        return Response(content)
+    
+    ####### delete this
     def list(self, request):
         recent_users = User.objects.all().order_by('-last_login')
         # page = self.paginate_queryset(recent_users)
@@ -101,7 +120,11 @@ class UsersViewSet(viewsets.GenericViewSet):
                 login(request, user)
                 author = Author.get_author_from_user(user=user)
                 author_serializer = AuthorSerializer(instance=author)
-                return Response(author_serializer.data,
+                token = get_object_or_404(Token, user=user)
+                return Response({
+                    'author': author_serializer.data,
+                    'token': token.key,
+                },
                         status=status.HTTP_200_OK)
             return Response({"detail": ["Wrong username or password."]}, 
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -112,6 +135,7 @@ class UsersViewSet(viewsets.GenericViewSet):
 class AuthorsViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    # permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs): # overrides the default list method
         authors = Author.objects.all()
@@ -278,7 +302,11 @@ class PostsViewSet(viewsets.ModelViewSet):
                          "items": serializer.data})
     
     def create(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
         author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=author)
