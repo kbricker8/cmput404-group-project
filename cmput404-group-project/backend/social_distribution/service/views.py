@@ -1,9 +1,12 @@
+from itertools import chain
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status, generics, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login
 from django.db.models import Q
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
 
 from .paginations import PostsPagination, CommentsPagination
 
@@ -33,6 +36,7 @@ baseURL = "http://127.0.0.1:8000/"
 class UsersViewSet(viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
     
     def create(self, request, *args, **kwargs):
         # create corresponding author
@@ -59,10 +63,26 @@ class UsersViewSet(viewsets.GenericViewSet):
         liked = Liked(id=liked_id, author=author)
         liked.save()
 
+        token = Token.objects.create(user=user)
+
         author_serializer = AuthorSerializer(instance=author)
 
-        return Response(author_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'author': author_serializer.data,
+                'token': token.key,
+            },
+            status=status.HTTP_201_CREATED)
     
+    @action(detail=False)
+    def auth_test(self, request, *args, **kwargs):
+        content = {
+            'user': str(request.user),  # `django.contrib.auth.User` instance.
+            'auth': str(request.auth),  # None
+        }
+        return Response(content)
+    
+    ####### delete this
     def list(self, request):
         recent_users = User.objects.all().order_by('-last_login')
         # page = self.paginate_queryset(recent_users)
@@ -74,15 +94,18 @@ class UsersViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        object = self.get_object()
+        if request.user != object:
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         serializer = ChangePasswordSerializer(data=request.data)
 
         if serializer.is_valid():
-            if not self.object.check_password(serializer.data.get("old_password")):
+            if not object.check_password(serializer.data.get("old_password")):
                 return Response({"old_password": ["Wrong Password."]}, 
                                 status=status.HTTP_401_UNAUTHORIZED)
-            self.object.set_password(serializer.data.get("new_password"))
-            self.object.save()
+            object.set_password(serializer.data.get("new_password"))
+            object.save()
             return Response({"status": "success",
                              "code": status.HTTP_200_OK,
                              "message": "Password updated successfully"})
@@ -100,7 +123,11 @@ class UsersViewSet(viewsets.GenericViewSet):
                 login(request, user)
                 author = Author.get_author_from_user(user=user)
                 author_serializer = AuthorSerializer(instance=author)
-                return Response(author_serializer.data,
+                token = get_object_or_404(Token, user=user)
+                return Response({
+                    'author': author_serializer.data,
+                    'token': token.key,
+                },
                         status=status.HTTP_200_OK)
             return Response({"detail": ["Wrong username or password."]}, 
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -111,12 +138,20 @@ class UsersViewSet(viewsets.GenericViewSet):
 class AuthorsViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    # permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs): # overrides the default list method
         authors = Author.objects.all()
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    @action(detail=True)
+    def get_user(self, request, pk, *args, **kwargs):
+        instance = self.get_object()
+        user = instance.user
+        serializer = UserSerializer(instance=user)
+        return Response(serializer.data)
     
     @action(detail=True)
     def friends(self, request, pk, *args, **kwargs):
@@ -270,7 +305,12 @@ class PostsViewSet(viewsets.ModelViewSet):
                          "items": serializer.data})
     
     def create(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
         author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.save(author=author)
@@ -282,7 +322,12 @@ class PostsViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
+        author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -297,6 +342,16 @@ class PostsViewSet(viewsets.ModelViewSet):
         serializer = PostSerializer(instance=instance)
 
         return Response(serializer.data)
+    
+    def destroy(self, request, author_pk=None, *args, **kwargs):
+        user = request.user
+        author = Author.objects.get(id=author_pk)
+        if (author.user != user):
+            return Response({"detail:" ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
@@ -346,9 +401,24 @@ class PostsViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def feed(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
-        following = Following.objects.get(author__id=author_pk)
-        followed_authors = following.items.all()
-        posts = Post.objects.filter(author__in=followed_authors)
+        author = Author.objects.get(id=author_pk)
+        followers = Followers.objects.filter(author=author).values_list('items', flat=True)
+        following = Following.objects.filter(author=author).values_list('items', flat=True)
+        friends = Author.objects.filter(
+            Q(id__in=followers) & Q(id__in=following)
+        ).values_list('id', flat=True)
+
+        my_posts = Post.objects.filter(Q(author__id=author_pk))
+        following_posts = Post.objects.filter(
+            Q(author__id__in=following) & ~Q(visibility='FRIENDS')
+        )
+        friend_posts = Post.objects.filter(
+            Q(author__id__in=friends) & Q(visibility='FRIENDS')
+        )
+        # public_posts = Post.objects.filter(visibility='PUBLIC')
+
+        posts = my_posts | following_posts | friend_posts
+
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
