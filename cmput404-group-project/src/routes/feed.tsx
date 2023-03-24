@@ -14,7 +14,8 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
-import { TEAM18_API } from '../consts/api_connections';
+import { TEAM18_API_URL } from '../consts/api_connections';
+import { Post } from '../types/Post';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
@@ -88,7 +89,7 @@ export default function Album() {
             (response) => {
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 const authorPosts = response.data.posts;
-                axios.get(`${TEAM18_API}service/authors/6952efd6743149eb86c472b96d84109a/posts`).then(
+                axios.get(`${TEAM18_API_URL}service/authors/6952efd6743149eb86c472b96d84109a/posts`).then(
                     (response) => {
                         console.log("GET GROUP 18 POSTS RESPONSE:", response);
                         const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));

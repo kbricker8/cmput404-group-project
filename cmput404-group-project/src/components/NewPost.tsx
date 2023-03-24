@@ -10,7 +10,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Markdown from 'markdown-to-jsx';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
-
+import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 export default function NewPost() {
@@ -30,8 +30,8 @@ export default function NewPost() {
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
         axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
-            source: 'http://127.0.0.1:8000',
-            origin: 'http://127.0.0.1:8000',
+            source: OUR_API_URL,
+            origin: OUR_API_URL,
             title: postTitle,
             description: postDescription,
             content: postContent,
@@ -43,9 +43,9 @@ export default function NewPost() {
             visibility: visibility,
             unlisted: false,
         }, {
-        headers: {
-            'Authorization': `Token ${token}`
-        }
+            headers: {
+                'Authorization': `Token ${token}`
+            }
         }).then((response) => {
             console.log("MAKE POST RESPONSE:", response);
             navigate(-1)
@@ -55,7 +55,7 @@ export default function NewPost() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container sx={{ pt: 5 , pb: 12,marginTop:4}}>
+            <Container sx={{ pt: 5, pb: 12, marginTop: 4 }}>
                 <main>
                     <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
                         <Container maxWidth="lg">
@@ -153,7 +153,7 @@ export default function NewPost() {
                                     />
                                 </Grid>
                                 :
-                                <Grid container spacing={1} sx={{padding:2}} >
+                                <Grid container spacing={1} sx={{ padding: 2 }} >
                                     <Grid item xs={6}>
                                         <TextField
                                             required
