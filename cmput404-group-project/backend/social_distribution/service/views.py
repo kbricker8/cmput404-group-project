@@ -271,8 +271,14 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     
     @action(detail=True, methods=['get', 'post'])
     def decline(self, request, pk=None, author_pk=None, *args, **kwargs):
+        user = request.user
         object = get_object_or_404(Author, id=author_pk)
         actor = get_object_or_404(Author, id=pk)
+
+        if (object.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
         if FollowRequest.objects.filter(actor=actor, object=object).count():
             instance = FollowRequest.objects.get(object=object, actor=actor)
             instance.delete()
@@ -295,23 +301,18 @@ class FollowersViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def unfollow(self, request, author_pk=None, *args, **kwargs):
         author = get_object_or_404(Author, id=author_pk)
-        serializer = AuthorIdSerializer(data=request.data)
-        if serializer.is_valid():
-            pk = serializer.data.get("id")
-            follower = get_object_or_404(Author, id=pk)
-            followers = Followers.objects.get(author=author)
-            following = Following.objects.get(author=follower)
-            if followers.items.contains(follower) & following.items.contains(author):
-                followers.items.remove(follower)
-                following.items.remove(author)
-                return Response({"detail": ["Unfollowed successfully."]},
-                                status=status.HTTP_200_OK)
+        user = request.user
+        follower = get_object_or_404(Author, user=user)
+        followers = Followers.objects.get(author=author)
+        following = Following.objects.get(author=follower)
+        if followers.items.contains(follower) & following.items.contains(author):
+            followers.items.remove(follower)
+            following.items.remove(author)
+            return Response({"detail": ["Unfollowed successfully."]},
+                            status=status.HTTP_200_OK)
 
-            return Response({"detail": ["User is not in following list."]},
-                            status=status.HTTP_404_NOT_FOUND)
-        
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": ["User is not in following list."]},
+                        status=status.HTTP_404_NOT_FOUND)
 
 class FollowingViewSet(viewsets.ModelViewSet):
     queryset = Following.objects.all()
