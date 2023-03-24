@@ -120,6 +120,13 @@ class AuthorsViewSet(viewsets.ModelViewSet):
                          "items": serializer.data})
     
     @action(detail=True)
+    def get_user(self, request, pk, *args, **kwargs):
+        instance = self.get_object()
+        user = instance.user
+        serializer = UserSerializer(instance=user)
+        return Response(serializer.data)
+    
+    @action(detail=True)
     def friends(self, request, pk, *args, **kwargs):
         author = self.get_object()
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
