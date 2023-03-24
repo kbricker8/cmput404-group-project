@@ -83,14 +83,14 @@ class UsersViewSet(viewsets.GenericViewSet):
         return Response(content)
     
     ####### delete this
-    def list(self, request):
-        recent_users = User.objects.all().order_by('-last_login')
-        # page = self.paginate_queryset(recent_users)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(recent_users, many=True)
-        return Response(serializer.data)
+    # def list(self, request):
+    #     recent_users = User.objects.all().order_by('-last_login')
+    #     # page = self.paginate_queryset(recent_users)
+    #     # if page is not None:
+    #     #     serializer = self.get_serializer(page, many=True)
+    #     #     return self.get_paginated_response(serializer.data)
+    #     serializer = self.get_serializer(recent_users, many=True)
+    #     return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
@@ -300,9 +300,9 @@ class PostsViewSet(viewsets.ModelViewSet):
 
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
         posts = Post.objects.filter(author__id = author_pk).all()
-        serializer = self.get_serializer(posts, many=True)
-        return Response({"type": "posts",
-                         "items": serializer.data})
+        page = self.paginate_queryset(posts)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
     
     def create(self, request, author_pk=None, *args, **kwargs):
         user = request.user
