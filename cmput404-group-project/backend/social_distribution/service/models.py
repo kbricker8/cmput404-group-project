@@ -48,6 +48,7 @@ class Following(models.Model):
 class FollowRequest(models.Model):
     type = 'FollowRequest'
 
+    id = models.URLField(primary_key = True, max_length = 255)
     summary = models.CharField(max_length = 255)
     actor = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='sent_requests') # the person sending the follow req
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
