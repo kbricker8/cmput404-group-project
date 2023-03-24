@@ -40,6 +40,7 @@ cd into the project folder containing src. For now it's cmput404-group-project
 ```
 pip install djangorestframework django-cors-headers Pillow
 pip install drf-nested-routers
+pip install drf_yasg
 
 python manage.py runserver
 ```

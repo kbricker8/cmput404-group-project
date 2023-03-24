@@ -35,6 +35,8 @@ class LoginSerializer(serializers.Serializer):
     )
 
 class AuthorSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(read_only=True)
+    host = serializers.URLField(read_only=True)
     class Meta:
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
@@ -59,7 +61,7 @@ class FollowingSerializer(serializers.ModelSerializer):
 class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
-        fields = ('type', 'summary', 'actor', 'object')
+        fields = ('type', 'id','summary', 'actor', 'object')
 
     def to_representation(self, instance):
         self.fields['actor'] = AuthorSerializer(read_only=True)

@@ -27,13 +27,16 @@ Content-Type: application/json
 Vary: Accept
 
 {
-    "type": "author",
-    "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "url": "http://127.0.0.1:8000/service/authors/42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "host": "http://127.0.0.1:8000/",
-    "displayName": "kyle",
-    "github": "",
-    "profileImage": ""
+    "author": {
+        "displayName": "testtoken",
+        "github": "",
+        "host": "http://127.0.0.1:8000/",
+        "id": "f8668faf-0abd-45d0-aa57-0c3453021c2d",
+        "profileImage": "",
+        "type": "author",
+        "url": "http://127.0.0.1:8000/service/authors/f8668faf-0abd-45d0-aa57-0c3453021c2d"
+    },
+    "token": "112a303bf837d71759671401e584d588835305a6"
 }
 ```
 it is important to note that passwords are sent as raw strings, and then saved in the database after hashing.  
@@ -55,13 +58,16 @@ Content-Type: application/json
 Vary: Accept
 
 {
-    "type": "author",
-    "id": "42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "url": "http://127.0.0.1:8000/service/authors/42c49442-e641-407a-b20f-f05a3cc2bd7f",
-    "host": "http://127.0.0.1:8000/",
-    "displayName": "kyle",
-    "github": "",
-    "profileImage": ""
+    "author": {
+        "displayName": "testtoken",
+        "github": "",
+        "host": "http://127.0.0.1:8000/",
+        "id": "f8668faf-0abd-45d0-aa57-0c3453021c2d",
+        "profileImage": "",
+        "type": "author",
+        "url": "http://127.0.0.1:8000/service/authors/f8668faf-0abd-45d0-aa57-0c3453021c2d"
+    },
+    "token": "112a303bf837d71759671401e584d588835305a6"
 }
 ```
 If not OK returns:
@@ -187,9 +193,7 @@ Vary: Accept
 ## POST /service/author/{authorId}/followers/unfollow/
 Post format:
 ```
-{
-    "id": "{followerId}"
-}
+
 ```
 Returns
 ```
@@ -765,9 +769,7 @@ Vary: Accept
 ## POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like
 Post format:
 ```
-{
-    "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c"
-}
+
 ```
 Result on success:
 ```
