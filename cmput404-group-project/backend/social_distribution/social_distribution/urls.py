@@ -39,4 +39,5 @@ urlpatterns = [
     path('service/', include(router.urls)),
     path('service/', include(authors_router.urls)),
     path('service/', include(posts_router.urls)),
+    path('service/github/', views.GithubSocialAuthView.as_view(), name='github_login'),
 ]

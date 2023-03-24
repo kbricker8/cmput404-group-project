@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, status, generics, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
+from rest_framework.decorators import permission_classes
+from rest_framework.generics import GenericAPIView
 from django.contrib.auth import authenticate, login
 from django.db.models import Q
 from rest_framework.permissions import AllowAny
@@ -25,6 +27,7 @@ from .serializers import AuthorIdSerializer
 from .serializers import LikesSerializer
 from .serializers import LikedSerializer
 from .serializers import LikeSerializer
+from .serializers import GithubSocialAuthSerializer
 
 # import models
 from django.contrib.auth.models import User
@@ -497,3 +500,18 @@ class CommentsViewSet(viewsets.ModelViewSet):
             liked.items.add(like)
             return Response({"detail": ["Liked comment."]},
                         status=status.HTTP_200_OK)
+@permission_classes((AllowAny, ))
+class GithubSocialAuthView(GenericAPIView):
+
+    serializer_class = GithubSocialAuthSerializer
+
+    def post(self, request):
+        """
+        POST with "auth_token"
+        Send an access token as from github to get user information
+        """
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = ((serializer.validated_data)['auth_token'])
+        return Response(data, status=status.HTTP_200_OK)

@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+GITHUB_CLIENT_ID = "4c8d1c62b3dc5e785144"
+SOCIAL_SECRET = "24345f74e8f6f460212f3d8f5ff00dcf069cc484"
 # Application definition
 
 INSTALLED_APPS = [
