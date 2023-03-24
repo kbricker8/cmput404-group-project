@@ -35,6 +35,8 @@ class LoginSerializer(serializers.Serializer):
     )
 
 class AuthorSerializer(serializers.ModelSerializer):
+    url = serializers.URLField(read_only=True)
+    host = serializers.URLField(read_only=True)
     class Meta:
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']

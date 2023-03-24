@@ -135,7 +135,7 @@ class UsersViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class AuthorsViewSet(viewsets.ModelViewSet):
+class AuthorsViewSet(viewsets.GenericViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     # permission_classes = [IsAuthenticated]
@@ -145,6 +145,25 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
     
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
