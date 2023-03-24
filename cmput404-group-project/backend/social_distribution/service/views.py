@@ -370,25 +370,20 @@ class PostsViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, pk, *args, **kwargs):
         object = self.get_object()
-        serializer = LikeSerializer(data=request.data)
-        if serializer.is_valid():
-            authorid = serializer.data.get('author')
-            author = get_object_or_404(Author, id=authorid)
-            summary = f"{author.displayName} liked your post"
-            if Likes.objects.filter(author=author, object_id=pk).count():
-                return Response({"detail": ["Request already exists."]},
-                            status=status.HTTP_400_BAD_REQUEST)
-            like = Likes(summary=summary, author=author, object=object)
-            like.save()
-            object.numLikes += 1
-            object.save()
-            liked = Liked.objects.get(author=author)
-            liked.items.add(like)
-            return Response({"detail": ["Liked post."]},
-                        status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors,
+        user = request.user
+        author = Author.get_author_from_user(user=user)
+        summary = f"{author.displayName} liked your post"
+        if Likes.objects.filter(author=author, object_id=pk).count():
+            return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
+        like = Likes(summary=summary, author=author, object=object)
+        like.save()
+        object.numLikes += 1
+        object.save()
+        liked = Liked.objects.get(author=author)
+        liked.items.add(like)
+        return Response({"detail": ["Liked post."]},
+                    status=status.HTTP_200_OK)
     
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):

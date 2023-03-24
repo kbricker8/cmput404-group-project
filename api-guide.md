@@ -771,9 +771,7 @@ Vary: Accept
 ## POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like
 Post format:
 ```
-{
-    "author": "69dc2090-aa0b-4acc-8b77-3b3711c7756c"
-}
+
 ```
 Result on success:
 ```
