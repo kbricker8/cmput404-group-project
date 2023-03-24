@@ -13,8 +13,21 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
-import { CardActionArea, Modal } from '@mui/material';
+import { CardActionArea, IconButton, Modal } from '@mui/material';
+import TextField from '@mui/material/TextField';
+import { ClassNames } from '@emotion/react';
+import { Form } from 'react-router-dom';
 //import CommentPost from '../components/CommentPost';
+import { useRef } from 'react';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import StarIcon from '@mui/icons-material/Star';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ToggleButton from '@mui/material/ToggleButton';
 
 const theme = createTheme();
 
@@ -38,9 +51,10 @@ export default function Album() {
 
     const [posts,setPosts] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user')!);
-    const token = JSON.parse(localStorage.getItem('token')!);
     const postsRef = React.useRef(null);
+    const [commentValue, setCommentValue] = React.useState('');
     const navigate = useNavigate();
+    const [clickedLike, setClickedLike] = React.useState(false);//const for like button before and after click
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
             localStorage.setItem('refreshed', 'true');       
@@ -50,16 +64,11 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
-            headers: {
-                'Authorization': `Token ${token}`
-            }
-        }).then(
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;
                 setPosts(response.data.items);
-                
         }
         )
     },[]);
@@ -69,13 +78,9 @@ export default function Album() {
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        // console.log(clickedPost.id);
+        console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`,  {
-            headers: {
-                'Authorization': `Token ${token}`
-            }
-            })
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`)
         .then((response) => {
             console.log("MAKE DELETE RESPONSE:", response);
         }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
@@ -94,16 +99,62 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
     };
 
-    const handleCommentPost = (clickedPost: { id: any; } | null) => {
-        CommentPost(clickedPost);
+    //commentListDummy contains all parameters for a comment
+    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author_id: '', post_id: '', numlikes: ''}];
+    var [actualComments, setActualComments] = React.useState(commentListDummy);
+    //const for comments list for each post   
+    const commentList = (clickedPost: { id: any; } | null) => {
+        //use GET service/authors/{authorId}/posts/{postId}/comments/ to get comments for post
+        //console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(clickedPost.id);
+
+        axios.get(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/`
+        )
+        .then((response) => {
+            console.log("GET COMMENTS RESPONSE:", response);
+            // return response.data.items;
+            // put data in a list
+            const commentsList = response.data.comments;
+            console.log("COMMENTS LIST:", commentsList);
+            console.log("COMMENTS LIST LENGTH:", commentsList.length);
+            setActualComments(commentsList);
+            return commentsList;
+        }).catch((error) => { console.log("GET COMMENTS ERROR:", error); })
     };
 
 
+    //handleComment takes two arguments: the post that the comment is being made on, and the comment itself
+    const handleComment = (clickedPost: { id: any; } | null, commentValue: string) => {
+        //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(clickedPost.id);
+        console.log("COMMENT VALUE:", commentValue);
+
+        axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/`, {
+            author: user.id,
+            comment: commentValue,
+            contentType: "text/plain",
+            })
+        .then((response) => {
+            console.log("MAKE COMMENT RESPONSE:", response);
+            console.log("COMMENT VALUE:", commentValue);
+        }).catch((error) => { console.log("MAKE COMMENT ERROR:", error); })
+    };
+
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
+    const numListArray = [{id: "list", age :47},{id: "of", age: 52},{id: 'comments', age: 67}];
+    var [numList, setNumList] = React.useState(numListArray);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
+        var commentsList;
         setOpen(true);
         setSelectedPost(clickedPost);
+        //setCommentsList(commentList(clickedPost));
+        setNumList(numListArray);
+        console.log("NUM LIST:", numList);
+        commentList(clickedPost);
+        console.log("COMMENTS LISTTT:", commentsList);
+        
     };
     const handleClose = () => {
         setOpen(false);
@@ -155,7 +206,7 @@ export default function Album() {
                     </Box>
 
 
-                    <Container sx={{ py: 8 }} maxWidth="lg">
+                    <Container sx={{ py: 8}} maxWidth="lg">
                         {/* End hero unit */}
                         <Grid container spacing={4}>
                             {posts.map((post) => (
@@ -184,7 +235,7 @@ export default function Album() {
                                                     {post.count}{" comments"}
                                                 </Typography>
                                             </CardContent>
-                                            <CardMedia
+                                            {/* <CardMedia
                                                 component="img"
                                                 sx={{
                                                     // 16:9
@@ -193,7 +244,9 @@ export default function Album() {
                                                 // image="https://source.unsplash.com/random"
                                                 image="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
                                                 alt="random"
-                                            />
+                                            /> */}
+                                            
+                                            {/* TextField to add comments */}
                                         </CardActionArea>
                                     </Card>
                                 </Grid>
@@ -222,7 +275,7 @@ export default function Album() {
                                             marginRight={10}
                                             paddingLeft={3}
                                         >
-                                            {/* <Container> */}
+                                            <Container>
                                                 <Typography id="modal-muthor" variant="h6" component="h2" paddingBottom={2} top={0}>
                                                     Post Author: <em>{selectedPost?.author?.displayName ?? 'No author'}</em>
                                                 </Typography>
@@ -232,9 +285,55 @@ export default function Album() {
                                                 <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                                     {selectedPost?.content ?? 'No content'}
                                                 </Typography>
-                                            {/* </Container> */}
+                                            </Container>
+                                                Comments:
+                                            <List sx={{width: '100%', maxWidth: '200%', bgcolor: 'grey' }}>
+                                                    {/* use map to iterate through list of comments from numList */}
+                                                    {actualComments.map((value, index) => ( 
+                                                    <ListItem alignItems='flex-start' >
+                                                        <ListItem
+                                                            
+                                                            key = {index}
+                                                            disableGutters
+                                                        >
+                                                            <span>comment author: {value.author_id}</span>{" "}
+                                                            {/* <span>comment: {value.comment}</span>{" "} */}
+                                                        </ListItem>
+                                                        <ListItemText
+                                                        primary={value.comment}
+                                                        // secondary={secondary ? 'Secondary text' : null}
+                                                        />
+                                                    </ListItem>
+                                                    ))
+                                                    }
+                                                </List>
+                                            <Box component="form" noValidate sx={{ mt: 3 }}>
+                                                <Grid item xs={12}>
+                                                    <TextField
+                                                        // make background white
+                                                        sx={{ bgcolor: 'white', borderRadius: 1, borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid' }}
+                                                        id="CommentId"
+                                                        label="Comment"
+                                                        multiline
+                                                        rows={2}
+                                                        defaultValue="Default Value"
+                                                        value = {commentValue}
+                                                        variant="outlined"
+                                                        onChange={(e) => setCommentValue(e.target.value)}
+                                                    />
+                                                </Grid>
+                                                <Button
+                                                    type="submit"
+                                                    variant="contained"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={()=>handleComment(selectedPost, commentValue)}                                                    
+                                                >
+                                                    Submit
+                                                </Button>
+                                            </Box>
+                                            
                                         </Stack>
-                                        <Box
+                                        {/* <Box
                                             component="img"
                                             sx={{height: 300,
                                             width: 300}}
@@ -242,7 +341,7 @@ export default function Album() {
                                             // justifyItems="right"
                                             alt="Post Picture"
                                             src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                        />
+                                        /> */}
                                         <Stack
                                             // justifyItems={"end"}
                                             //sx={{ right:0, top: 0}}
@@ -273,22 +372,28 @@ export default function Album() {
                                             >
                                                 Edit
                                             </Button>
-                                            <Button
+                                            {/* <Button
                                                 type="submit"
                                                 variant="outlined"
                                                 sx={{ height: 50, width: 100 }}
+                                                startIcon = {<FavoriteBorderIcon />}
                                                 onClick={()=> handleLike(selectedPost)}
+                                                
                                             >
                                                 Like
-                                            </Button>
-                                            <Button
-                                                type="submit"
-                                                variant="outlined"
-                                                sx={{ height: 50, width: 100 }}
-                                                onClick={()=> handleCommentPost(selectedPost)}
-                                            >
-                                                Comment
-                                            </Button>
+                                            </Button> */}
+                                            <Container>
+                                                
+                                                <IconButton
+                                                    aria-label="add to favorites"
+                                                    onClick={() => {
+                                                        handleLike(selectedPost);
+                                                        setClickedLike(!clickedLike);
+                                                    }}
+                                                >   
+                                                    {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                </IconButton>
+                                            </Container>
                                         </Stack>
                                     </Stack>
                                 </Box>
