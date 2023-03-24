@@ -296,7 +296,7 @@ class FollowingViewSet(viewsets.ModelViewSet):
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # pagination_class = PostsPagination
+    pagination_class = PostsPagination
 
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
         posts = Post.objects.filter(author__id = author_pk).all()
