@@ -72,7 +72,7 @@ export default function Profile() {
   };
   const handleAcceptRequest = (request: FollowRequest) => {
     console.log('ACCEPT REQUEST:', request);
-    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`, {
+    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`, {}, {
       headers: {
           'Authorization': `Token ${token}`
       }
