@@ -35,7 +35,6 @@ export default function NewPost() {
             description: postDescription,
             content: postContent,
             contentType: postType,
-            //author: JSON.parse(localStorage.getItem('user')!).name,
             author: user.id,
             categories: {},
             count: 0,
