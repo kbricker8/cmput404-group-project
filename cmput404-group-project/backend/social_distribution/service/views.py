@@ -83,14 +83,14 @@ class UsersViewSet(viewsets.GenericViewSet):
         return Response(content)
     
     ####### delete this
-    def list(self, request):
-        recent_users = User.objects.all().order_by('-last_login')
-        # page = self.paginate_queryset(recent_users)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(recent_users, many=True)
-        return Response(serializer.data)
+    # def list(self, request):
+    #     recent_users = User.objects.all().order_by('-last_login')
+    #     # page = self.paginate_queryset(recent_users)
+    #     # if page is not None:
+    #     #     serializer = self.get_serializer(page, many=True)
+    #     #     return self.get_paginated_response(serializer.data)
+    #     serializer = self.get_serializer(recent_users, many=True)
+    #     return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
@@ -135,7 +135,7 @@ class UsersViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class AuthorsViewSet(viewsets.ModelViewSet):
+class AuthorsViewSet(viewsets.GenericViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     # permission_classes = [IsAuthenticated]
@@ -145,6 +145,25 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
     
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
@@ -211,8 +230,13 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
 
     @action(detail=True, methods=['get', 'post'])
     def send(self, request, pk=None, author_pk=None, *args, **kwargs):
+        user = request.user
         object = Author.objects.get(id=author_pk)
         actor = Author.objects.get(id=pk)
+        if (actor.user != user): # user must be the actor
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        
         summary = f"{actor.displayName} wants to follow {object.displayName}."
         if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
             return Response({"detail": ["Request already exists."]},
@@ -224,8 +248,14 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     
     @action(detail=True, methods=['get', 'post'])
     def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
+        user = request.user
         object = get_object_or_404(Author, id=author_pk)
         actor = get_object_or_404(Author, id=pk)
+
+        if (object.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
         if FollowRequest.objects.filter(actor=actor, object=object).count():
             instance = FollowRequest.objects.get(object=object, actor=actor)
             followers = Followers.objects.get(author=object)
@@ -296,19 +326,19 @@ class FollowingViewSet(viewsets.ModelViewSet):
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # pagination_class = PostsPagination
+    pagination_class = PostsPagination
 
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
         posts = Post.objects.filter(author__id = author_pk).all()
-        serializer = self.get_serializer(posts, many=True)
-        return Response({"type": "posts",
-                         "items": serializer.data})
+        page = self.paginate_queryset(posts)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
     
     def create(self, request, author_pk=None, *args, **kwargs):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         
         serializer = self.get_serializer(data=request.data)
@@ -326,7 +356,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -347,7 +377,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         user = request.user
         author = Author.objects.get(id=author_pk)
         if (author.user != user):
-            return Response({"detail:" ["Not authorized to do that."]},
+            return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -370,25 +400,20 @@ class PostsViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, pk, *args, **kwargs):
         object = self.get_object()
-        serializer = LikeSerializer(data=request.data)
-        if serializer.is_valid():
-            authorid = serializer.data.get('author')
-            author = get_object_or_404(Author, id=authorid)
-            summary = f"{author.displayName} liked your post"
-            if Likes.objects.filter(author=author, object_id=pk).count():
-                return Response({"detail": ["Request already exists."]},
-                            status=status.HTTP_400_BAD_REQUEST)
-            like = Likes(summary=summary, author=author, object=object)
-            like.save()
-            object.numLikes += 1
-            object.save()
-            liked = Liked.objects.get(author=author)
-            liked.items.add(like)
-            return Response({"detail": ["Liked post."]},
-                        status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors,
+        user = request.user
+        author = Author.get_author_from_user(user=user)
+        summary = f"{author.displayName} liked your post"
+        if Likes.objects.filter(author=author, object_id=pk).count():
+            return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
+        like = Likes(summary=summary, author=author, object=object)
+        like.save()
+        object.numLikes += 1
+        object.save()
+        liked = Liked.objects.get(author=author)
+        liked.items.add(like)
+        return Response({"detail": ["Liked post."]},
+                    status=status.HTTP_200_OK)
     
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
