@@ -51,6 +51,7 @@ export default function Album() {
 
     const [posts,setPosts] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user')!);
+    const token = JSON.parse(localStorage.getItem('token')!);
     const postsRef = React.useRef(null);
     const [commentValue, setCommentValue] = React.useState('');
     const navigate = useNavigate();
@@ -64,7 +65,11 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;
@@ -80,7 +85,11 @@ export default function Album() {
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`)
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`,  {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+            })
         .then((response) => {
             console.log("MAKE DELETE RESPONSE:", response);
         }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
@@ -209,7 +218,7 @@ export default function Album() {
                     <Container sx={{ py: 8}} maxWidth="lg">
                         {/* End hero unit */}
                         <Grid container spacing={4}>
-                            {posts.map((post) => (
+                            {posts?.map((post) => (
                                 <Grid item key={post} md={3}>
                                     <Card
                                         sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px"}}
