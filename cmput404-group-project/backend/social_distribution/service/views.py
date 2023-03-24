@@ -30,7 +30,7 @@ from .serializers import LikeSerializer
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes
 
-baseURL = "http://127.0.0.1:8000/"
+baseURL = "https://social-distribution-group21.herokuapp.com/"
 
 
 class UsersViewSet(viewsets.GenericViewSet):
