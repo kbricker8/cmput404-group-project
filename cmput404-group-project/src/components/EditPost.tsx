@@ -42,6 +42,7 @@ export default function EditPost() {
             unlisted: false,
         }).then((response) => {
             console.log("MAKE PUT RESPONSE:", response);
+            localStorage.setItem('refreshed', 'false');
             navigate(-1)
         }).catch((error) => { console.log("MAKE PUT ERROR:", error); })
     };
