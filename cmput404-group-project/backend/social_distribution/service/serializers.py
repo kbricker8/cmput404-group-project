@@ -61,7 +61,7 @@ class FollowingSerializer(serializers.ModelSerializer):
 class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FollowRequest
-        fields = ('type', 'summary', 'actor', 'object')
+        fields = ('type', 'id','summary', 'actor', 'object')
 
     def to_representation(self, instance):
         self.fields['actor'] = AuthorSerializer(read_only=True)

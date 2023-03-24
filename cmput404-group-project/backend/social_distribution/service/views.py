@@ -153,7 +153,11 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
+        user = request.user
         instance = self.get_object()
+        if (instance.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -167,7 +171,11 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
+        user = request.user
         instance = self.get_object()
+        if (instance.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         user = instance.user
         serializer = UserSerializer(instance=user)
         return Response(serializer.data)
@@ -228,7 +236,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
             return Response({"detail": ["Request does not exist."]},
                             status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['post'])
     def send(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
         object = Author.objects.get(id=author_pk)
@@ -241,12 +249,13 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
             return Response({"detail": ["Request already exists."]},
                             status=status.HTTP_400_BAD_REQUEST)
-        follow_request = FollowRequest(summary=summary, actor=actor, object=object)
+        id = baseURL + "service/authors/"+object.id+"/follow-request"+actor.id+"/"
+        follow_request = FollowRequest(id=id, summary=summary, actor=actor, object=object)
         follow_request.save()
         serializer = FollowRequestSerializer(instance=follow_request)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['post'])
     def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
         object = get_object_or_404(Author, id=author_pk)
@@ -269,7 +278,7 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["Request does not exist."]},
                         status=status.HTTP_404_NOT_FOUND)
     
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['post'])
     def decline(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
         object = get_object_or_404(Author, id=author_pk)
@@ -314,7 +323,7 @@ class FollowersViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["User is not in following list."]},
                         status=status.HTTP_404_NOT_FOUND)
 
-class FollowingViewSet(viewsets.ModelViewSet):
+class FollowingViewSet(viewsets.GenericViewSet):
     queryset = Following.objects.all()
     serializer_class = FollowingSerializer
 
@@ -324,7 +333,7 @@ class FollowingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class PostsViewSet(viewsets.ModelViewSet):
+class PostsViewSet(viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = PostsPagination
@@ -450,7 +459,7 @@ class PostsViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
-class CommentsViewSet(viewsets.ModelViewSet):
+class CommentsViewSet(viewsets.GenericViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentsSerializer
     pagination_class = CommentsPagination
@@ -486,8 +495,13 @@ class CommentsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
     def update(self, request, *args, **kwargs):
+        user = request.user
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        author = instance.author
+        if (author.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         comment = serializer.validated_data['comment']
@@ -496,6 +510,16 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer = CommentsSerializer(instance=instance)
 
         return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        instance = self.get_object()
+        author = instance.author
+        if (author.user != user):
+            return Response({"detail": ["Not authorized to do that."]},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
