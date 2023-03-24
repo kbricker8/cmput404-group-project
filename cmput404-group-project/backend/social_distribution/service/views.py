@@ -83,14 +83,14 @@ class UsersViewSet(viewsets.GenericViewSet):
         return Response(content)
     
     ####### delete this
-    def list(self, request):
-        recent_users = User.objects.all().order_by('-last_login')
-        # page = self.paginate_queryset(recent_users)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(recent_users, many=True)
-        return Response(serializer.data)
+    # def list(self, request):
+    #     recent_users = User.objects.all().order_by('-last_login')
+    #     # page = self.paginate_queryset(recent_users)
+    #     # if page is not None:
+    #     #     serializer = self.get_serializer(page, many=True)
+    #     #     return self.get_paginated_response(serializer.data)
+    #     serializer = self.get_serializer(recent_users, many=True)
+    #     return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def update_pass(self, request, *args, **kwargs):
@@ -135,7 +135,7 @@ class UsersViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_400_BAD_REQUEST)
 
 
-class AuthorsViewSet(viewsets.ModelViewSet):
+class AuthorsViewSet(viewsets.GenericViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     # permission_classes = [IsAuthenticated]
@@ -145,6 +145,25 @@ class AuthorsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(authors, many=True)
         return Response({"type": "authors",
                          "items": serializer.data})
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
     
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
@@ -296,13 +315,13 @@ class FollowingViewSet(viewsets.ModelViewSet):
 class PostsViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    # pagination_class = PostsPagination
+    pagination_class = PostsPagination
 
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
         posts = Post.objects.filter(author__id = author_pk).all()
-        serializer = self.get_serializer(posts, many=True)
-        return Response({"type": "posts",
-                         "items": serializer.data})
+        page = self.paginate_queryset(posts)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
     
     def create(self, request, author_pk=None, *args, **kwargs):
         user = request.user
