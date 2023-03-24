@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login
 from django.db.models import Q
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .paginations import PostsPagination, CommentsPagination
 
@@ -191,6 +193,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         return Response({"type": "friends",
                          "items": friends})
     
+    @swagger_auto_schema(responses={200: openapi.Response('',LikedSerializer)})
     @action(detail=True)
     def liked(self, request, pk, *args, **kwargs):
         liked = Liked.objects.get(author=pk)
