@@ -315,7 +315,7 @@ class FollowersViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["User is not in following list."]},
                         status=status.HTTP_404_NOT_FOUND)
 
-class FollowingViewSet(viewsets.ModelViewSet):
+class FollowingViewSet(viewsets.GenericViewSet):
     queryset = Following.objects.all()
     serializer_class = FollowingSerializer
 
@@ -325,7 +325,7 @@ class FollowingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class PostsViewSet(viewsets.ModelViewSet):
+class PostsViewSet(viewsets.GenericViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = PostsPagination
