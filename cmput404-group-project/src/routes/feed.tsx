@@ -37,6 +37,7 @@ export default function Album() {
 
     const [posts,setPosts] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user')!);
+    const token = JSON.parse(localStorage.getItem('token')!);
     const postsRef = React.useRef(null);
     const navigate = useNavigate();
     const refreshPage = () => {
@@ -48,7 +49,11 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`).then(
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
                 postsRef.current = response.data.items;
@@ -63,9 +68,13 @@ export default function Album() {
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(clickedPost.id);
+        // console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`)
+        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`,  {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+            })
         .then((response) => {
             console.log("MAKE DELETE RESPONSE:", response);
         }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })

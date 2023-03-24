@@ -19,6 +19,7 @@ export default function NewPost() {
     const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
+    const token = JSON.parse(localStorage.getItem('token')!);
 
     const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -41,6 +42,10 @@ export default function NewPost() {
             published: new Date().toISOString(),
             visibility: visibility,
             unlisted: false,
+        }, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
         }).then((response) => {
             console.log("MAKE POST RESPONSE:", response);
             navigate(-1)
