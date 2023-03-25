@@ -50,7 +50,7 @@ class UsersViewSet(viewsets.GenericViewSet):
         user = User.objects.get(username=serializer.data.get("username"))
 
         author_uuid = uuid.uuid4()
-        id = baseURL+'/service/authors/' + str(author_uuid)
+        id = baseURL+'service/authors/' + str(author_uuid)
         author = Author(id=id, uuid=author_uuid, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
         author.url = baseURL + "service/authors/" + str(author.id)
