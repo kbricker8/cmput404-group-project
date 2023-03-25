@@ -49,7 +49,7 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        id = baseURL+'/service/authors/' + str(uuid.uuid4)
+        id = baseURL+'/service/authors/' + str(uuid.uuid4())
         author = Author(id=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
         author.url = baseURL + "service/authors/" + str(author.id)
@@ -362,7 +362,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        post_uuid = uuid.uuid4
+        post_uuid = uuid.uuid4()
         id = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid)
         comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid) + '/comments'
         post = serializer.save(id=id, author=author, comments=comments_url)
@@ -495,7 +495,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
-        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid.uuid4)
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid.uuid4())
         serializer.save(post=post)
         post.count += 1
         post.save()
