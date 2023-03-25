@@ -49,21 +49,19 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/feed/?=p1`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         }).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
-                postsRef.current = response.data.items;
-                setPosts(response.data.items);
+                postsRef.current = response.data.posts;
+                setPosts(response.data.posts);
                 
         }
         )
     },[]);
-
-    // DELETE NOT WORKING YET -- NEED ASH TO FINISH AUTHENTICATION
 
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
@@ -139,7 +137,7 @@ export default function Album() {
                     <Container sx={{ py: 8 }} maxWidth="lg">
                         {/* End hero unit */}
                         <Grid container spacing={4}>
-                            {posts.map((post) => (
+                            {posts?.map((post) => (
                                 <Grid item key={post} md={3}>
                                     <Card
                                         sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px"}}
