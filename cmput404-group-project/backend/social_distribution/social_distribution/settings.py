@@ -25,8 +25,9 @@ SECRET_KEY = 'django-insecure-l6*-yl0=v+@fa()rhmqur_)ow+#!3g4@$3*&7vzt)1girv6mw$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'social-distribution-group21.herokuapp.com',
+]
 
 # Application definition
 
@@ -53,6 +54,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://social-distribution-group21.herokuapp.com'
 ]
 
 ROOT_URLCONF = 'social_distribution.urls'
@@ -93,10 +99,21 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'd4rk8qk77e365q', 
+        'USER': 'tukvsxspdnotdd', 
+        'PASSWORD': '61d1a38a9e81615fc6a7a3c289f518bc40667e0ed0079b6369c160aa2159c9ac',
+        'HOST': 'ec2-3-93-160-246.compute-1.amazonaws.com', 
+        'PORT': '5432',
     }
 }
 
