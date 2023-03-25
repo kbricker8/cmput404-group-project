@@ -11,7 +11,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import uuid
 
-from .paginations import PostsPagination, CommentsPagination
+from .paginations import PostsPagination, CommentsPagination, PostsPaginatorInspectorClass, CommentsPaginatorInspectorClass
 
 # import serializers
 from .serializers import PostSerializer
@@ -346,6 +346,7 @@ class PostsViewSet(viewsets.GenericViewSet):
     serializer_class = PostSerializer
     pagination_class = PostsPagination
 
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
         posts = Post.objects.filter(author__uuid = author_pk).all()
         page = self.paginate_queryset(posts)
@@ -435,6 +436,8 @@ class PostsViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["Liked post."]},
                     status=status.HTTP_200_OK)
     
+    # @swagger_auto_schema(responses={200: openapi.Response('',PostSerializer(many=True))})
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
@@ -443,6 +446,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     @action(detail=False)
     def feed(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
@@ -480,6 +484,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     #     return Response({"type": "comments",
     #                      "items": serializer.data})
     
+    @swagger_auto_schema(pagination_class=CommentsPagination, paginator_inspectors=[CommentsPaginatorInspectorClass])
     def list(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         queryset = Comment.objects.filter(post=post_pk).all()
 
