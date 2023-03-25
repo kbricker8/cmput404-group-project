@@ -9,8 +9,6 @@ from django.contrib.contenttypes.models import ContentType
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 # also makemigations and migrate
 
-baseURL = "https://social-distribution-group21.herokuapp.com/"
-
 class Author(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
