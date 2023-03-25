@@ -189,7 +189,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(responses={200: openapi.Response('{\n"type": "friends",\n"items": friends\n}')})
     @action(detail=True)
     def friends(self, request, pk, *args, **kwargs):
-        author = self.get_object()
+        author = Author.objects.get(uuid=pk)
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
         following = Following.objects.filter(author=author).values_list('items', flat=True)
         friends = Author.objects.filter(
@@ -201,15 +201,15 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(responses={200: openapi.Response('',LikedSerializer)})
     @action(detail=True)
     def liked(self, request, pk, *args, **kwargs):
-        liked = Liked.objects.get(author=pk)
+        liked = Liked.objects.get(author__uuid=pk)
         serializer = LikedSerializer(instance=liked)
         return Response(serializer.data)
     
     @swagger_auto_schema(responses={401: openapi.Response('"old_password": ["Wrong Password."]'),
                                     200: openapi.Response('"message": "Password updated successfully"')})
     @action(detail=True, methods=['post'])
-    def update_pass(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    def update_pass(self, request, pk, *args, **kwargs):
+        self.object = Author.objects.get(uuid=pk)
         user = self.object.user
         serializer = ChangePasswordSerializer(data=request.data)
 
@@ -366,7 +366,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         post_uuid = uuid.uuid4()
         id = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid)
         comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid) + '/comments'
-        post = serializer.save(id=id, uuid=post_uuid, author=author, comments=comments_url)
+        post = serializer.save(id=id, uuid=post_uuid, url=id, author=author, comments=comments_url)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, author_pk=None, *args, **kwargs):
