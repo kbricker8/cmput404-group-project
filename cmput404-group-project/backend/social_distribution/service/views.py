@@ -191,7 +191,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
         following = Following.objects.filter(author=author).values_list('items', flat=True)
         friends = Author.objects.filter(
-            Q(uuid__in=followers) & Q(uuid__in=following)
+            Q(id__in=followers) & Q(id__in=following)
         ).values_list('id', flat=True)
         return Response({"type": "friends",
                          "items": friends})
@@ -450,15 +450,15 @@ class PostsViewSet(viewsets.GenericViewSet):
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
         following = Following.objects.filter(author=author).values_list('items', flat=True)
         friends = Author.objects.filter(
-            Q(uuid__in=followers) & Q(uuid__in=following)
+            Q(id__in=followers) & Q(id__in=following)
         ).values_list('id', flat=True)
 
         my_posts = Post.objects.filter(Q(author__uuid=author_pk))
         following_posts = Post.objects.filter(
-            Q(author__uuid__in=following) & ~Q(visibility='FRIENDS')
+            Q(author__id__in=following) & ~Q(visibility='FRIENDS')
         )
         friend_posts = Post.objects.filter(
-            Q(author__uuid__in=friends) & Q(visibility='FRIENDS')
+            Q(author__id__in=friends) & Q(visibility='FRIENDS')
         )
         # public_posts = Post.objects.filter(visibility='PUBLIC')
 
