@@ -49,9 +49,9 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        uuid = uuid.uuid4()
-        id = baseURL+'/service/authors/' + str(uuid)
-        author = Author(id=id, uuid=uuid, host=baseURL, displayName=serializer.data.get("username"), user=user)
+        author_uuid = uuid.uuid4()
+        id = baseURL+'/service/authors/' + str(author_uuid)
+        author = Author(id=id, uuid=author_uuid, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
         author.url = baseURL + "service/authors/" + str(author.id)
         author.save()
@@ -496,17 +496,17 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
-        uuid = uuid.uuid4()
+        comment_uuid = uuid.uuid4()
         id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
-        serializer.save(id=id, uuid=uuid, post=post)
+        serializer.save(id=id, uuid=comment_uuid, post=post)
         post.count += 1
         post.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         user = request.user
         partial = kwargs.pop('partial', False)
-        instance = Comment.objects.get(uuid=uuid)
+        instance = Comment.objects.get(uuid=pk)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -520,9 +520,9 @@ class CommentsViewSet(viewsets.GenericViewSet):
 
         return Response(serializer.data)
     
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, pk, *args, **kwargs):
         user = request.user
-        instance = Comment.objects.get(uuid=uuid)
+        instance = Comment.objects.get(uuid=pk)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
