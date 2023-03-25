@@ -49,8 +49,9 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        id = baseURL+'/service/authors/' + str(uuid.uuid4())
-        author = Author(id=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
+        uuid = uuid.uuid4()
+        id = baseURL+'/service/authors/' + str(uuid)
+        author = Author(id=id, uuid=uuid, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
         author.url = baseURL + "service/authors/" + str(author.id)
         author.save()
@@ -150,15 +151,15 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         return Response({"type": "authors",
                          "items": serializer.data})
     
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+    def retrieve(self, request, pk,*args, **kwargs):
+        instance = Author.objects.get(uuid=pk)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         user = request.user
-        instance = self.get_object()
+        instance = Author.objects.get(uuid=pk)
         if (instance.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -177,7 +178,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
         user = request.user
-        instance = self.get_object()
+        instance = Author.objects.get(uuid=pk)
         if (instance.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -365,7 +366,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         post_uuid = uuid.uuid4()
         id = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid)
         comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid) + '/comments'
-        post = serializer.save(id=id, author=author, comments=comments_url)
+        post = serializer.save(id=id, uuid=post_uuid, author=author, comments=comments_url)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, author_pk=None, *args, **kwargs):
@@ -495,8 +496,9 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
-        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid.uuid4())
-        serializer.save(post=post)
+        uuid = uuid.uuid4()
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
+        serializer.save(id=id, uuid=uuid, post=post)
         post.count += 1
         post.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -504,7 +506,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     def update(self, request, *args, **kwargs):
         user = request.user
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+        instance = Comment.objects.get(uuid=uuid)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -520,7 +522,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     
     def destroy(self, request, *args, **kwargs):
         user = request.user
-        instance = self.get_object()
+        instance = Comment.objects.get(uuid=uuid)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},

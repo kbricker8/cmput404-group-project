@@ -15,6 +15,7 @@ class Author(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField()
     type = 'author'
     url = models.URLField(max_length=200, blank=True)
     host = models.URLField(max_length=200, blank=True)
@@ -94,6 +95,7 @@ class Post(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField()
     url = models.URLField(default='')
     type = 'post'
     title = models.CharField(max_length = 255)
@@ -134,6 +136,7 @@ class Comment(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField()
     type = 'comment'
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comment')
     post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='comment')
