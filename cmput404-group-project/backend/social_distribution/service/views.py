@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+import uuid
 
 from .paginations import PostsPagination, CommentsPagination
 
@@ -48,7 +49,8 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        author = Author(host=baseURL, displayName=serializer.data.get("username"), user=user)
+        id = baseURL+'/service/authors/' + str(uuid.uuid4)
+        author = Author(id=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
         author.url = baseURL + "service/authors/" + str(author.id)
         author.save()
@@ -360,12 +362,10 @@ class PostsViewSet(viewsets.GenericViewSet):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=author)
-        url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id)
-        comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id) + '/comments'
-        post.url = url
-        post.comments = comments_url
-        post.save()
+        post_uuid = uuid.uuid4
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid)
+        comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid) + '/comments'
+        post = serializer.save(id=id, author=author, comments=comments_url)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, author_pk=None, *args, **kwargs):
@@ -489,11 +489,13 @@ class CommentsViewSet(viewsets.GenericViewSet):
 
     def create(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         
-        post = Post.objects.get(id=post_pk)
+        post_id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk
+        post = Post.objects.get(id=post_id)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid.uuid4)
         serializer.save(post=post)
         post.count += 1
         post.save()

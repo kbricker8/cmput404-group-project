@@ -13,7 +13,8 @@ baseURL = "https://social-distribution-group21.herokuapp.com/"
 
 class Author(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
     type = 'author'
     url = models.URLField(max_length=200, blank=True)
     host = models.URLField(max_length=200, blank=True)
@@ -91,7 +92,8 @@ class Post(models.Model):
         APPLICATION = 'application/base64'
 
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
     url = models.URLField(default='')
     type = 'post'
     title = models.CharField(max_length = 255)
@@ -130,7 +132,8 @@ class ImagePosts(models.Model):
 
 class Comment(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
     type = 'comment'
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comment')
     post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='comment')
