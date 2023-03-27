@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
-
+import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 export default function SignIn() {
@@ -30,19 +30,23 @@ export default function SignIn() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    axios.post('http://127.0.0.1:8000/service/users/login/', {
+    axios.post(`${OUR_API_URL}service/users/login/`, {
       username: signInUsername,
       password: signInPassword,
     })
       .then((response) => {
-        console.log("RESPONSE:", response);
+        //console.log("RESPONSE:", response);
         if (response.status == 200) {
           localStorage.setItem('user', JSON.stringify(response.data.author));
+          localStorage.setItem('USER_ID', response.data.author.id.toString().split(/[/]+/).pop());
+          console.error("HERE 2");
           localStorage.setItem('token', JSON.stringify(response.data.token));
           localStorage.setItem('refreshed', 'false')
+          console.log("GOD BRUH PLS", localStorage.getItem('USER_ID'));
           nav("/feed");
         }
       }).catch((error) => {
+        console.log("ERROR:", error);
         console.log("Invalid username or password")
         setHelperText("Invalid username or password");
         setSignInError(true);
@@ -55,7 +59,7 @@ export default function SignIn() {
     e.preventDefault();
     console.log("SUBMIT SIGN IN CALLED");
 
-    axios.post('http://127.0.0.1:8000/service/users/', {
+    axios.post(`${OUR_API_URL}/service/users/`, {
       username: signUpUsername,
       email: signUpEmail,
       password: signUpPassword,
@@ -66,7 +70,10 @@ export default function SignIn() {
         console.log("RESPONSE:", response.data);
         localStorage.setItem('user', JSON.stringify(response.data.author));
         localStorage.setItem('token', JSON.stringify(response.data.token));
+        localStorage.setItem('USER_ID', response.data.author.id.toString().split(/[/]+/).pop());
         console.log("TOKEN:", response.data.token);
+        console.log("USER:", response.data.author);
+        console.log("USER ID:", response.data.author.id.toString().split(/[/]+/).pop());
         nav("/feed");
       } else {
         console.log("Sign Up Error", response);
@@ -131,8 +138,8 @@ export default function SignIn() {
                     label="Remember me"
                   />
                   <FormHelperText>
-                    <Typography style={{color:"red"}}>
-                        {helperText}
+                    <Typography style={{ color: "red" }}>
+                      {helperText}
                     </Typography>
                   </FormHelperText>
                   <Button

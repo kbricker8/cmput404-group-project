@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
 import { ConstructionOutlined } from '@mui/icons-material';
-
+import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 type Follower = {
@@ -30,12 +30,13 @@ export default function Profile() {
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const user = JSON.parse(localStorage.getItem('user')!);
+  const USER_ID = localStorage.getItem('user_id')!;
   const token = JSON.parse(localStorage.getItem('token')!);
   const handleAddFollower = () => {
     if (selectedAuthor) {
       console.log('ADD FOLLOWER:', selectedAuthor);
       axios
-        .post(`http://127.0.0.1:8000/service/authors/${selectedAuthor.id}/follow-request/${user.id}/send/`, {}, {
+        .post(`${OUR_API_URL}service/authors/${selectedAuthor.id}/follow-request/${USER_ID}/send/`, {}, {
           headers: {
               'Authorization': `Token ${token}`
           }
@@ -57,7 +58,7 @@ export default function Profile() {
   };
   const handleConfirmRemove = (followerId: string) => {
     setConfirmRemove(null);
-    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/followers/unfollow/`, { "id": followerId }, {
+    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/followers/unfollow/`, { "id": followerId }, {
       headers: {
           'Authorization': `Token ${token}`
       }
@@ -72,7 +73,7 @@ export default function Profile() {
   };
   const handleAcceptRequest = (request: FollowRequest) => {
     console.log('ACCEPT REQUEST:', request);
-    axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/accept/`, {}, {
+    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id}/accept/`, {}, {
       headers: {
           'Authorization': `Token ${token}`
       }
@@ -89,7 +90,7 @@ export default function Profile() {
 
   const handleRejectRequest = (request: FollowRequest) => {
     console.log('REJECT REQUEST:', request);
-    axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/${request.id}/decline/`, {
+    axios.get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id}/decline/`, {
       headers: {
           'Authorization': `Token ${token}`
       }
@@ -104,19 +105,19 @@ export default function Profile() {
   };
   useEffect(() => {
     //Get all authors for sending friend requests
-    axios.get(`http://127.0.0.1:8000/service/authors/`, {
+    axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
           'Authorization': `Token ${token}`
       }
       }).then((response) => {
       console.log('GET ALL AUTHORS RESPONSE:', response);
       console.log(response.data.items);
-      setAuthors(response.data.items.filter((author: Author) => author.id !== user.id));
+      setAuthors(response.data.items.filter((author: Author) => author.id !== USER_ID));
       console.log(authors);
     });
     // Get Friends
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/friends/`, {
+      .get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
         headers: {
             'Authorization': `Token ${token}`
         }
@@ -125,7 +126,7 @@ export default function Profile() {
         console.log('GET FRIENDS RESPONSE:', response);
         const friendPromises: Promise<Follower>[] = response.data.items.map((friend: string) => {
           console.log('FOR EACH FRIEND:', friend);
-          return axios.get(`http://127.0.0.1:8000/service/authors/${friend}/`, {
+          return axios.get(`${OUR_API_URL}service/authors/${friend}/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
@@ -144,7 +145,7 @@ export default function Profile() {
       });
     //Get Followers
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/followers/`, {
+      .get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
         headers: {
             'Authorization': `Token ${token}`
         }
@@ -154,7 +155,7 @@ export default function Profile() {
 
         const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
           console.log('FOR EACH FOLLOWER:', follower);
-          return axios.get(`http://127.0.0.1:8000/service/authors/${follower}/`, {
+          return axios.get(`${OUR_API_URL}service/authors/${follower}/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
@@ -175,7 +176,7 @@ export default function Profile() {
 
     //Get Follow Requests
     axios
-      .get(`http://127.0.0.1:8000/service/authors/${user.id}/follow-request/`, {
+      .get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`, {
         headers: {
             'Authorization': `Token ${token}`
         }
