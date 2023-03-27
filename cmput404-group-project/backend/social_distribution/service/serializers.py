@@ -144,6 +144,8 @@ class LikedSerializer(serializers.ModelSerializer):
 
 #make a serializer for inbox
 class InboxSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(required=True)
+    items = serializers.JSONField(required=True)
     class Meta:
         model = Inbox
         fields = ('type','items')

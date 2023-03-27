@@ -156,7 +156,7 @@ class Inbox(models.Model):
     id = models.URLField(primary_key = True, max_length = 255)
     type = 'inbox'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
-    items = models.JSONField(default=list)
+    items = models.JSONField(default=list, blank = True)
 
     class Meta:
         verbose_name_plural = "inbox"
