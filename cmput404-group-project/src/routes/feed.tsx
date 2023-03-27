@@ -14,8 +14,8 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
-import { TEAM18_API_URL } from '../consts/api_connections';
-import { Post } from '../types/Post';
+import { TEAM7_API_URL, TEAM18_API_URL } from '../consts/api_connections';
+import { Post } from '../types/post';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
@@ -32,6 +32,36 @@ const modalStyle = {
     boxShadow: 24,
     p: 4,
 };
+function convertTeam7PostToOurPost(obj: any): Post {
+    const post: Post = {
+        id: obj.id,
+        url: obj.id,
+        type: obj.type,
+        title: obj.title,
+        source: obj.source,
+        origin: obj.origin,
+        description: obj.description,
+        contentType: obj.contentType,
+        author: {
+            type: obj.author.type,
+            id: obj.author.id,
+            url: obj.author.url,
+            host: obj.author.host,
+            displayName: obj.author.displayName,
+            github: obj.author.github,
+            profileImage: obj.author.profileImage,
+        },
+        categories: {},
+        count: obj.commentCount,
+        numLikes: obj.likeCount,
+        content: obj.content,
+        comments: obj.comments,
+        published: obj.published,
+        visibility: obj.visibility,
+        unlisted: obj.unlisted,
+    };
+    return post;
+}
 function convertTeam18PostToOurPost(obj: any): Post {
     const post: Post = {
         id: obj.id,
@@ -63,8 +93,8 @@ function convertTeam18PostToOurPost(obj: any): Post {
     return post;
 }
 export default function Album() {
-    console.log("LOCAL STORAGE IN FEED:")
-    console.log(localStorage.getItem('user'))
+    // console.log("LOCAL STORAGE IN FEED:")
+    // console.log(localStorage.getItem('user'))
 
     const [posts, setPosts] = React.useState([]);
     const [team18Posts, setTeam18Posts] = React.useState([]);
@@ -96,10 +126,28 @@ export default function Album() {
                         console.log("TEAM 18 POSTS:", team18Posts);
                         setPosts(authorPosts.concat(team18Posts));
                     }
+                ).then(
+                    () => {
+                        axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+                            headers: {
+                                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+                            }
+                        }).then(
+                            (response) => {
+                                console.log("GET GROUP 7 POSTS RESPONSE:", response);
+                                const team7Post = convertTeam7PostToOurPost(response.data);
+                                console.log("TEAM 7 POSTS:", team7Post);
+                                setPosts(posts.concat(team7Post));
+                            }
+                        ).catch((error) => {
+                            console.log("ERROR", error);
+                        });
+                    }
                 );
             }
         );
     }, []);
+
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
