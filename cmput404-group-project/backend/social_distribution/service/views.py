@@ -9,8 +9,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+import uuid
 
-from .paginations import PostsPagination, CommentsPagination
+from .paginations import PostsPagination, CommentsPagination, PostsPaginatorInspectorClass, CommentsPaginatorInspectorClass
 
 # import serializers
 from .serializers import PostSerializer
@@ -32,7 +33,7 @@ from .serializers import LikeSerializer
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes
 
-baseURL = "http://127.0.0.1:8000/"
+baseURL = "https://social-distribution-group21.herokuapp.com/"
 
 
 class UsersViewSet(viewsets.GenericViewSet):
@@ -48,9 +49,9 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         user = User.objects.get(username=serializer.data.get("username"))
 
-        author = Author(host=baseURL, displayName=serializer.data.get("username"), user=user)
-        author.save()
-        author.url = baseURL + "service/authors/" + str(author.id)
+        author_uuid = uuid.uuid4()
+        id = baseURL+'service/authors/' + str(author_uuid)
+        author = Author(id=id, uuid=author_uuid, url=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
 
         followers_id = baseURL + 'service/authors/' + str(author.id) + '/followers/'
@@ -148,15 +149,15 @@ class AuthorsViewSet(viewsets.GenericViewSet):
         return Response({"type": "authors",
                          "items": serializer.data})
     
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+    def retrieve(self, request, pk,*args, **kwargs):
+        instance = Author.objects.get(uuid=pk)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         user = request.user
-        instance = self.get_object()
+        instance = Author.objects.get(uuid=pk)
         if (instance.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -175,7 +176,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
         user = request.user
-        instance = self.get_object()
+        instance = Author.objects.get(uuid=pk)
         if (instance.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -186,7 +187,7 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(responses={200: openapi.Response('{\n"type": "friends",\n"items": friends\n}')})
     @action(detail=True)
     def friends(self, request, pk, *args, **kwargs):
-        author = self.get_object()
+        author = Author.objects.get(uuid=pk)
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
         following = Following.objects.filter(author=author).values_list('items', flat=True)
         friends = Author.objects.filter(
@@ -198,15 +199,15 @@ class AuthorsViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(responses={200: openapi.Response('',LikedSerializer)})
     @action(detail=True)
     def liked(self, request, pk, *args, **kwargs):
-        liked = Liked.objects.get(author=pk)
+        liked = Liked.objects.get(author__uuid=pk)
         serializer = LikedSerializer(instance=liked)
         return Response(serializer.data)
     
     @swagger_auto_schema(responses={401: openapi.Response('"old_password": ["Wrong Password."]'),
                                     200: openapi.Response('"message": "Password updated successfully"')})
     @action(detail=True, methods=['post'])
-    def update_pass(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    def update_pass(self, request, pk, *args, **kwargs):
+        self.object = Author.objects.get(uuid=pk)
         user = self.object.user
         serializer = ChangePasswordSerializer(data=request.data)
 
@@ -227,14 +228,14 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     serializer_class = FollowRequestSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        author = get_object_or_404(Author, id=author_pk)
+        author = get_object_or_404(Author, uuid=author_pk)
         queryset = FollowRequest.objects.all().filter(object=author)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, author_pk=None, *args, **kwargs):
-        object = get_object_or_404(Author, id=author_pk)
-        actor = get_object_or_404(Author, id=pk)
+        object = get_object_or_404(Author, uuid=author_pk)
+        actor = get_object_or_404(Author, uuid=pk)
         try: 
             instance = FollowRequest.objects.get(object=object, actor=actor)
             serializer = self.get_serializer(instance)
@@ -246,8 +247,8 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['post'])
     def send(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
-        object = Author.objects.get(id=author_pk)
-        actor = Author.objects.get(id=pk)
+        object = Author.objects.get(uuid=author_pk)
+        actor = Author.objects.get(uuid=pk)
         if (actor.user != user): # user must be the actor
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -265,8 +266,8 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
-        object = get_object_or_404(Author, id=author_pk)
-        actor = get_object_or_404(Author, id=pk)
+        object = get_object_or_404(Author, uuid=author_pk)
+        actor = get_object_or_404(Author, uuid=pk)
 
         if (object.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -288,8 +289,8 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['post'])
     def decline(self, request, pk=None, author_pk=None, *args, **kwargs):
         user = request.user
-        object = get_object_or_404(Author, id=author_pk)
-        actor = get_object_or_404(Author, id=pk)
+        object = get_object_or_404(Author, uuid=author_pk)
+        actor = get_object_or_404(Author, uuid=pk)
 
         if (object.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -310,13 +311,13 @@ class FollowersViewSet(viewsets.GenericViewSet):
     serializer_class = FollowersSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        instance = Followers.objects.get(author__id=author_pk)
+        instance = Followers.objects.get(author__uuid=author_pk)
         serializer = FollowersSerializer(instance=instance)
         return Response(serializer.data)
     
     @action(detail=False, methods=['post'])
     def unfollow(self, request, author_pk=None, *args, **kwargs):
-        author = get_object_or_404(Author, id=author_pk)
+        author = get_object_or_404(Author, uuid=author_pk)
         user = request.user
         follower = get_object_or_404(Author, user=user)
         followers = Followers.objects.get(author=author)
@@ -335,7 +336,7 @@ class FollowingViewSet(viewsets.GenericViewSet):
     serializer_class = FollowingSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        instance = Following.objects.get(author__id=author_pk)
+        instance = Following.objects.get(author__uuid=author_pk)
         serializer = FollowingSerializer(instance=instance)
         return Response(serializer.data)
 
@@ -345,32 +346,36 @@ class PostsViewSet(viewsets.GenericViewSet):
     serializer_class = PostSerializer
     pagination_class = PostsPagination
 
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
-        posts = Post.objects.filter(author__id = author_pk).all()
+        posts = Post.objects.filter(author__uuid = author_pk).all()
         page = self.paginate_queryset(posts)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
     
     def create(self, request, author_pk=None, *args, **kwargs):
         user = request.user
-        author = Author.objects.get(id=author_pk)
+        author = Author.objects.get(uuid=author_pk)
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=author)
-        url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id)
-        comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post.id) + '/comments'
-        post.url = url
-        post.comments = comments_url
-        post.save()
+        post_uuid = uuid.uuid4()
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid)
+        comments_url = baseURL + 'service/authors/' + author_pk + '/posts/' + str(post_uuid) + '/comments'
+        post = serializer.save(id=id, uuid=post_uuid, url=id, author=author, comments=comments_url)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def retrieve(self, request, pk,*args, **kwargs):
+        instance = Post.objects.get(uuid=pk)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
     
     def update(self, request, author_pk=None, *args, **kwargs):
         user = request.user
-        author = Author.objects.get(id=author_pk)
+        author = Author.objects.get(uuid=author_pk)
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -391,7 +396,7 @@ class PostsViewSet(viewsets.GenericViewSet):
     
     def destroy(self, request, author_pk=None, *args, **kwargs):
         user = request.user
-        author = Author.objects.get(id=author_pk)
+        author = Author.objects.get(uuid=author_pk)
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -408,7 +413,7 @@ class PostsViewSet(viewsets.GenericViewSet):
     
     @action(detail=True)
     def likes(self, request, author_pk, pk, *args, **kwargs):
-        # queryset = Likes.objects.filter(author__id = author_pk, object__id = pk).all()
+        # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
         likes = Likes.objects.filter(object_id = pk).all()
         serializer = LikesSerializer(instance=likes, many=True)
         return Response(serializer.data)
@@ -431,6 +436,8 @@ class PostsViewSet(viewsets.GenericViewSet):
         return Response({"detail": ["Liked post."]},
                     status=status.HTTP_200_OK)
     
+    # @swagger_auto_schema(responses={200: openapi.Response('',PostSerializer(many=True))})
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
@@ -439,17 +446,18 @@ class PostsViewSet(viewsets.GenericViewSet):
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     @action(detail=False)
     def feed(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
-        author = Author.objects.get(id=author_pk)
+        author = Author.objects.get(uuid=author_pk)
         followers = Followers.objects.filter(author=author).values_list('items', flat=True)
         following = Following.objects.filter(author=author).values_list('items', flat=True)
         friends = Author.objects.filter(
             Q(id__in=followers) & Q(id__in=following)
         ).values_list('id', flat=True)
 
-        my_posts = Post.objects.filter(Q(author__id=author_pk))
+        my_posts = Post.objects.filter(Q(author__uuid=author_pk))
         following_posts = Post.objects.filter(
             Q(author__id__in=following) & ~Q(visibility='FRIENDS')
         )
@@ -476,6 +484,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     #     return Response({"type": "comments",
     #                      "items": serializer.data})
     
+    @swagger_auto_schema(pagination_class=CommentsPagination, paginator_inspectors=[CommentsPaginatorInspectorClass])
     def list(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         queryset = Comment.objects.filter(post=post_pk).all()
 
@@ -489,20 +498,23 @@ class CommentsViewSet(viewsets.GenericViewSet):
 
     def create(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         
-        post = Post.objects.get(id=post_pk)
+        post_id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk
+        post = Post.objects.get(id=post_id)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
-        serializer.save(post=post)
+        comment_uuid = uuid.uuid4()
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
+        serializer.save(id=id, uuid=comment_uuid, post=post)
         post.count += 1
         post.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         user = request.user
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+        instance = Comment.objects.get(uuid=pk)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -516,9 +528,9 @@ class CommentsViewSet(viewsets.GenericViewSet):
 
         return Response(serializer.data)
     
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, pk, *args, **kwargs):
         user = request.user
-        instance = self.get_object()
+        instance = Comment.objects.get(uuid=pk)
         author = instance.author
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
@@ -528,8 +540,8 @@ class CommentsViewSet(viewsets.GenericViewSet):
     
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
-        # queryset = Likes.objects.filter(author__id = author_pk, object__id = pk).all()
-        likes = Likes.objects.filter(object_id = pk).all()
+        # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
+        likes = Likes.objects.filter(object_uuid = pk).all()
         serializer = LikesSerializer(instance=likes, many=True)
         return Response(serializer.data)
     
@@ -539,9 +551,9 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer = LikeSerializer(data=request.data)
         if serializer.is_valid():
             authorid = serializer.data.get('author')
-            author = get_object_or_404(Author, id=authorid)
+            author = get_object_or_404(Author, uuid=authorid)
             summary = f"{author.displayName} liked your comment"
-            if Likes.objects.filter(author=author, object_id=pk).count():
+            if Likes.objects.filter(author=author, object_uuid=pk).count():
                 return Response({"detail": ["Request already exists."]},
                             status=status.HTTP_400_BAD_REQUEST)
             like = Likes(summary=summary, author=author, object=object)

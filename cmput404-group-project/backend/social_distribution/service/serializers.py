@@ -69,6 +69,7 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 class PostSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=False)
     comments = serializers.CharField(required=False)
     published = serializers.DateTimeField(required=False)
     count = serializers.IntegerField(required=False)
@@ -99,6 +100,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     #     required=True,
     #     write_only=True
     #     )
+    id = serializers.CharField(required=False)
     published = serializers.DateTimeField(required=False, read_only=True)
     post = serializers.UUIDField(required=False, read_only=True)
 
