@@ -116,7 +116,7 @@ export default function Album() {
     };
 
     //commentListDummy contains all parameters for a comment
-    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author_id: '', post_id: '', numlikes: ''}];
+    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: ''}];
     var [actualComments, setActualComments] = React.useState(commentListDummy);
     //const for comments list for each post   
     const commentList = (clickedPost: { id: any; } | null) => {
@@ -315,7 +315,17 @@ export default function Album() {
                                                 </Typography>
                                                 <br></br>
                                                 <br></br>
-                                                Write a comment:
+                                                <Container
+                                                    maxWidth="md"
+                                                    component="footer"
+                                                    sx={{
+                                                        borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+                                                        py: [3, 6],
+                                                        borderColor: 'white',
+                                                    }}
+                                                    >
+                                                    </Container>
+
                                             </Container>                                         
                                             <Box component="form" noValidate 
                                                 sx={{ mt: 3 }}>
@@ -352,14 +362,15 @@ export default function Album() {
                                                     {actualComments?.map((value, index) => ( 
                                                     <Grid alignItems='flex-start' >
                                                         <ListItem
-                                                            
+                                                            sx={{padding: 2}}
                                                             key = {index}
                                                             disableGutters
                                                         >
-                                                            {/* <span>comment author: {value.author_id}</span>{" "} */}
+                                                            <span>comment author: {value.author.displayName}</span>{" "}
                                                             {/* <span>comment: {value.comment}</span>{" "} */}
                                                         </ListItem>
                                                         <ListItemText
+                                                        sx={{padding: 2}}
                                                         primary={value.comment}
                                                         // secondary={secondary ? 'Secondary text' : null}
                                                         />
