@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 class Author(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'author'
     url = models.URLField(max_length=200, blank=True)
@@ -29,7 +29,7 @@ class Author(models.Model):
 class Followers(models.Model):
     type = "Followers"
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers', unique=True)
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followingitem')
 
@@ -39,7 +39,7 @@ class Followers(models.Model):
 class Following(models.Model):
     type = "Following"
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     author = models.OneToOneField(Author, on_delete=models.CASCADE, related_name='following')
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followeritem')
 
@@ -49,7 +49,7 @@ class Following(models.Model):
 class FollowRequest(models.Model):
     type = 'FollowRequest'
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     summary = models.CharField(max_length = 255)
     actor = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='sent_requests') # the person sending the follow req
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
@@ -72,7 +72,7 @@ class Likes(models.Model):
 class Liked(models.Model):
     type = 'liked'
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='liked', unique=True)
     items = models.ManyToManyField(Likes, blank=True, symmetrical=False, related_name='liked')
 
@@ -94,7 +94,7 @@ class Post(models.Model):
 
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     uuid = models.UUIDField(default=uuid.uuid4)
     url = models.URLField(default='')
     type = 'post'
@@ -135,7 +135,7 @@ class ImagePosts(models.Model):
 class Comment(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'comment'
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comment')
@@ -153,7 +153,7 @@ class Comment(models.Model):
 
 #build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True)
     type = 'inbox'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
     items = models.JSONField(default=list, blank = True)
