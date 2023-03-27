@@ -142,13 +142,21 @@ class LikedSerializer(serializers.ModelSerializer):
         self.fields['items'] = LikesSerializer(read_only=True, many=True)
         return super().to_representation(instance)
 
-#make a serializer for inbox
+#create a serializer for inbox
 class InboxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbox
+        fields = ('type', 'author', 'items')
+
+    def to_representation(self, instance):
+        self.fields['items'] = FollowRequestSerializer(read_only=True, many=True)
+        return super().to_representation(instance)
+    
+#make a serializer for inbox
+class ItemSerializer(serializers.ModelSerializer):
     type = serializers.CharField(required=True)
     items = serializers.JSONField(required=True)
     class Meta:
         model = Inbox
         fields = ('type','items')
     
-#create a serializer for the inbox items
-        

@@ -29,7 +29,7 @@ from .serializers import LikesSerializer
 from .serializers import LikedSerializer
 from .serializers import LikeSerializer
 from .serializers import InboxSerializer
-
+from .serializers import ItemSerializer
 # import models
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes, Inbox
@@ -580,7 +580,7 @@ class InboxViewSet(viewsets.GenericViewSet):
         instance = Inbox.objects.get(author__uuid=author_pk)
         data = request.data
         #serialize data and append to inbox
-        iserializer = InboxSerializer(instance=instance)
+        iserializer = ItemSerializer(instance=instance)
         if iserializer.is_valid():
             iserializer.save()
             item_type = iserializer.data.get('type')
