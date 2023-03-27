@@ -14,7 +14,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
-import { TEAM7_API_URL, TEAM18_API_URL } from '../consts/api_connections';
+import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
@@ -99,6 +99,7 @@ export default function Album() {
     const [posts, setPosts] = React.useState([]);
     const [team18Posts, setTeam18Posts] = React.useState([]);
     const user = JSON.parse(localStorage.getItem('user')!);
+    const USER_ID = localStorage.getItem('USER_ID');
     const token = JSON.parse(localStorage.getItem('token')!);
     const postsRef = React.useRef(null);
     const navigate = useNavigate();
@@ -111,42 +112,45 @@ export default function Album() {
 
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/feed/`, {
+        console.log("Reached ADAD")
+        // console.log(localStorage.getItem('USER_ID'));
+
+        const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
-        }).then(
-            (response) => {
-                console.log("GET POSTS IN FEED RESPONSE:", response);
-                const authorPosts = response.data.posts;
-                axios.get(`${TEAM18_API_URL}service/authors/6952efd6743149eb86c472b96d84109a/posts`).then(
-                    (response) => {
-                        console.log("GET GROUP 18 POSTS RESPONSE:", response);
-                        const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));
-                        console.log("TEAM 18 POSTS:", team18Posts);
-                        setPosts(authorPosts.concat(team18Posts));
-                    }
-                ).then(
-                    () => {
-                        axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
-                            headers: {
-                                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
-                            }
-                        }).then(
-                            (response) => {
-                                console.log("GET GROUP 7 POSTS RESPONSE:", response);
-                                const team7Post = convertTeam7PostToOurPost(response.data);
-                                console.log("TEAM 7 POSTS:", team7Post);
-                                setPosts(posts.concat(team7Post));
-                            }
-                        ).catch((error) => {
-                            console.log("ERROR", error);
-                        });
-                    }
-                );
+        });
+
+        const getTeam18Posts = axios.get(`${TEAM18_API_URL}service/authors/d36004eb162448d791c8a025d1cca127/posts/`)
+            .then(response => {
+                console.log("GET GROUP 18 POSTS RESPONSE:", response);
+                const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));
+                console.log("TEAM 18 POSTS:", team18Posts);
+                return team18Posts;
+            });
+
+        const getTeam7Post = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
             }
-        );
+        }).then(response => {
+            console.log("GET GROUP 7 POSTS RESPONSE:", response);
+            const team7Post = convertTeam7PostToOurPost(response.data);
+            console.log("TEAM 7 POSTS:", team7Post);
+            return team7Post;
+        }).catch(error => {
+            console.log("ERROR", error);
+        });
+
+        Promise.all([getAuthorPosts, getTeam18Posts, getTeam7Post])
+            .then(responses => {
+                const authorPosts = responses[0].data.posts;
+                const team18Posts = responses[1];
+                const team7Post = responses[2];
+                setPosts([...authorPosts, ...team18Posts, team7Post]);
+            });
     }, []);
+
 
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
@@ -306,7 +310,7 @@ export default function Album() {
                                         alt="Post Picture"
                                         src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
                                     />
-                                    {user.id === selectedPost?.author?.id ?
+                                    {USER_ID === selectedPost?.author?.id ?
                                         <Stack
                                             // justifyItems={"end"}
                                             //sx={{ right:0, top: 0}}

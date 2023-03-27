@@ -21,6 +21,7 @@ export default function NewPost() {
     const [postContent, setPostContent] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
+    const USER_ID = localStorage.getItem('USER_ID');
 
     const navigate = useNavigate();
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -29,7 +30,7 @@ export default function NewPost() {
         console.log(visibility, postType, postTitle, postDescription, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+        axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
             source: OUR_API_URL,
             origin: OUR_API_URL,
             title: postTitle,

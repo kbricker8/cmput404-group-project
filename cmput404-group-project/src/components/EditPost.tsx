@@ -9,6 +9,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { OUR_API_URL } from '../consts/api_connections';
 
 const theme = createTheme();
 
@@ -20,6 +21,7 @@ const theme = createTheme();
 export default function EditPost() {
 
     const user = JSON.parse(localStorage.getItem('user')!);
+    const USER_ID = localStorage.getItem('USER_ID')!;
     const post = JSON.parse(localStorage.getItem('post_id')!);
     const token = JSON.parse(localStorage.getItem('token')!);
 
@@ -33,9 +35,9 @@ export default function EditPost() {
         console.log(postTitle, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.put(`http://127.0.0.1:8000/service/authors/${user.id}/posts/${post.id}/`, {
-            source: 'http://127.0.0.1:8000',
-            origin: 'http://127.0.0.1:8000',
+        axios.put(`${OUR_API_URL}service/authors/${USER_ID}/posts/${post.id}/`, {
+            source: OUR_API_URL,
+            origin: OUR_API_URL,
             title: postTitle,
             description: postDescription,
             content: postContent,
