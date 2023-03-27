@@ -114,12 +114,18 @@ export default function Album() {
         refreshPage();
         console.log("Reached ADAD")
         // console.log(localStorage.getItem('USER_ID'));
-
+        const getOurAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }
+        );
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         });
+        const getTeam18Authors = '';
 
         const getTeam18Posts = axios.get(`${TEAM18_API_URL}service/authors/d36004eb162448d791c8a025d1cca127/posts/`)
             .then(response => {
@@ -128,7 +134,7 @@ export default function Album() {
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
-
+        const getTeam7Authors = '';
         const getTeam7Post = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
             headers: {
                 'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
@@ -140,6 +146,11 @@ export default function Album() {
             return team7Post;
         }).catch(error => {
             console.log("ERROR", error);
+        });
+
+        Promise.all([getOurAuthors]).then(responses => {
+            const authors = responses[0].data.items;
+            console.log("IN FIRST PROMISE",authors);
         });
 
         Promise.all([getAuthorPosts, getTeam18Posts, getTeam7Post])
