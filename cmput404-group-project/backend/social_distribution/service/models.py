@@ -151,11 +151,12 @@ class Comment(models.Model):
     def _str_(self):
         return self.comment
 
+#build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
+    id = models.URLField(primary_key = True, max_length = 255)
     type = 'inbox'
-
-    author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    items = models.JSONField(default = list) #foreign key
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
+    items = models.JSONField(default=list)
 
     class Meta:
-        verbose_name_plural = "inbox's"
+        verbose_name_plural = "inbox"
