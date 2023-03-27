@@ -28,6 +28,7 @@ import StarIcon from '@mui/icons-material/Star';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ToggleButton from '@mui/material/ToggleButton';
+import { Author } from '../types/author';
 
 const theme = createTheme();
 
@@ -65,15 +66,15 @@ export default function Album() {
     
     React.useEffect(() => {
         refreshPage();
-        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
+        axios.get(`http://127.0.0.1:8000/service/authors/${user.id}/posts/feed/?p=1&page_count=5`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         }).then(
             (response) => { 
                 console.log("GET POSTS IN FEED RESPONSE:", response);
-                postsRef.current = response.data.items;
-                setPosts(response.data.items);
+                postsRef.current = response.data.posts;
+                setPosts(response.data.posts);
         }
         )
     },[]);
@@ -102,7 +103,13 @@ export default function Album() {
 
         axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/like/`, {
             author: user.id,
-            })
+            }, 
+            {
+                headers: {
+                    'Authorization': `Token ${token}`
+                }
+            }
+            )
         .then((response) => {
             console.log("MAKE LIKE RESPONSE:", response);
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
@@ -117,7 +124,11 @@ export default function Album() {
         //console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(clickedPost.id);
 
-        axios.get(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/`
+        axios.get(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }
         )
         .then((response) => {
             console.log("GET COMMENTS RESPONSE:", response);
@@ -143,6 +154,14 @@ export default function Album() {
             author: user.id,
             comment: commentValue,
             contentType: "text/plain",
+            // headers: {
+            //     'Authorization': `Token ${token}`
+            // }
+            }, 
+            {
+                headers: {
+                    'Authorization': `Token ${token}`
+                }
             })
         .then((response) => {
             console.log("MAKE COMMENT RESPONSE:", response);
@@ -152,15 +171,12 @@ export default function Album() {
 
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
-    const numListArray = [{id: "list", age :47},{id: "of", age: 52},{id: 'comments', age: 67}];
-    var [numList, setNumList] = React.useState(numListArray);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
         var commentsList;
         setOpen(true);
         setSelectedPost(clickedPost);
         //setCommentsList(commentList(clickedPost));
-        setNumList(numListArray);
-        console.log("NUM LIST:", numList);
+        console.log("COMMENTS LISTTTTTTT:", commentsList);
         commentList(clickedPost);
         console.log("COMMENTS LISTTT:", commentsList);
         
@@ -271,13 +287,16 @@ export default function Album() {
                             {/* <div> */}
                             <Box sx={modalStyle}>
                                     <Stack
-                                        sx={{ pb: 2}}
+                                        sx={{ pb: 2, paddingLeft: 10}}
                                         direction="row"
                                         spacing={10}
                                         justifyContent="end"
                                     >
                                         <Stack
-                                            sx={{ pb: 2 }}
+                                            alignItems="left"
+                                            flexDirection="column"
+                                            sx={{ pb: 2
+                                             }}
                                             direction="column"
                                             spacing={3}
                                             justifyContent="start"
@@ -294,33 +313,16 @@ export default function Album() {
                                                 <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                                     {selectedPost?.content ?? 'No content'}
                                                 </Typography>
-                                            </Container>
-                                                Comments:
-                                            <List sx={{width: '100%', maxWidth: '200%', bgcolor: 'grey' }}>
-                                                    {/* use map to iterate through list of comments from numList */}
-                                                    {actualComments.map((value, index) => ( 
-                                                    <ListItem alignItems='flex-start' >
-                                                        <ListItem
-                                                            
-                                                            key = {index}
-                                                            disableGutters
-                                                        >
-                                                            <span>comment author: {value.author_id}</span>{" "}
-                                                            {/* <span>comment: {value.comment}</span>{" "} */}
-                                                        </ListItem>
-                                                        <ListItemText
-                                                        primary={value.comment}
-                                                        // secondary={secondary ? 'Secondary text' : null}
-                                                        />
-                                                    </ListItem>
-                                                    ))
-                                                    }
-                                                </List>
-                                            <Box component="form" noValidate sx={{ mt: 3 }}>
+                                                <br></br>
+                                                <br></br>
+                                                Write a comment:
+                                            </Container>                                         
+                                            <Box component="form" noValidate 
+                                                sx={{ mt: 3 }}>
                                                 <Grid item xs={12}>
                                                     <TextField
                                                         // make background white
-                                                        sx={{ bgcolor: 'white', borderRadius: 1, borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid' }}
+                                                        sx={{ bgcolor: 'white', borderRadius: 1, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }}
                                                         id="CommentId"
                                                         label="Comment"
                                                         multiline
@@ -332,6 +334,7 @@ export default function Album() {
                                                     />
                                                 </Grid>
                                                 <Button
+                                                    sx={{ marginLeft: 3}}
                                                     type="submit"
                                                     variant="contained"
                                                     startIcon={<AddIcon />}
@@ -340,6 +343,31 @@ export default function Album() {
                                                     Submit
                                                 </Button>
                                             </Box>
+                                            <Container>
+                                                Comments:
+                                            </Container>
+                                            <Grid container spacing={15}>
+                                                <List sx={{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderRadiu: 1, borderWidth: 2, borderStyle: 'solid', marginLeft: 3 }}>
+                                                    {/* use map to iterate through list of comments from list of comments */}
+                                                    {actualComments?.map((value, index) => ( 
+                                                    <Grid alignItems='flex-start' >
+                                                        <ListItem
+                                                            
+                                                            key = {index}
+                                                            disableGutters
+                                                        >
+                                                            {/* <span>comment author: {value.author_id}</span>{" "} */}
+                                                            {/* <span>comment: {value.comment}</span>{" "} */}
+                                                        </ListItem>
+                                                        <ListItemText
+                                                        primary={value.comment}
+                                                        // secondary={secondary ? 'Secondary text' : null}
+                                                        />
+                                                    </Grid>
+                                                    ))
+                                                    }
+                                                </List>
+                                            </Grid>
                                             
                                         </Stack>
                                         {/* <Box
@@ -391,8 +419,7 @@ export default function Album() {
                                             >
                                                 Like
                                             </Button> */}
-                                            <Container>
-                                                
+                                            <Container>                                              
                                                 <IconButton
                                                     aria-label="add to favorites"
                                                     onClick={() => {
