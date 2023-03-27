@@ -85,7 +85,7 @@ class PostSerializer(serializers.ModelSerializer):
 class PostIdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['type', 'id']
+        fields = ['id']
 
     # def to_representation(self, instance):
     #     return instance.id
@@ -121,8 +121,8 @@ class LikesSerializer(serializers.ModelSerializer):
         fields = ('context', 'summary', 'type', 'author', 'object')
 
     def to_representation(self, instance):
-        # self.fields['author'] = AuthorSerializer(read_only=True)
-        self.fields['object'] = PostIdSerializer(read_only=True)
+        self.fields['author'] = AuthorSerializer(read_only=True)
+        # self.fields['object'] = PostIdSerializer(read_only=True)
         return super().to_representation(instance)
     
 class LikeSerializer(serializers.ModelSerializer):
@@ -142,8 +142,54 @@ class LikedSerializer(serializers.ModelSerializer):
         self.fields['items'] = LikesSerializer(read_only=True, many=True)
         return super().to_representation(instance)
 
-class Inbox(serializers.ModelSerializer):
+#create a serializer for inbox
+class InboxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inbox
         fields = ('type', 'author', 'items')
 
+    # def to_representation(self, instance):
+    #     self.fields['items'] = FollowRequestSerializer(read_only=True, many=True)
+    #     return super().to_representation(instance)
+
+class PostItemSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    type = serializers.CharField()
+    title = serializers.CharField(required=False)
+    source = serializers.CharField(required=False)
+    origin = serializers.CharField(required=False)
+    description = serializers.CharField(required=False)
+    contentType = serializers.CharField(required=False)
+    content = serializers.CharField(required=False)
+    author = serializers.CharField(required=False)
+    categories = serializers.JSONField(required=False)
+    count = serializers.IntegerField(required=False)
+    comments = serializers.CharField(required=False)
+    published = serializers.CharField(required=False)
+    visibility = serializers.CharField(required=False)
+    unlisted = serializers.BooleanField(required=False)
+    summary = serializers.CharField(required=False)
+
+class CommentItemSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    type = serializers.CharField()
+    author = serializers.CharField()
+    post = serializers.CharField()
+    comment = serializers.CharField(max_length = 255)
+    contentType = serializers.CharField()
+    published = serializers.CharField()
+    summary = serializers.CharField(required=False)
+
+class LikeItemSerializer(serializers.Serializer):
+    context = serializers.CharField(required=False)
+    summary = serializers.CharField(required=False)
+    type = serializers.JSONField(required=False)
+    author = serializers.CharField(required=False)
+    object = serializers.CharField(required=False)
+
+class FollowRequestItemSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    summary = serializers.CharField()
+    actor = serializers.JSONField()
+    object = serializers.JSONField()
+    
