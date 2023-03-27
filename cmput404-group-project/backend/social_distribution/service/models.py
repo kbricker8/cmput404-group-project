@@ -55,14 +55,16 @@ class FollowRequest(models.Model):
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
 
 class Likes(models.Model):
-    context = models.CharField(max_length = 255, default = '')
+    context = models.CharField(max_length = 255, default = '', blank=True)
     summary = models.CharField(max_length = 255, default = '')
     type = 'Like'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes')
 
-    content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
-    object_id = models.UUIDField(null=True)
-    object = GenericForeignKey()
+    # content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
+    # object_id = models.URLField(null=True)
+    # object = GenericForeignKey()
+
+    object = models.URLField(blank=True)
 
     class Meta:
         verbose_name_plural = "likes"
@@ -149,11 +151,12 @@ class Comment(models.Model):
     def _str_(self):
         return self.comment
 
+#build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
+    id = models.URLField(primary_key = True, max_length = 255)
     type = 'inbox'
-
-    author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    items = models.JSONField(default = list) #foreign key
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
+    items = models.JSONField(default=list, blank = True)
 
     class Meta:
-        verbose_name_plural = "inbox's"
+        verbose_name_plural = "inbox"
