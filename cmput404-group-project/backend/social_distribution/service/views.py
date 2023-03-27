@@ -29,12 +29,16 @@ from .serializers import LikesSerializer
 from .serializers import LikedSerializer
 from .serializers import LikeSerializer
 from .serializers import InboxSerializer
-from .serializers import ItemSerializer
+from .serializers import PostItemSerializer
+from .serializers import CommentItemSerializer
+from .serializers import LikeItemSerializer
+from .serializers import FollowRequestItemSerializer
 # import models
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes, Inbox
 
-baseURL = "https://social-distribution-group21.herokuapp.com/"
+# baseURL = "https://social-distribution-group21.herokuapp.com/"
+baseURL = "http://127.0.0.1:8000/"
 
 
 class UsersViewSet(viewsets.GenericViewSet):
@@ -66,6 +70,9 @@ class UsersViewSet(viewsets.GenericViewSet):
         liked_id = baseURL + 'service/authors/' + str(author.id) + '/liked/'
         liked = Liked(id=liked_id, author=author)
         liked.save()
+
+        inbox_id = baseURL + 'service/authors/' + str(author.id) + '/inbox/'
+        inbox = Inbox(id=inbox_id, author=author)
 
         token = Token.objects.create(user=user)
 
@@ -374,14 +381,14 @@ class PostsViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
-    def update(self, request, author_pk=None, *args, **kwargs):
+    def update(self, request, author_pk, pk, *args, **kwargs):
         user = request.user
         author = Author.objects.get(uuid=author_pk)
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
         partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+        instance = Post.objects.get(uuid=pk)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         title = serializer.validated_data['title']
@@ -395,19 +402,19 @@ class PostsViewSet(viewsets.GenericViewSet):
 
         return Response(serializer.data)
     
-    def destroy(self, request, author_pk=None, *args, **kwargs):
+    def destroy(self, request, author_pk, pk, *args, **kwargs):
         user = request.user
         author = Author.objects.get(uuid=author_pk)
         if (author.user != user):
             return Response({"detail": ["Not authorized to do that."]},
                             status=status.HTTP_401_UNAUTHORIZED)
-        instance = self.get_object()
+        instance = object = Post.objects.get(uuid=pk)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
-        post=self.get_object()
+        post = Post.objects.get(uuid=pk)
         image = get_object_or_404(ImagePosts, post=post)
         serializer = ImagePostsSerializer(instance=image)
         return Response(serializer.data)
@@ -415,17 +422,19 @@ class PostsViewSet(viewsets.GenericViewSet):
     @action(detail=True)
     def likes(self, request, author_pk, pk, *args, **kwargs):
         # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
-        likes = Likes.objects.filter(object_id = pk).all()
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk
+        likes = Likes.objects.filter(object = id).all()
         serializer = LikesSerializer(instance=likes, many=True)
         return Response(serializer.data)
     
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, pk, *args, **kwargs):
-        object = self.get_object()
+        object = Post.objects.get(uuid=pk)
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk
         user = request.user
         author = Author.get_author_from_user(user=user)
         summary = f"{author.displayName} liked your post"
-        if Likes.objects.filter(author=author, object_id=pk).count():
+        if Likes.objects.filter(author=author, object=id).count():
             return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
         like = Likes(summary=summary, author=author, object=object)
@@ -577,43 +586,68 @@ class InboxViewSet(viewsets.GenericViewSet):
         return Response(serializer.data)
 
     def create(self, request, author_pk=None, *args, **kwargs):
-        instance = Inbox.objects.get(author__uuid=author_pk)
+        inbox = Inbox.objects.get(author__uuid=author_pk)
         data = request.data
+
+        serializer = LikeSerializer(data=data)
+        if serializer.is_valid():
+            inbox.items.append(serializer.data)
+            inbox.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = PostItemSerializer(data=data)
+        if serializer.is_valid():
+            inbox.items.append(serializer.data)
+            inbox.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = CommentItemSerializer(data=data)
+        if serializer.is_valid():
+            inbox.items.append(serializer.data)
+            inbox.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = FollowRequestItemSerializer(data=data)
+        if serializer.is_valid():
+            inbox.items.append(serializer.data)
+            inbox.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         #serialize data and append to inbox
-        iserializer = ItemSerializer(instance=instance)
-        if iserializer.is_valid():
-            iserializer.save()
-            item_type = iserializer.data.get('type')
-            if item_type == 'post':
-                post = iserializer.data.get('items')
-                #serialize the post and append data to the inbox
-                serializer = PostSerializer(data= post)
-                if serializer.is_valid():
-                    serializer.save()
-                    instance.append({'type':'post','object':serializer.data})
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-            elif item_type == 'comment':
-                comment = iserializer.data.get('items')
-                #serialize the comment and append data to the inbox
-                serializer = CommentsSerializer(data= comment)
-                if serializer.is_valid():
-                    serializer.save()
-                    instance.append({'type':'comment','object':serializer.data})
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-            elif item_type == 'like':
-                like = iserializer.data.get('items')
-                #serialize the like and append data to the inbox
-                serializer = LikeSerializer(data= like)
-                if serializer.is_valid():
-                    serializer.save()
-                    instance.append({'type':'like','object':serializer.data})
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-            elif item_type == 'follow':
-                follow = iserializer.data.get('items')
-                #serialize the follow and append data to the inbox
-                serializer = FollowRequestSerializer(data= follow)
-                if serializer.is_valid():
-                    serializer.save()
-                    instance.append({'type':'follow','object':serializer.data})
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # serializer = ItemSerializer(data=data)
+        # if serializer.is_valid():
+        #     inbox.items.append(serializer.data)
+        #     inbox.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # if iserializer.is_valid():
+        #     iserializer.save()
+        #     item_type = iserializer.data.get('type')
+        #     if item_type == 'post':
+        #         post = iserializer.data.get('items')
+        #         #serialize the post and append data to the inbox
+        #         serializer = PostSerializer(data= post)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             instance.append({'type':'post','object':serializer.data})
+        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #     elif item_type == 'comment':
+        #         comment = iserializer.data.get('items')
+        #         #serialize the comment and append data to the inbox
+        #         serializer = CommentsSerializer(data= comment)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             instance.append({'type':'comment','object':serializer.data})
+        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #     elif item_type == 'like':
+        #         like = iserializer.data.get('items')
+        #         #serialize the like and append data to the inbox
+        #         serializer = LikeSerializer(data= like)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             instance.append({'type':'like','object':serializer.data})
+        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #     elif item_type == 'follow':
+        #         follow = iserializer.data.get('items')
+        #         #serialize the follow and append data to the inbox
+        #         serializer = FollowRequestSerializer(data= follow)
+        #         if serializer.is_valid():
+        #             serializer.save()
+        #             instance.append({'type':'follow','object':serializer.data})
+        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
