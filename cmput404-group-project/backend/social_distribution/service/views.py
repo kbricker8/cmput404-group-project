@@ -442,7 +442,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         if Likes.objects.filter(author=author, object=id).count():
             return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
-        like = Likes(summary=summary, author=author, object=object)
+        like = Likes(summary=summary, author=author, object=object.id)
         like.save()
         object.numLikes += 1
         object.save()
@@ -580,7 +580,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
             if Likes.objects.filter(author=author, object_uuid=pk).count():
                 return Response({"detail": ["Request already exists."]},
                             status=status.HTTP_400_BAD_REQUEST)
-            like = Likes(summary=summary, author=author, object=object)
+            like = Likes(summary=summary, author=author, object=object.id)
             like.save()
             object.numLikes += 1
             object.save()
