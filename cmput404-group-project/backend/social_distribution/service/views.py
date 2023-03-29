@@ -73,6 +73,7 @@ class UsersViewSet(viewsets.GenericViewSet):
 
         inbox_id = baseURL + 'service/authors/' + str(author.id) + '/inbox/'
         inbox = Inbox(id=inbox_id, author=author)
+        inbox.save()
 
         token = Token.objects.create(user=user)
 
