@@ -270,6 +270,10 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         follow_request = FollowRequest(id=id, summary=summary, actor=actor, object=object)
         follow_request.save()
         serializer = FollowRequestSerializer(instance=follow_request)
+        # add to inbox of the user
+        inbox = Inbox.objects.get(author=object)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
@@ -444,6 +448,11 @@ class PostsViewSet(viewsets.GenericViewSet):
         object.save()
         liked = Liked.objects.get(author=author)
         liked.items.add(like)
+        # add to the authors inbox
+        serializer = LikesSerializer(instance=like)
+        inbox = Inbox.objects.get(author=object.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response({"detail": ["Liked post."]},
                     status=status.HTTP_200_OK)
     
@@ -520,6 +529,10 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer.save(id=id, uuid=comment_uuid, post=post)
         post.count += 1
         post.save()
+        # add comment to the authors inbox
+        inbox = Inbox.objects.get(author=post.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, pk, *args, **kwargs):
@@ -558,7 +571,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, post_pk, pk, *args, **kwargs):
-        object = self.get_object()
+        object = Comment.objects.get(uuid=pk)
         serializer = LikeSerializer(data=request.data)
         if serializer.is_valid():
             authorid = serializer.data.get('author')
@@ -573,6 +586,11 @@ class CommentsViewSet(viewsets.GenericViewSet):
             object.save()
             liked = Liked.objects.get(author=author)
             liked.items.add(like)
+            # add to the authors inbox
+            serializer = LikesSerializer(instance=like)
+            inbox = Inbox.objects.get(author=object.author)
+            inbox.items.append(serializer.data)
+            inbox.save()
             return Response({"detail": ["Liked comment."]},
                         status=status.HTTP_200_OK)
 
@@ -582,12 +600,14 @@ class InboxViewSet(viewsets.GenericViewSet):
     serializer_class = InboxSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        instance = Inbox.objects.get(author__uuid=author_pk)
+        # instance = Inbox.objects.get(author__uuid=author_pk)
+        instance = get_object_or_404(Inbox, author__uuid=author_pk)
         serializer = InboxSerializer(instance=instance)
         return Response(serializer.data)
 
     def create(self, request, author_pk=None, *args, **kwargs):
-        inbox = Inbox.objects.get(author__uuid=author_pk)
+        # inbox = Inbox.objects.get(author__uuid=author_pk)
+        inbox = get_object_or_404(Inbox, author__uuid=author_pk)
         data = request.data
 
         serializer = LikeSerializer(data=data)
@@ -610,45 +630,14 @@ class InboxViewSet(viewsets.GenericViewSet):
             inbox.items.append(serializer.data)
             inbox.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #serialize data and append to inbox
-        # serializer = ItemSerializer(data=data)
-        # if serializer.is_valid():
-        #     inbox.items.append(serializer.data)
-        #     inbox.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # if iserializer.is_valid():
-        #     iserializer.save()
-        #     item_type = iserializer.data.get('type')
-        #     if item_type == 'post':
-        #         post = iserializer.data.get('items')
-        #         #serialize the post and append data to the inbox
-        #         serializer = PostSerializer(data= post)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'post','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'comment':
-        #         comment = iserializer.data.get('items')
-        #         #serialize the comment and append data to the inbox
-        #         serializer = CommentsSerializer(data= comment)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'comment','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'like':
-        #         like = iserializer.data.get('items')
-        #         #serialize the like and append data to the inbox
-        #         serializer = LikeSerializer(data= like)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'like','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'follow':
-        #         follow = iserializer.data.get('items')
-        #         #serialize the follow and append data to the inbox
-        #         serializer = FollowRequestSerializer(data= follow)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'follow','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['Post'])
+    def clear(self, request, author_pk=None, *args, **kwargs):
+        inbox = get_object_or_404(Inbox, author__uuid=author_pk)
+        inbox.items.clear()
+        inbox.save()
+        serializer = InboxSerializer(instance=inbox)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
