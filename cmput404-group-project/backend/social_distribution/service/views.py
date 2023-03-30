@@ -10,7 +10,9 @@ from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import uuid
-
+import base64
+from django.core.files.base import ContentFile
+import binascii
 from .paginations import PostsPagination, CommentsPagination, PostsPaginatorInspectorClass, CommentsPaginatorInspectorClass
 
 # import serializers
@@ -37,8 +39,8 @@ from .serializers import FollowRequestItemSerializer
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes, Inbox
 
-# baseURL = "https://social-distribution-group21.herokuapp.com/"
-baseURL = "http://127.0.0.1:8000/"
+baseURL = "https://social-distribution-group21.herokuapp.com/"
+#baseURL = "http://127.0.0.1:8000/"
 
 
 class UsersViewSet(viewsets.GenericViewSet):
@@ -418,6 +420,18 @@ class PostsViewSet(viewsets.GenericViewSet):
         image = get_object_or_404(ImagePosts, post=post)
         serializer = ImagePostsSerializer(instance=image)
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], url_path='image_post')
+    def image_post(self, request, author_pk, pk, *args, **kwargs):
+        # accept image from client
+        post = Post.objects.get(uuid=pk)
+        image_data = request.data.get('image')
+        if image_data:
+            id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk + '/image'
+            ImagePosts.objects.create(post=post, image=image_data, temp_id=id)
+            return Response({"status": "Image uploaded successfully"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "No image data found"}, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True)
     def likes(self, request, author_pk, pk, *args, **kwargs):
