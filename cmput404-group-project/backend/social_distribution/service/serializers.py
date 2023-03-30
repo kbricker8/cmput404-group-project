@@ -93,7 +93,7 @@ class PostIdSerializer(serializers.ModelSerializer):
 class ImagePostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagePosts
-        fields = ('id', 'type', 'post', 'image')
+        fields = ('temp_id', 'type', 'post', 'image')
 
 class CommentsSerializer(serializers.ModelSerializer):
     # author_id = serializers.CharField(

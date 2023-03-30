@@ -124,10 +124,10 @@ class Post(models.Model):
     
 class ImagePosts(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    temp_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    temp_id = models.URLField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'ImagePost'
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image', null=True)
-    image = models.ImageField(null = True, blank = True)
+    image = models.TextField(null = True, blank = True)
 
     class Meta:
         verbose_name_plural = "images"
