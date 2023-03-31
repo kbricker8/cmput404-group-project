@@ -107,27 +107,40 @@ export default function Profile() {
       )
   };
   useEffect(() => {
-    //Get all authors for sending friend requests
-    axios.get(`${OUR_API_URL}service/authors/`, {
+    const getAllAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
-    }).then((response) => {
-      console.log('GET ALL AUTHORS RESPONSE:', response);
-      console.log(response.data.items);
-      setAuthors(response.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID));
-      console.log(authors);
     });
-    // Get Friends
-    axios
-      .get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      .then((response) => {
-        console.log('GET FRIENDS RESPONSE:', response);
-        const friendPromises: Promise<Follower>[] = response.data.items.map((friend: string) => {
+
+    const getFriends = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+
+    const getFollowers = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+
+    const getFollowRequests = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+
+    Promise.all([getAllAuthors, getFriends, getFollowers, getFollowRequests])
+      .then((responses) => {
+        const allAuthorsResponse = responses[0];
+        console.log('GET ALL AUTHORS RESPONSE:', allAuthorsResponse);
+        const authors = allAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        console.log(authors);
+
+        const friendsResponse = responses[1];
+        console.log('GET FRIENDS RESPONSE:', friendsResponse);
+        const friendPromises: Promise<Follower>[] = friendsResponse.data.items.map((friend: string) => {
           friend = friend.toString().split(/[/]+/).pop()!;
           console.log('FOR EACH FRIEND:', friend);
           return axios.get(`${OUR_API_URL}service/authors/${friend}/`, {
@@ -139,27 +152,17 @@ export default function Profile() {
             return { id: friend, name: response.data.displayName };
           });
         });
-        Promise.all(friendPromises).then((friends) => {
 
-          console.log('FRIENDS: 144', friends);
+        Promise.all(friendPromises).then((friends) => {
+          console.log('FRIENDS:', friends);
           setFriends(friends);
           setFollowers(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
           console.log(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
         });
-      }).catch((error) => {
-        console.log('GET FRIENDS ERROR:', error);
-      });
-    //Get Followers
-    axios
-      .get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      .then((response) => {
-        console.log('GET FOLLOWERS RESPONSE:', response);
 
-        const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
+        const followersResponse = responses[2];
+        console.log('GET FOLLOWERS RESPONSE:', followersResponse);
+        const followerPromises: Promise<Follower>[] = followersResponse.data.items.map((follower: string) => {
           console.log('FOR EACH FOLLOWER:', follower.toString().split(/[/]+/).pop());
           return axios.get(`${OUR_API_URL}service/authors/${follower.toString().split(/[/]+/).pop()}/`, {
             headers: {
@@ -175,22 +178,11 @@ export default function Profile() {
           console.log('FOLLOWERS:', followers);
           setFollowers(followers);
         });
-      })
-      .catch((error) => {
-        console.log('GET FOLLOWERS ERROR:', error);
-      });
 
-    //Get Follow Requests
-    axios
-      .get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      })
-      .then((response) => {
-        console.log('GET FOLLOW REQUESTS RESPONSE:', response);
+        const followRequestsResponse = responses[3];
+        console.log('GET FOLLOW REQUESTS RESPONSE:', followRequestsResponse);
         const followRequests: FollowRequest[] = [];
-        for (const followerRequest of response.data) {
+        for (const followerRequest of followRequestsResponse.data) {
           console.log('FOR EACH FOLLOW REQUEST:', followerRequest.toString().split(/[/]+/).pop());
           followRequests.push({ id: followerRequest.actor.id.toString().split(/[/]+/).pop(), name: followerRequest.actor.displayName });
           console.log('FOLLOW REQUESTS:', followRequests);
@@ -198,9 +190,7 @@ export default function Profile() {
         setFollowRequests(followRequests);
       })
       .catch((error) => {
-        console.log("HERE IN UER")
-        console.log(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`);
-        console.log('GET FOLLOW REQUESTS ERROR:', error);
+        console.log('ERROR:', error);
       });
   }, []);
 
