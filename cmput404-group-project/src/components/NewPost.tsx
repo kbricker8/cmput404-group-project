@@ -19,11 +19,17 @@ export default function NewPost() {
     const [postTitle, setPostTitle] = React.useState('')
     const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
+    const [image, setImage] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
     const USER_ID = localStorage.getItem('USER_ID');
 
     const navigate = useNavigate();
+
+    // const handleImageSubmit = 
+
+
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
@@ -132,9 +138,20 @@ export default function NewPost() {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <Button variant="contained" component="label">
+                                <Button 
+                                    variant="contained" 
+                                    component="label" 
+                                    // onSubmit={handleImageSubmit}
+                                >
                                     Upload Image
-                                    <input hidden accept="image/*" multiple type="file" />
+                                    <input 
+                                        hidden accept="image/*" 
+                                        multiple type="file" 
+                                        // onChange={(event) => {
+                                        //     console.log(event.target.files[0]);
+                                        //     setImage(event);
+                                        //   }}
+                                    />
                                 </Button>
                             </Grid>
                             {postType !== "text/markdown" ?

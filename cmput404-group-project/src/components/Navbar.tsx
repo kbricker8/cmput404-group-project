@@ -3,23 +3,42 @@ import { Link } from "react-router-dom";
 import "./Navbar.css";
 import { NavLink } from "react-router-dom";
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { Avatar, Badge, Divider, IconButton, List, Menu, MenuItem, Tooltip } from "@mui/material";
-import { deepOrange } from "@mui/material/colors";
+import { Avatar, Badge, Divider, IconButton, List, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip } from "@mui/material";
+import { OUR_API_URL } from '../consts/api_connections';
+import axios from "axios";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function Navbar() {
   const [click, setClick] = useState(false);
   const [user, setUser] = useState(null);
+  const [inbox, setInbox] = React.useState([]);
   const handleClick = () => setClick(!click);
   const closeMobileMenu = () => setClick(false);
+
+  const token = JSON.parse(localStorage.getItem('token')!);
+
   let signInSignOut;
   let homePageFeed;
   let profile;
   let notificationBell;
+  let notifType;
+
+  // let badgeNumber;
 
   React.useEffect(() => {
     if (localStorage.getItem('user') != null) {
       setUser(JSON.parse(localStorage.getItem('user')!));
-  }}, []);
+    }
+
+    const getInbox = axios.get(`${OUR_API_URL}service/authors/${localStorage.getItem('USER_ID')!}/inbox`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    }).then((response) => {
+      setInbox(response.data.items);
+      // badgeNumber = response.data.items.length;
+    });
+  }, []);
 
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -34,14 +53,24 @@ function Navbar() {
 
   const handleClose = () => {
     setAnchorEl(null);
-    tempNotifs.length = 0;
+    // inbox.length = 0;
   };
 
-  var tempNotifs = ["Kyle liked your post", "Jacob wants to be your friend", "Jaden is dumb"];
   const noPointer = {cursor: 'default'};
 
+  const handleClear = () => {
+    axios.post(`${OUR_API_URL}service/authors/${localStorage.getItem('USER_ID')!}/inbox/clear/`, {}, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    setAnchorEl(null);
+    // badgeNumber = 0;
+  };
+
+
   if (user == null) {
-    console.log("USER IS NULL", localStorage.getItem('user'));
+    console.log("USER IS NULL", localStorage.getItem('USER_ID'));
     signInSignOut = 
     <NavLink
       to="/SignIn"
@@ -101,7 +130,10 @@ function Navbar() {
             onClick={handleList}
             color="inherit"
           >
-            <Badge badgeContent={tempNotifs.length} color="error">
+            <Badge 
+              // badgeContent={badgeNumber}
+              badgeContent={inbox.length} 
+              color="error">
               <NotificationsIcon />
             </Badge>
             {/* <Avatar sx={{ bgcolor: deepOrange[500] }}>{user.displayName[0].charAt(0).toUpperCase()}</Avatar> */}
@@ -135,9 +167,20 @@ function Navbar() {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          {tempNotifs.map((notif) => (
-            <MenuItem style={noPointer}>{notif}</MenuItem>
+          {inbox.map((notif) => (
+            (notif.type == "FollowRequest") || (notif.type == "Like")
+              ? <MenuItem style={noPointer}>{notif.summary}</MenuItem>
+              : null
+            // likes, follow requests have summaries
+            // comments and posts do not
           ))}
+          <Divider />
+          <MenuItem onClick={handleClear}>
+            <ListItemIcon>
+              <DeleteIcon fontSize="small"/>
+            </ListItemIcon>
+            <ListItemText>Clear All Notifications</ListItemText>
+          </MenuItem>
         </Menu>
       </div>
   }
