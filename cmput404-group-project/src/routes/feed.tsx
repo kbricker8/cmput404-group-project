@@ -118,23 +118,30 @@ export default function Album() {
             headers: {
                 'Authorization': `Token ${token}`
             }
-        }
-        );
+        });
+
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         });
-        const getTeam18Authors = '';
 
-        const getTeam18Posts = axios.get(`${TEAM18_API_URL}service/authors/d36004eb162448d791c8a025d1cca127/posts/`)
+        const getTeam18Authors = axios.get(`${TEAM18_API_URL}service/authors`)
+            .then(response => {
+                console.log("GET GROUP 18 Authors RESPONSE:", response);
+                const team18Authors = response.data.items.map(item => item.id.toString().split("/").pop());
+                console.log("TEAM 18 AUTHORS:", team18Authors);
+                return team18Authors;
+            });
+
+        const getTeam18Posts = (authorId) => axios.get(`${TEAM18_API_URL}service/authors/${authorId}/posts/`)
             .then(response => {
                 console.log("GET GROUP 18 POSTS RESPONSE:", response);
                 const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
-        const getTeam7Authors = '';
+
         const getTeam7Post = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
             headers: {
                 'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
@@ -150,15 +157,29 @@ export default function Album() {
 
         Promise.all([getOurAuthors]).then(responses => {
             const authors = responses[0].data.items;
-            console.log("IN FIRST PROMISE",authors);
+            console.log("IN FIRST PROMISE", authors);
         });
 
-        Promise.all([getAuthorPosts, getTeam18Posts, getTeam7Post])
+        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Post])
             .then(responses => {
+                console.log("RESPONSES", responses);
                 const authorPosts = responses[0].data.posts;
-                const team18Posts = responses[1];
+                const team18Authors = responses[1];
                 const team7Post = responses[2];
-                setPosts([...authorPosts, ...team18Posts, team7Post]);
+                console.log("TEAM 18 AUTHORS:", team18Authors);
+                const team18PostsPromises = team18Authors.filter(author => {
+                    console.log("author:", author);
+                    console.log("author.id:", author.id);
+                    return author.length == 32;
+                }).map(author => getTeam18Posts(author));
+                Promise.all(team18PostsPromises).then(team18PostsArrays => {
+                    const team18Posts = [].concat(...team18PostsArrays);
+                    setPosts([...authorPosts, ...team18Posts, team7Post]);
+                }).catch(error => {
+                    console.log("IN SECOND PROMISE", error);
+                });
+            }).catch(error => {
+                console.log("IN LAST PROMISE", error);
             });
     }, []);
 
