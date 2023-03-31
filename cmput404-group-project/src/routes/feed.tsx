@@ -141,31 +141,64 @@ export default function Album() {
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
-
-        const getTeam7Post = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+        const getTeam7Authors = axios.get(`${TEAM7_API_URL}authors/`, {
             headers: {
                 'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
             }
         }).then(response => {
-            console.log("GET GROUP 7 POSTS RESPONSE:", response);
-            const team7Post = convertTeam7PostToOurPost(response.data);
-            console.log("TEAM 7 POSTS:", team7Post);
-            return team7Post;
+            console.log("GET GROUP 7 AUTHORS RESPONSE:", response);
+            const team7Authors = response.data.items.map(item => item.id.toString().split("/").pop());
+            console.log("TEAM 7 AUTHORS:", team7Authors);
+            return team7Authors;
         }).catch(error => {
-            console.log("ERROR", error);
+            console.log("Get Group 7 authors ERROR", error);
         });
+        const getTeam7Posts = (authorId) => axios.get(`${TEAM7_API_URL}authors/${authorId}/posts/`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+            }
+        })
+            .then(response => {
+                console.log("GET GROUP 7 POSTSSS RESPONSE:", response);
+                const team7Posts = response.data.items.map(item => convertTeam7PostToOurPost(item));
+                console.log("164 TEAM 7 POSTS:", team7Posts);
+                return team7Posts;
+            });
+        axios.get(`${TEAM7_API_URL}authors/80e83b86-0d26-4189-b68a-bf57e8c87af1/posts/`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+            }
+        }).then(response => {
+            console.log("GET GROUP 7 POSTT TESTTT RESPONSE:", typeof (response), response);
+        }).catch(error => {
+            console.log("Get Group 7 POST TEST ERROR", error);
+        });
+
+        // const getTeam7Posts = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+        //     headers: {
+        //         'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        //     }
+        // }).then(response => {
+        //     console.log("GET GROUP 7 POSTS RESPONSE:", response);
+        //     const team7Post = convertTeam7PostToOurPost(response.data);
+        //     console.log("TEAM 7 POSTS:", team7Post);
+        //     return team7Post;
+        // }).catch(error => {
+        //     console.log("ERROR", error);
+        // });
 
         Promise.all([getOurAuthors]).then(responses => {
             const authors = responses[0].data.items;
             console.log("IN FIRST PROMISE", authors);
         });
 
-        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Post])
+        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Authors])
             .then(responses => {
                 console.log("RESPONSES", responses);
                 const authorPosts = responses[0].data.posts;
                 const team18Authors = responses[1];
-                const team7Post = responses[2];
+                const team7Authors = responses[2];
+                let team18PostsSave = [];
                 console.log("TEAM 18 AUTHORS:", team18Authors);
                 const team18PostsPromises = team18Authors.filter(author => {
                     console.log("author:", author);
@@ -174,10 +207,28 @@ export default function Album() {
                 }).map(author => getTeam18Posts(author));
                 Promise.all(team18PostsPromises).then(team18PostsArrays => {
                     const team18Posts = [].concat(...team18PostsArrays);
-                    setPosts([...authorPosts, ...team18Posts, team7Post]);
+                    team18PostsSave = team18Posts;
+                    //setPosts([...authorPosts, ...team18Posts]);
                 }).catch(error => {
                     console.log("IN SECOND PROMISE", error);
                 });
+                console.log("7TEAM 7 AUTHORS:", team7Authors);
+                const team7PostsPromises = team7Authors.filter(author => {
+                    console.log("7TEAM 7 author:", author);
+                    console.log("author.id:", author.id);
+                    console.log(217,author.length);
+                    return author.length == 36;
+                }).map(author => getTeam7Posts(author));
+                console.log(219,team7PostsPromises)
+                Promise.all(team7PostsPromises).then(team7PostsArrays => {
+                    console.log("220:", team7PostsArrays);
+                    const team7Posts = [].concat(...team7PostsArrays);
+                    console.log("7TEAM 7 POSTS IN PROMISE:", team7Posts);
+                    setPosts([...authorPosts,...team18PostsSave, ...team7Posts]);
+                }).catch(error => {
+                    console.log("IN THIRD PROMISE", error);
+                }
+                );
             }).catch(error => {
                 console.log("IN LAST PROMISE", error);
             });
