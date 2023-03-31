@@ -15,11 +15,11 @@ class Author(models.Model):
     id = models.URLField(primary_key = True)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'author'
-    url = models.URLField(max_length=200, blank=True)
-    host = models.URLField(max_length=200, blank=True)
+    url = models.URLField(blank=True)
+    host = models.URLField(blank=True)
     displayName = models.CharField(max_length=150)
-    github = models.URLField(max_length=200, blank=True)
-    profileImage = models.URLField(max_length=200, blank=True)
+    github = models.URLField(blank=True)
+    profileImage = models.URLField(blank=True)
 
     user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE, related_name='author') # the user account that the author object is linked to
 
