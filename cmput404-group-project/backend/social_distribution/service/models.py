@@ -124,7 +124,7 @@ class Post(models.Model):
     
 class ImagePosts(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    temp_id = models.URLField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key=True, default="1")
     type = 'ImagePost'
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image', null=True)
     image = models.TextField(null = True, blank = True)
