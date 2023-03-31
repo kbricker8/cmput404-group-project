@@ -332,7 +332,7 @@ export default function Album() {
                                                 <Grid item xs={12}>
                                                     <TextField
                                                         // make background white
-                                                        sx={{ bgcolor: 'white', borderRadius: 1, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }}
+                                                        sx={{ bgcolor: 'white', borderRadius: 2, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }}
                                                         id="CommentId"
                                                         label="Comment"
                                                         multiline
@@ -356,17 +356,17 @@ export default function Album() {
                                             <Container>
                                                 Comments:
                                             </Container>
-                                            <Grid container spacing={15}>
-                                                <List sx={{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderRadiu: 1, borderWidth: 2, borderStyle: 'solid', marginLeft: 3 }}>
+                                            <Grid container spacing={15} sx={{marginLeft: 3}}>
+                                                <List>
                                                     {/* use map to iterate through list of comments from list of comments */}
                                                     {actualComments?.map((value, index) => ( 
-                                                    <Grid alignItems='flex-start' >
+                                                    <Grid alignItems='flex-start' sx = {{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderRadius: 1, borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }} >
                                                         <ListItem
                                                             sx={{padding: 2}}
                                                             key = {index}
                                                             disableGutters
                                                         >
-                                                            <span>comment author: {value.author.displayName}</span>{" "}
+                                                            <span>Comment author: {value.author.displayName}</span>{" "}
                                                             {/* <span>comment: {value.comment}</span>{" "} */}
                                                         </ListItem>
                                                         <ListItemText
@@ -432,11 +432,13 @@ export default function Album() {
                                             </Button> */}
                                             <Container>                                              
                                                 <IconButton
+                                                    sx={{color : 'red'}}
                                                     aria-label="add to favorites"
                                                     onClick={() => {
                                                         handleLike(selectedPost);
                                                         setClickedLike(!clickedLike);
                                                     }}
+                                                    
                                                 >   
                                                     {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                                 </IconButton>
