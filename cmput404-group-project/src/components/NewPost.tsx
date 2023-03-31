@@ -7,9 +7,10 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Markdown from 'markdown-to-jsx';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
-
+import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 export default function NewPost() {
@@ -18,24 +19,30 @@ export default function NewPost() {
     const [postTitle, setPostTitle] = React.useState('')
     const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
+    const [image, setImage] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
+    const USER_ID = localStorage.getItem('USER_ID');
 
     const navigate = useNavigate();
+
+    // const handleImageSubmit = 
+
+
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(visibility, postType, postTitle, postDescription, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.post(`http://127.0.0.1:8000/service/authors/${user.id}/posts/`, {
-            source: 'http://127.0.0.1:8000',
-            origin: 'http://127.0.0.1:8000',
+        axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
+            source: OUR_API_URL,
+            origin: OUR_API_URL,
             title: postTitle,
             description: postDescription,
             content: postContent,
             contentType: postType,
-            //author: JSON.parse(localStorage.getItem('user')!).name,
             author: user.id,
             categories: {},
             count: 0,
@@ -43,9 +50,9 @@ export default function NewPost() {
             visibility: visibility,
             unlisted: false,
         }, {
-        headers: {
-            'Authorization': `Token ${token}`
-        }
+            headers: {
+                'Authorization': `Token ${token}`
+            }
         }).then((response) => {
             console.log("MAKE POST RESPONSE:", response);
             navigate(-1)
@@ -55,7 +62,7 @@ export default function NewPost() {
 
     return (
         <ThemeProvider theme={theme}>
-            <Container sx={{ pt: 5 }}>
+            <Container sx={{ pt: 5, pb: 12, marginTop: 4 }}>
                 <main>
                     <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
                         <Container maxWidth="lg">
@@ -108,7 +115,7 @@ export default function NewPost() {
                                 <TextField
                                     required
                                     fullWidth
-                                    inputProps={{maxLength: 40}}
+                                    inputProps={{ maxLength: 40 }}
                                     helperText={`${postTitle.length}/40`}
                                     id="post-title"
                                     label="Post Title"
@@ -121,7 +128,7 @@ export default function NewPost() {
                                 <TextField
                                     required
                                     fullWidth
-                                    inputProps={{maxLength: 70}}
+                                    inputProps={{ maxLength: 70 }}
                                     helperText={`${postDescription.length}/70`}
                                     id="post-description"
                                     label="Post Description"
@@ -131,26 +138,73 @@ export default function NewPost() {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <Button variant="contained" component="label">
+                                <Button 
+                                    variant="contained" 
+                                    component="label" 
+                                    // onSubmit={handleImageSubmit}
+                                >
                                     Upload Image
-                                    <input hidden accept="image/*" multiple type="file" />
+                                    <input 
+                                        hidden accept="image/*" 
+                                        multiple type="file" 
+                                        // onChange={(event) => {
+                                        //     console.log(event.target.files[0]);
+                                        //     setImage(event);
+                                        //   }}
+                                    />
                                 </Button>
                             </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    required
-                                    fullWidth
-                                    multiline
-                                    rows={10}
-                                    maxRows={15}
-                                    name="text"
-                                    label="Text"
-                                    type="text"
-                                    id="post-text"
-                                    autoComplete="post-text"
-                                    onChange={(e) => setPostContent(e.target.value)}
-                                />
-                            </Grid>
+                            {postType !== "text/markdown" ?
+                                <Grid item xs={12}>
+                                    <TextField
+                                        required
+                                        fullWidth
+                                        multiline
+                                        rows={10}
+                                        maxRows={15}
+                                        name="text"
+                                        label="Text"
+                                        type="text"
+                                        id="post-text"
+                                        autoComplete="post-text"
+                                        onChange={(e) => setPostContent(e.target.value)}
+                                    />
+                                </Grid>
+                                :
+                                <Grid container spacing={1} sx={{ padding: 2 }} >
+                                    <Grid item xs={6}>
+                                        <TextField
+                                            required
+                                            fullWidth
+                                            multiline
+                                            rows={10}
+                                            maxRows={15}
+                                            name="text"
+                                            label="Text"
+                                            type="text"
+                                            id="post-text"
+                                            autoComplete="post-text"
+                                            onChange={(e) => setPostContent(e.target.value)}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <Box
+                                            display="flex"
+                                            height={'100%'}
+                                            sx={{
+
+                                                padding: '20px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '4px',
+                                                boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06)',
+
+                                                overflow: 'auto'
+                                            }}>
+                                            <Markdown>{postContent}</Markdown>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            }
                         </Grid>
                         <Button
                             type="submit"

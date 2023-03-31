@@ -9,10 +9,13 @@ from django.contrib.contenttypes.models import ContentType
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 # also makemigations and migrate
 
-baseURL = "http://127.0.0.1:8000/"
+baseURL = "https://social-distribution-group21.herokuapp.com/"
 
 class Author(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField(default=uuid.uuid4)
     type = 'author'
     url = models.URLField(max_length=200, blank=True)
     host = models.URLField(max_length=200, blank=True)
@@ -54,14 +57,16 @@ class FollowRequest(models.Model):
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
 
 class Likes(models.Model):
-    context = models.CharField(max_length = 255, default = '')
+    context = models.CharField(max_length = 255, default = '', blank=True)
     summary = models.CharField(max_length = 255, default = '')
     type = 'Like'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes')
 
-    content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
-    object_id = models.UUIDField(null=True)
-    object = GenericForeignKey()
+    # content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
+    # object_id = models.URLField(null=True)
+    # object = GenericForeignKey()
+
+    object = models.URLField(blank=True)
 
     class Meta:
         verbose_name_plural = "likes"
@@ -89,7 +94,10 @@ class Post(models.Model):
         JPEG = 'image/jpeg;base64'
         APPLICATION = 'application/base64'
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField(default=uuid.uuid4)
     url = models.URLField(default='')
     type = 'post'
     title = models.CharField(max_length = 255)
@@ -117,7 +125,8 @@ class Post(models.Model):
         return self.title
     
 class ImagePosts(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    temp_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     type = 'ImagePost'
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image', null=True)
     image = models.ImageField(null = True, blank = True)
@@ -126,10 +135,13 @@ class ImagePosts(models.Model):
         verbose_name_plural = "images"
 
 class Comment(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key = True, max_length = 255)
+    uuid = models.UUIDField(default=uuid.uuid4)
     type = 'comment'
-    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comments')
-    post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='posts')
+    author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comment')
+    post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='comment')
     comment = models.TextField(max_length = 255, default = '')
     contentType = models.CharField(max_length = 20)
     published = models.DateTimeField(default = timezone.now)
@@ -141,11 +153,12 @@ class Comment(models.Model):
     def _str_(self):
         return self.comment
 
+#build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
+    id = models.URLField(primary_key = True, max_length = 255)
     type = 'inbox'
-
-    author = models.CharField(max_length=255, default = '') #change to jsonfield?
-    items = models.JSONField(default = list) #foreign key
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
+    items = models.JSONField(default=list, blank = True)
 
     class Meta:
-        verbose_name_plural = "inbox's"
+        verbose_name_plural = "inbox"
