@@ -61,19 +61,19 @@ class UsersViewSet(viewsets.GenericViewSet):
         author = Author(id=id, uuid=author_uuid, url=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
 
-        followers_id = baseURL + 'service/authors/' + str(author.id) + '/followers/'
+        followers_id = str(author.id) + '/followers/'
         followers = Followers(id=followers_id, author = author)
         followers.save()
 
-        following_id = baseURL + 'service/authors/' + str(author.id) + '/following/'
+        following_id = str(author.id) + '/following/'
         following = Following(id=following_id, author = author)
         following.save()
 
-        liked_id = baseURL + 'service/authors/' + str(author.id) + '/liked/'
+        liked_id = str(author.id) + '/liked/'
         liked = Liked(id=liked_id, author=author)
         liked.save()
 
-        inbox_id = baseURL + 'service/authors/' + str(author.id) + '/inbox/'
+        inbox_id = str(author.id) + '/inbox/'
         inbox = Inbox(id=inbox_id, author=author)
         inbox.save()
 
