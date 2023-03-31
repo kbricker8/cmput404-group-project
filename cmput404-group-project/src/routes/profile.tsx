@@ -9,8 +9,8 @@ import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 type Follower = {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
 };
 
 type FollowRequest = {
@@ -30,22 +30,23 @@ export default function Profile() {
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const user = JSON.parse(localStorage.getItem('user')!);
-  const USER_ID = localStorage.getItem('user_id')!;
+  const USER_ID = localStorage.getItem('USER_ID')!;
   const token = JSON.parse(localStorage.getItem('token')!);
   const handleAddFollower = () => {
     if (selectedAuthor) {
       console.log('ADD FOLLOWER:', selectedAuthor);
       axios
-        .post(`${OUR_API_URL}service/authors/${selectedAuthor.id}/follow-request/${USER_ID}/send/`, {}, {
+        .post(`${OUR_API_URL}service/authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/follow-request/${USER_ID}/send/`, {}, {
           headers: {
-              'Authorization': `Token ${token}`
+            'Authorization': `Token ${token}`
           }
-          })
+        })
         .then((response) => {
           console.log('ADD FOLLOWER RESPONSE:', response);
         })
         .catch((error) => {
           console.log('ADD FOLLOWER ERROR:', error);
+          console.log('ERROR:', selectedAuthor.id.toString().split(/[/]+/).pop());
         });
     }
   };
@@ -57,31 +58,32 @@ export default function Profile() {
     setConfirmRemove(null);
   };
   const handleConfirmRemove = (followerId: string) => {
+    followerId = followerId.toString().split(/[/]+/).pop()!;
     setConfirmRemove(null);
     axios.post(`${OUR_API_URL}service/authors/${USER_ID}/followers/unfollow/`, { "id": followerId }, {
       headers: {
-          'Authorization': `Token ${token}`
+        'Authorization': `Token ${token}`
       }
-      }).then((response) => {
+    }).then((response) => {
       console.log(followers);
       console.log('REMOVE FOLLOWER RESPONSE:', response);
-      setFollowers(followers.filter((follower) => follower.id !== followerId));
-      setFriends(friends.filter((friend) => friend.id !== followerId));
+      setFollowers(followers.filter((follower) => follower.id!.toString().split(/[/]+/).pop()! !== followerId));
+      setFriends(friends.filter((friend) => friend.id!.toString().split(/[/]+/).pop()! !== followerId));
     }).catch((error) => {
       console.log('REMOVE FOLLOWER ERROR:', error);
     });
   };
   const handleAcceptRequest = (request: FollowRequest) => {
     console.log('ACCEPT REQUEST:', request);
-    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id}/accept/`, {}, {
+    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id.toString().split(/[/]+/).pop()}/accept/`, {}, {
       headers: {
-          'Authorization': `Token ${token}`
+        'Authorization': `Token ${token}`
       }
-      }).then(
+    }).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
-        setFollowers([...followers, { id: request.id, name: request.name }]);
+        setFollowers([...followers, { id: request.id.toString().split(/[/]+/).pop(), name: request.name }]);
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
       }
@@ -90,16 +92,17 @@ export default function Profile() {
 
   const handleRejectRequest = (request: FollowRequest) => {
     console.log('REJECT REQUEST:', request);
-    axios.get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id}/decline/`, {
+    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id.toString().split(/[/]+/).pop()}/decline/`, {}, {
       headers: {
-          'Authorization': `Token ${token}`
+        'Authorization': `Token ${token}`
       }
-      }).then(
+    }).then(
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
+        console.log(followRequests, request.id);
       }
       )
   };
@@ -107,39 +110,42 @@ export default function Profile() {
     //Get all authors for sending friend requests
     axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
-          'Authorization': `Token ${token}`
+        'Authorization': `Token ${token}`
       }
-      }).then((response) => {
+    }).then((response) => {
       console.log('GET ALL AUTHORS RESPONSE:', response);
       console.log(response.data.items);
-      setAuthors(response.data.items.filter((author: Author) => author.id !== USER_ID));
+      setAuthors(response.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID));
       console.log(authors);
     });
     // Get Friends
     axios
       .get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
         headers: {
-            'Authorization': `Token ${token}`
+          'Authorization': `Token ${token}`
         }
-        })
+      })
       .then((response) => {
         console.log('GET FRIENDS RESPONSE:', response);
         const friendPromises: Promise<Follower>[] = response.data.items.map((friend: string) => {
+          friend = friend.toString().split(/[/]+/).pop()!;
           console.log('FOR EACH FRIEND:', friend);
           return axios.get(`${OUR_API_URL}service/authors/${friend}/`, {
             headers: {
-                'Authorization': `Token ${token}`
+              'Authorization': `Token ${token}`
             }
-            }).then((response) => {
+          }).then((response) => {
             console.log('GET FRIEND INFO :', response);
             return { id: friend, name: response.data.displayName };
           });
         });
         Promise.all(friendPromises).then((friends) => {
-          console.log('FRIENDS:', friends);
-          setFriends(friends);
-        });
 
+          console.log('FRIENDS: 144', friends);
+          setFriends(friends);
+          setFollowers(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
+          console.log(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
+        });
       }).catch((error) => {
         console.log('GET FRIENDS ERROR:', error);
       });
@@ -147,21 +153,21 @@ export default function Profile() {
     axios
       .get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
         headers: {
-            'Authorization': `Token ${token}`
+          'Authorization': `Token ${token}`
         }
-        })
+      })
       .then((response) => {
         console.log('GET FOLLOWERS RESPONSE:', response);
 
         const followerPromises: Promise<Follower>[] = response.data.items.map((follower: string) => {
-          console.log('FOR EACH FOLLOWER:', follower);
-          return axios.get(`${OUR_API_URL}service/authors/${follower}/`, {
+          console.log('FOR EACH FOLLOWER:', follower.toString().split(/[/]+/).pop());
+          return axios.get(`${OUR_API_URL}service/authors/${follower.toString().split(/[/]+/).pop()}/`, {
             headers: {
-                'Authorization': `Token ${token}`
+              'Authorization': `Token ${token}`
             }
-            }).then((response) => {
+          }).then((response) => {
             console.log('GET FOLLOWER INFO :', response);
-            return { id: follower, name: response.data.displayName };
+            return { id: follower.toString().split(/[/]+/).pop(), name: response.data.displayName };
           });
         });
 
@@ -178,20 +184,22 @@ export default function Profile() {
     axios
       .get(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`, {
         headers: {
-            'Authorization': `Token ${token}`
+          'Authorization': `Token ${token}`
         }
-        })
+      })
       .then((response) => {
         console.log('GET FOLLOW REQUESTS RESPONSE:', response);
         const followRequests: FollowRequest[] = [];
         for (const followerRequest of response.data) {
-          console.log('FOR EACH FOLLOW REQUEST:', followerRequest);
-          followRequests.push({ id: followerRequest.actor.id, name: followerRequest.actor.displayName });
+          console.log('FOR EACH FOLLOW REQUEST:', followerRequest.toString().split(/[/]+/).pop());
+          followRequests.push({ id: followerRequest.actor.id.toString().split(/[/]+/).pop(), name: followerRequest.actor.displayName });
           console.log('FOLLOW REQUESTS:', followRequests);
         }
         setFollowRequests(followRequests);
       })
       .catch((error) => {
+        console.log("HERE IN UER")
+        console.log(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/`);
         console.log('GET FOLLOW REQUESTS ERROR:', error);
       });
   }, []);
@@ -204,124 +212,61 @@ export default function Profile() {
           <Box sx={{ borderBottom: 1, borderColor: 'grey.500' }}>
             <Container maxWidth="lg">
               <Stack
-                  sx={{ pt: 4 }}
-                  direction="column"
-                  spacing={0}
-                  justifyContent="center"
+                sx={{ pt: 4 }}
+                direction="column"
+                spacing={0}
+                justifyContent="center"
               >
-                  <Typography
-                      component="h1"
-                      variant="h2"
-                      align="left"
-                      color="text.primary"
-                      pt={8}
-                      gutterBottom
-                  >
-                      Welcome to your profile!
-                  </Typography>
-                  <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
-                      Here you can add/remove friends and manage follow-requests!
-                  </Typography>
+                <Typography
+                  component="h1"
+                  variant="h2"
+                  align="left"
+                  color="text.primary"
+                  pt={8}
+                  gutterBottom
+                >
+                  Welcome to your profile!
+                </Typography>
+                <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
+                  Here you can add/remove friends and manage follow-requests!
+                </Typography>
               </Stack>
             </Container>
           </Box>
 
-        <Box sx={{ marginBottom: '30px', paddingTop: '25px', paddingLeft: '25px' }} alignContent="center">
-          <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
-            <Grid item>
-              <Typography variant="h4">Send a New Follow Request</Typography>
-            </Grid>
-            <Grid item>
-              <Autocomplete
-                sx={{ width: '300px' }}
-                options={authors}
-                getOptionLabel={(option) => option.displayName}
-                value={selectedAuthor}
-                onChange={(_, newValue) => setSelectedAuthor(newValue)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Select an author" />
-                )}
-              />
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                onClick={handleAddFollower}
-                disabled={!selectedAuthor}
-              >
-                Confirm
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-
-        <Grid container spacing={0}>
-          <Grid item xs={3}>
-            <Container component="main" maxWidth="xs">
-              <CssBaseline />
-              <Box
-                sx={{
-                  marginTop: 8,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="h3" paddingBottom={2}>Friends</Typography>
-                {friends.length == 0 ?
-                  <Typography>No friends yet!</Typography>
-                  : friends.map((friend) => (
-                    <Card key={friend.id}>
-                      <CardContent>
-                        <Typography>{friend.name}</Typography>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </Box>
-            </Container>
-          </Grid>
-          <Grid item xs={3}>
-            <Box sx={{ borderLeft: 1, borderRight: 1, borderColor: 'grey.500' }}>
-              <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <Box
-                sx={{
-                  marginTop: 8,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
+          <Box sx={{ marginBottom: '30px', paddingTop: '25px', paddingLeft: '25px' }} alignContent="center">
+            <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
+              <Grid item>
+                <Typography variant="h4">Send a New Follow Request</Typography>
+              </Grid>
+              <Grid item>
+                <Autocomplete
+                  sx={{ width: '300px' }}
+                  options={authors}
+                  getOptionLabel={(option) => option.displayName}
+                  value={selectedAuthor}
+                  onChange={(_, newValue) => setSelectedAuthor(newValue)}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Select an author" />
+                  )}
+                />
+              </Grid>
+              <Grid item>
+                <Button
+                  variant="contained"
+                  onClick={handleAddFollower}
+                  disabled={!selectedAuthor}
                 >
-                  <Typography variant="h3" paddingBottom={2}>Followers</Typography>
-                  {followers.length == 0 ?
-                    <Typography>No followers yet!</Typography>
-                    : followers.map((follower) => (
-                      <Card key={follower.id}>
-                        <CardContent>
-                          <Typography>{follower.name}</Typography>
-                          {confirmRemove === follower.id ? (
-                            <Box>
-                              <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
-                              <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
+                  Confirm
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
 
-                            </Box>
-                          ) : (
-                            <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
-                            // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
-
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                </Box>
-              </Container>
-            </Box>
-          </Grid>
-          <Grid item xs={6}>
-            <Box sx={{ borderColor: 'grey.500', height: '100%' }}>
+          <Grid container spacing={0}>
+            <Grid item xs={3}>
               <Container component="main" maxWidth="xs">
                 <CssBaseline />
-                
                 <Box
                   sx={{
                     marginTop: 8,
@@ -330,22 +275,85 @@ export default function Profile() {
                     alignItems: 'center',
                   }}
                 >
-                  <Typography variant="h3" paddingBottom={2}>Follow Requests</Typography>
-                  {followRequests.length == 0 ?
-                    <Typography>No follow requests yet!</Typography>
-                    : followRequests.map((request) => (
-                      <Card key={request.id}>
+                  <Typography variant="h3" paddingBottom={2}>Friends</Typography>
+                  {friends.length == 0 ?
+                    <Typography>No friends yet!</Typography>
+                    : friends.map((friend) => (
+                      <Card key={friend.id}>
                         <CardContent>
-                          <Typography>{request.name}</Typography>
-                          <Button onClick={() => handleAcceptRequest(request)}>Accept</Button>
-                          <Button onClick={() => handleRejectRequest(request)}>Reject</Button>
+                          <Typography>{friend.name}</Typography>
                         </CardContent>
                       </Card>
                     ))}
+                </Box>
+              </Container>
+            </Grid>
+            <Grid item xs={3}>
+              <Box sx={{ borderLeft: 1, borderRight: 1, borderColor: 'grey.500' }}>
+                <Container component="main" maxWidth="xs">
+                  <CssBaseline />
+                  <Box
+                    sx={{
+                      marginTop: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="h3" paddingBottom={2}>Followers</Typography>
+                    {followers.length == 0 ?
+                      <Typography>No followers yet!</Typography>
+                      : followers.map((follower) => (
+                        <Card key={follower.id}>
+                          <CardContent>
+                            <Typography>{follower.name}</Typography>
+                            {confirmRemove === follower.id ? (
+                              <Box>
+                                <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
+                                <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
 
-                  {/* POTENTIAL ALTERNATIVE TO CARD/CARDCONTENT */}
+                              </Box>
+                            ) : (
+                              <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
+                              // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
 
-                  {/* {followRequests.length == 0 ?
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </Box>
+                </Container>
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Box sx={{ borderColor: 'grey.500', height: '100%' }}>
+                <Container component="main" maxWidth="xs">
+                  <CssBaseline />
+
+                  <Box
+                    sx={{
+                      marginTop: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="h3" paddingBottom={2}>Follow Requests</Typography>
+                    {followRequests.length == 0 ?
+                      <Typography>No follow requests yet!</Typography>
+                      : followRequests.map((request) => (
+                        <Card key={request.id}>
+                          <CardContent>
+                            <Typography>{request.name}</Typography>
+                            <Button onClick={() => handleAcceptRequest(request)}>Accept</Button>
+                            <Button onClick={() => handleRejectRequest(request)}>Reject</Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                    {/* POTENTIAL ALTERNATIVE TO CARD/CARDCONTENT */}
+
+                    {/* {followRequests.length == 0 ?
                     <Typography>No follow requests yet!</Typography>
                     : followRequests.map((request) => (
                       <Chip 
@@ -355,14 +363,14 @@ export default function Profile() {
                       />
                   ))} */}
 
-                </Box>
-              </Container>
-            </Box>
+                  </Box>
+                </Container>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </main>
+        </main>
       </Container>
     </ThemeProvider>
-  
+
   );
 };
