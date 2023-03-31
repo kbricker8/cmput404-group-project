@@ -433,7 +433,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         image_data = request.data.get('image')
         if image_data:
             id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk + '/image'
-            ImagePosts.objects.create(post=post, image=image_data, temp_id=id)
+            ImagePosts.objects.create(post=post, image=image_data, id=id)
             return Response({"status": "Image uploaded successfully"}, status=status.HTTP_201_CREATED)
         else:
             return Response({"error": "No image data found"}, status=status.HTTP_400_BAD_REQUEST)
