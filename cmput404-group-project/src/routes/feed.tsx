@@ -34,7 +34,7 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
-import { minHeight } from '@mui/system';
+import { minHeight, typography } from '@mui/system';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
@@ -302,11 +302,11 @@ export default function Album() {
             console.log("MAKE LIKE RESPONSE:", response);
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
     };
-    const handleCommentLike = (clickedPost: { id: any; }, clickedComment: {id : any;} | null) => {
+    const handleCommentLike = (clickedPost: { id: any; } | null, clickedComment: {id : any;}) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like/ to add likes to comment
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(clickedComment.id);
-        axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/${clickedComment.id}/like/`, {
+        console.log("CLICKED COMMENTS", clickedComment.split("/").pop());
+        axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${clickedComment.split("/").pop()}/like/`, {
         },
         {
             headers: {
@@ -330,8 +330,7 @@ export default function Album() {
         console.log("THIS IS THE CLICKED POST", clickedPost)
         console.log("THIS IS THE USER ID", user.id)
 
-        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {
-            
+        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {            
             headers: {
                 'Authorization': `Token ${token}`
             }
@@ -353,13 +352,13 @@ export default function Album() {
         //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        console.log("THIS IS THE BIG AUTHOR ID", user.id);
         console.log("POST ID:", clickedPost.id.split("/").pop());
         console.log("COMMENT VALUE:", commentValue);
         //console log for the axios statement
         console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/")
         
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {
-            author: user.id.split("/").pop(),
             comment: commentValue,
             contentType: "text/plain",
             },
@@ -386,6 +385,7 @@ export default function Album() {
     const handleClose = () => {
         setOpen(false);
         setSelectedPost(null);
+        setActualComments(commentListDummy);
     };
 
     return (
@@ -532,7 +532,7 @@ export default function Album() {
                                             component="footer"
                                             sx={{
                                                 borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-                                                py: [3, 6],
+                                                py: [3, 1],
                                                 borderColor: 'white',
                                             }}
                                             >
@@ -543,7 +543,7 @@ export default function Album() {
                                             <Grid item xs={12}>
                                                 <TextField
                                                     // make background white
-                                                    sx={{ bgcolor: 'white', borderRadius: 2, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }}
+                                                    sx={{ bgcolor: 'white', borderRadius: 2, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid'}}
                                                     id="CommentId"
                                                     label="Comment"
                                                     multiline
@@ -555,7 +555,7 @@ export default function Album() {
                                                 />
                                             </Grid>
                                             <Button
-                                                sx={{ marginLeft: 3}}
+                                                sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3}}
                                                 type="button"
                                                 variant="contained"
                                                 startIcon={<AddIcon />}
@@ -563,62 +563,13 @@ export default function Album() {
                                             >
                                                 Submit comment
                                             </Button>
+
+                                            <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                {"Comments:"}
+                                            </Typography>
                                         </Box>
-                                        <Container>
-                                                Comments:
-                                        </Container>
-                                            <Grid container spacing={15} sx={{marginLeft: 3}}>
-                                            <List>
-                                                    {/* use map to iterate through list of comments from list of comments */}
-                                                    {actualComments?.map((value, index) => (
-                                                    <Grid alignItems='flex-start' sx = {{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderColor: 'grey.500', borderRadius: 1, borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }} >
-                                                        {/* <ListItem
-                                                            sx={{padding: 2}}
-                                                            key = {index}
-                                                            disableGutters
-                                                        > */}
-                                                         <Card
-                                                            sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "300px", bgcolor : 'white', paddingBottom: 1}}
-                                                            variant="outlined"
-                                                            color='white'
-                                                            >
-                                                            <span>Comment author: {value.author.displayName}</span>{" "}
-                                                            {/* <span>comment: {value.comment}</span>{" "} */}
-                                                        {/* </ListItem> */}
-                                                        <Container
-                                                            maxWidth="md"
-                                                            component="footer"
-                                                            sx={{
-                                                                borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-                                                                borderColor: 'grey.500',
-                                                            }}
-                                                            >
-                                                        </Container>
-                                                        <ListItemText
-                                                        sx={{padding: 1}}
-                                                        primary={value.comment}
-                                                        // secondary={secondary ? 'Secondary text' : null}
-                                                        />
-                                                        <Typography variant="caption" component="h3">
-                                                            {value.numLikes}{" likes"}
-                                                        </Typography>
-                                                        <IconButton
-                                                            sx={{color : 'red'}}
-                                                            aria-label="add to favorites"
-                                                            onClick={() => {
-                                                                var commentId = value.id;
-                                                                handleCommentLike(selectedPost, commentId);
-                                                                setClickedLike(!clickedLike);
-                                                            }}
-                                                        >  
-                                                            {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                                                        </IconButton>
-                                                        </Card>
-                                                    </Grid>
-                                                    ))
-                                                    }
-                                                </List>
-                                            </Grid>
+                                        
+                                        
                                     </Stack>
                                     <Box
                                         component="img"
@@ -680,7 +631,98 @@ export default function Album() {
                                         </Stack>
                                         : null}
                                 </Stack>
+                                {actualComments.length === 0 ? 
+                                    <Typography id="modal-modal-content" sx={{ mt: 0, paddingLeft:5 }}>
+                                        {"No comments yet!"}
+                                    </Typography>
+                                : null}
+                                {actualComments.length > 0 ?
+                                    <Container>
+                                    <Stack 
+                                        spacing={1}
+                                        sx = {{
+                                            width: '100%', 
+                                            maxWidth: 400, 
+                                            height: 200,
+                                            bgcolor: 'grey.500', 
+                                            borderColor: 'grey.500', 
+                                            borderRadius: 2, 
+                                            borderWidth: 5, 
+                                            borderStyle: 'solid', 
+                                            marginLeft: 0,
+                                            overflowX: 'hidden',
+                                            overflowY: 'scroll',
+                                            paddingRight: 0.5,
+                                            '&::-webkit-scrollbar-vertical': {
+                                                width: '0.4em',
+                                                height: '1em',
+                                            },
+                                        }}>
+                                            {/* use map to iterate through list of comments from list of comments */}
+                                            {actualComments?.map((value, index) => (
+                                            <Grid alignItems='flex-start' 
+                                                
+                                                >
+                                                {/* <ListItem
+                                                    sx={{padding: 2}}
+                                                    key = {index}
+                                                    disableGutters
+                                                > */}
+                                                <Card
+                                                    sx={{ 
+                                                        height: "100%", 
+                                                        display: 'flex', 
+                                                        flexDirection: 'column', 
+                                                        maxHeight: "300px", 
+                                                        bgcolor : '#19191a',
+                                                        color: 'white', 
+                                                        borderColor: 'grey.500',
+                                                        borderRadius: 2,
+                                                        paddingBottom: 1, }}
+                                                    variant="outlined"
+                                                    color='white'
+                                                >
+                                                    <span>{value.author.displayName} :</span>{" "}
+                                                    {/* <span>comment: {value.comment}</span>{" "} */}
+                                                    {/* </ListItem> */}
+                                                    <Container
+                                                        maxWidth="md"
+                                                        component="footer"
+                                                        sx={{
+                                                            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+                                                            borderColor: 'grey.500',
+                                                        }}
+                                                        >
+                                                    </Container>
+                                                    <ListItemText
+                                                    sx={{padding: 1}}
+                                                    primary={value.comment}
+                                                    // secondary={secondary ? 'Secondary text' : null}
+                                                    />
+                                                    <Typography variant="caption" component="h3">
+                                                        {value.numLikes}{" likes"}
+                                                    
+                                                        <IconButton
+                                                            sx={{color : 'red'}}
+                                                            aria-label="add to favorites"
+                                                            onClick={() => {
+                                                                var commentId = value.id;
+                                                                handleCommentLike(selectedPost, commentId);
+                                                                setClickedLike(!clickedLike);
+                                                            }}
+                                                        >  
+                                                            {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                        </IconButton>
+                                                    </Typography>
+                                                </Card>
+                                            </Grid>
+                                            ))
+                                            }
+                                    </Stack>
+                                </Container>
+                                    : null}
                             </Box>
+                            
                             {/* </div> */}
                         </Modal>
                     </Container>
