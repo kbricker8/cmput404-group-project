@@ -901,7 +901,6 @@ export default function Album() {
                                         >
                                             <MenuItem value="all">All</MenuItem>
                                             <MenuItem value="friends">Friends</MenuItem>
-                                            <MenuItem value="private">Private</MenuItem>
                                         </Select>
                                     </FormControl>
                                     <Button variant="contained" href='./NewPost' startIcon={<AddIcon />} style={{maxHeight: '75px'}}>New Post</Button>
