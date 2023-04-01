@@ -14,8 +14,11 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
+import { minHeight } from '@mui/system';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
@@ -92,12 +95,14 @@ function convertTeam18PostToOurPost(obj: any): Post {
     };
     return post;
 }
+type FilterPostsType = 'all' | 'friends' | 'private';
+
 export default function Album() {
     // console.log("LOCAL STORAGE IN FEED:")
     // console.log(localStorage.getItem('user'))
 
     const [posts, setPosts] = React.useState([]);
-    const [team18Posts, setTeam18Posts] = React.useState([]);
+    const [filterPosts, setFilterPosts] = React.useState<FilterPostsType>('all');
     const user = JSON.parse(localStorage.getItem('user')!);
     const USER_ID = localStorage.getItem('USER_ID');
     const token = JSON.parse(localStorage.getItem('token')!);
@@ -118,47 +123,128 @@ export default function Album() {
             headers: {
                 'Authorization': `Token ${token}`
             }
-        }
-        );
+        });
+        //Test our feed
+        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=12`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }).then(response => {
+            console.log("GET OUR FEED RESPONSE:", response);
+        }).catch(error => {
+            console.log("GET OUR FEED ERROR:", error);
+        });
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
         });
-        const getTeam18Authors = '';
 
-        const getTeam18Posts = axios.get(`${TEAM18_API_URL}service/authors/d36004eb162448d791c8a025d1cca127/posts/`)
+        const getTeam18Authors = axios.get(`${TEAM18_API_URL}service/authors`)
+            .then(response => {
+                console.log("GET GROUP 18 Authors RESPONSE:", response);
+                const team18Authors = response.data.items.map(item => item.id.toString().split("/").pop());
+                console.log("TEAM 18 AUTHORS:", team18Authors);
+                return team18Authors;
+            });
+
+        const getTeam18Posts = (authorId) => axios.get(`${TEAM18_API_URL}service/authors/${authorId}/posts/`)
             .then(response => {
                 console.log("GET GROUP 18 POSTS RESPONSE:", response);
                 const team18Posts = response.data.items.map(item => convertTeam18PostToOurPost(item));
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
-        const getTeam7Authors = '';
-        const getTeam7Post = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+        const getTeam7Authors = axios.get(`${TEAM7_API_URL}authors/`, {
             headers: {
                 'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
             }
         }).then(response => {
-            console.log("GET GROUP 7 POSTS RESPONSE:", response);
-            const team7Post = convertTeam7PostToOurPost(response.data);
-            console.log("TEAM 7 POSTS:", team7Post);
-            return team7Post;
+            console.log("GET GROUP 7 AUTHORS RESPONSE:", response);
+            const team7Authors = response.data.items.map(item => item.id.toString().split("/").pop());
+            console.log("TEAM 7 AUTHORS:", team7Authors);
+            return team7Authors;
         }).catch(error => {
-            console.log("ERROR", error);
+            console.log("Get Group 7 authors ERROR", error);
         });
+        const getTeam7Posts = (authorId) => axios.get(`${TEAM7_API_URL}authors/${authorId}/posts/`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+            }
+        })
+            .then(response => {
+                console.log("GET GROUP 7 POSTSSS RESPONSE:", response);
+                const team7Posts = response.data.items.map(item => convertTeam7PostToOurPost(item));
+                console.log("164 TEAM 7 POSTS:", team7Posts);
+                return team7Posts;
+            });
+        axios.get(`${TEAM7_API_URL}authors/80e83b86-0d26-4189-b68a-bf57e8c87af1/posts/`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+            }
+        }).then(response => {
+            console.log("GET GROUP 7 POSTT TESTTT RESPONSE:", typeof (response), response);
+        }).catch(error => {
+            console.log("Get Group 7 POST TEST ERROR", error);
+        });
+
+        // const getTeam7Posts = axios.get(`${TEAM7_API_URL}authors/d3bb924f-f37b-4d14-8d8e-f38b09703bab/posts/1629b94f-04cc-459e-880e-44ebe979fb7e/`, {
+        //     headers: {
+        //         'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        //     }
+        // }).then(response => {
+        //     console.log("GET GROUP 7 POSTS RESPONSE:", response);
+        //     const team7Post = convertTeam7PostToOurPost(response.data);
+        //     console.log("TEAM 7 POSTS:", team7Post);
+        //     return team7Post;
+        // }).catch(error => {
+        //     console.log("ERROR", error);
+        // });
 
         Promise.all([getOurAuthors]).then(responses => {
             const authors = responses[0].data.items;
-            console.log("IN FIRST PROMISE",authors);
+            console.log("IN FIRST PROMISE", authors);
         });
 
-        Promise.all([getAuthorPosts, getTeam18Posts, getTeam7Post])
+        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Authors])
             .then(responses => {
+                console.log("RESPONSES", responses);
                 const authorPosts = responses[0].data.posts;
-                const team18Posts = responses[1];
-                const team7Post = responses[2];
-                setPosts([...authorPosts, ...team18Posts, team7Post]);
+                const team18Authors = responses[1];
+                const team7Authors = responses[2];
+                let team18PostsSave = [];
+                console.log("TEAM 18 AUTHORS:", team18Authors);
+                const team18PostsPromises = team18Authors.filter(author => {
+                    console.log("author:", author);
+                    console.log("author.id:", author.id);
+                    return author.length == 32;
+                }).map(author => getTeam18Posts(author));
+                Promise.all(team18PostsPromises).then(team18PostsArrays => {
+                    const team18Posts = [].concat(...team18PostsArrays);
+                    team18PostsSave = team18Posts;
+                    //setPosts([...authorPosts, ...team18Posts]);
+                }).catch(error => {
+                    console.log("IN SECOND PROMISE", error);
+                });
+                console.log("7TEAM 7 AUTHORS:", team7Authors);
+                const team7PostsPromises = team7Authors.filter(author => {
+                    console.log("7TEAM 7 author:", author);
+                    console.log("author.id:", author.id);
+                    console.log(217, author.length);
+                    return author.length == 36;
+                }).map(author => getTeam7Posts(author));
+                console.log(219, team7PostsPromises)
+                Promise.all(team7PostsPromises).then(team7PostsArrays => {
+                    console.log("220:", team7PostsArrays);
+                    const team7Posts = [].concat(...team7PostsArrays);
+                    console.log("7TEAM 7 POSTS IN PROMISE:", team7Posts);
+                    setPosts([...authorPosts, ...team18PostsSave, ...team7Posts]);
+                }).catch(error => {
+                    console.log("IN THIRD PROMISE", error);
+                }
+                );
+            }).catch(error => {
+                console.log("IN LAST PROMISE", error);
             });
     }, []);
 
@@ -223,10 +309,24 @@ export default function Album() {
                                 </Stack>
                                 <Stack
                                     sx={{ pt: 20 }}
-                                    direction="column"
+                                    direction="row"
                                     spacing={2}
                                     justifyContent="center"
                                 >
+                                    <FormControl variant="outlined" sx={{minWidth: 150}} >
+                                        <InputLabel id="filter-posts-label">Filter</InputLabel>
+                                        <Select
+                                            labelId="filter-posts-label"
+                                            id="filter-posts"
+                                            onChange={(event) => setFilterPosts(event.target.value.toString().toLowerCase())}
+                                            label="Filter"
+                                            defaultValue={"all"}
+                                        >
+                                            <MenuItem value="all">All</MenuItem>
+                                            <MenuItem value="friends">Friends</MenuItem>
+                                            <MenuItem value="private">Private</MenuItem>
+                                        </Select>
+                                    </FormControl>
                                     <Button variant="contained" href='./NewPost' startIcon={<AddIcon />}>New Post</Button>
                                 </Stack>
                             </Stack>
@@ -321,7 +421,7 @@ export default function Album() {
                                         alt="Post Picture"
                                         src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
                                     />
-                                    {USER_ID === selectedPost?.author?.id ?
+                                    {USER_ID === selectedPost?.author?.id.split("/").pop() ?
                                         <Stack
                                             // justifyItems={"end"}
                                             //sx={{ right:0, top: 0}}
