@@ -328,7 +328,9 @@ export default function Profile() {
         const authors = ourAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
         const team18Authors = team18AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
         const team7Authors = team7AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
-        setAuthors([...authors, ...team18Authors, ...team7Authors]);
+        console.log("TESTING T18 Auths",team18Authors.filter((author: Author) => author.displayName !=="boop"));
+        console.log("TESTING T7 Auths",team7Authors);
+        setAuthors([...authors, ...team18Authors.filter((author: Author) => author.displayName !=="boop"), ...team7Authors.filter((author: Author) => author.displayName !=="boop")]);
 
         const friendPromises = processItems(friendsResponse.data.items, "FRIEND");
         const followerPromises = processItems(followersResponse.data.items, "FOLLOWER");
