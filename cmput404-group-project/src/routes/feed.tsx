@@ -29,6 +29,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ToggleButton from '@mui/material/ToggleButton';
 import { Author } from '../types/author';
+import { number } from 'prop-types';
 
 const theme = createTheme();
 
@@ -115,8 +116,26 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
     };
 
+    const handleCommentLike = (clickedPost: { id: any; }, clickedComment: {id : any;} | null) => {
+        //use POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like/ to add likes to comment
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log(clickedComment.id);
+
+        axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/${clickedComment.id}/like/`, {
+        },
+        {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }
+        )
+        .then((response) => {
+            console.log("MAKE COMMENT LIKE RESPONSE:", response);
+        }).catch((error) => { console.log("MAKE COMMENT LIKE ERROR:", error); })
+    };
+
     //commentListDummy contains all parameters for a comment
-    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: ''}];
+    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: number}];
     var [actualComments, setActualComments] = React.useState(commentListDummy);
     //const for comments list for each post   
     const commentList = (clickedPost: { id: any; } | null) => {
@@ -350,7 +369,7 @@ export default function Album() {
                                                     startIcon={<AddIcon />}
                                                     onClick={()=>handleComment(selectedPost, commentValue)}                                                    
                                                 >
-                                                    Submit
+                                                    Submit comment
                                                 </Button>
                                             </Box>
                                             <Container>
@@ -360,20 +379,51 @@ export default function Album() {
                                                 <List>
                                                     {/* use map to iterate through list of comments from list of comments */}
                                                     {actualComments?.map((value, index) => ( 
-                                                    <Grid alignItems='flex-start' sx = {{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderRadius: 1, borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }} >
-                                                        <ListItem
+                                                    <Grid alignItems='flex-start' sx = {{width: '100%', maxWidth: '200%', bgcolor: 'grey', borderColor: 'grey.500', borderRadius: 1, borderWidth: 5, borderStyle: 'solid', marginLeft: 3 }} >
+                                                        {/* <ListItem
                                                             sx={{padding: 2}}
                                                             key = {index}
                                                             disableGutters
-                                                        >
+                                                        > */}
+                                                         <Card
+                                                            sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "300px", bgcolor : 'white', paddingBottom: 1}}
+                                                            variant="outlined"
+                                                            color='white'
+                                                            >
                                                             <span>Comment author: {value.author.displayName}</span>{" "}
                                                             {/* <span>comment: {value.comment}</span>{" "} */}
-                                                        </ListItem>
+                                                        {/* </ListItem> */}
+                                                        <Container
+                                                            maxWidth="md"
+                                                            component="footer"
+                                                            sx={{
+                                                                borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+
+                                                                borderColor: 'grey.500',
+                                                            }}
+                                                            >
+                                                        </Container>
                                                         <ListItemText
-                                                        sx={{padding: 2}}
+                                                        sx={{padding: 1}}
                                                         primary={value.comment}
                                                         // secondary={secondary ? 'Secondary text' : null}
                                                         />
+                                                        <Typography variant="caption" component="h3">
+                                                            {value.numLikes}{" likes"}
+                                                        </Typography>
+                                                        <IconButton
+                                                            sx={{color : 'red'}}
+                                                            aria-label="add to favorites"
+                                                            onClick={() => {
+                                                                var commentId = value.id;
+                                                                handleCommentLike(selectedPost, commentId);
+                                                                setClickedLike(!clickedLike);
+                                                            }}
+                                                        >   
+                                                    {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                </IconButton>
+
+                                                        </Card>
                                                     </Grid>
                                                     ))
                                                     }
