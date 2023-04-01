@@ -363,7 +363,7 @@ class PostsViewSet(viewsets.GenericViewSet):
 
     @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
-        posts = Post.objects.filter(author__uuid = author_pk).all()
+        posts = Post.objects.filter( Q(author__uuid = author_pk) & Q(unlisted=False) ).all()
         page = self.paginate_queryset(posts)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -475,7 +475,9 @@ class PostsViewSet(viewsets.GenericViewSet):
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
-        posts = Post.objects.filter(visibility='PUBLIC')
+        posts = Post.objects.filter(
+            Q(visibility='PUBLIC') & Q(unlisted=False)
+            )
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -491,16 +493,16 @@ class PostsViewSet(viewsets.GenericViewSet):
             Q(id__in=followers) & Q(id__in=following)
         ).values_list('id', flat=True)
 
-        my_posts = Post.objects.filter(Q(author__uuid=author_pk))
-        following_posts = Post.objects.filter(
-            Q(author__id__in=following) & ~Q(visibility='FRIENDS')
+        my_posts = Post.objects.filter(Q(author__uuid=author_pk) & Q(unlisted=False) )
+        public_posts = Post.objects.filter(
+            Q(visibility='PUBLIC') & Q(unlisted=False)
         )
-        friend_posts = Post.objects.filter(
-            Q(author__id__in=friends) & Q(visibility='FRIENDS')
+        following_posts = Post.objects.filter(
+            Q(author__id__in=following) & Q(visibility='FRIENDS') & Q(unlisted=False)
         )
         # public_posts = Post.objects.filter(visibility='PUBLIC')
 
-        posts = my_posts | following_posts | friend_posts
+        posts = my_posts | following_posts | public_posts
 
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)

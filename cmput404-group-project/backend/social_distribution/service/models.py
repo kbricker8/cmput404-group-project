@@ -150,6 +150,9 @@ class Comment(models.Model):
 
     def _str_(self):
         return self.comment
+    
+    class Meta:
+        ordering = ['-published']
 
 #build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
