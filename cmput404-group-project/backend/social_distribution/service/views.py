@@ -590,7 +590,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         object = Comment.objects.get(uuid=pk)
         user = request.user
         author = Author.get_author_from_user(user=user)
-        summary = f"{author.displayName} liked your post"
+        summary = f"{author.displayName} liked your comment"
         if Likes.objects.filter(author=author, object=object).count():
             return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -605,7 +605,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         inbox = Inbox.objects.get(author=object.author)
         inbox.items.append(serializer.data)
         inbox.save()
-        return Response({"detail": ["Liked post."]},
+        return Response({"detail": ["Liked comment."]},
                     status=status.HTTP_200_OK)
         
 
