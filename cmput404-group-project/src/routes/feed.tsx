@@ -14,8 +14,11 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
 import { CardActionArea, Modal } from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
+import { minHeight } from '@mui/system';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
@@ -92,12 +95,14 @@ function convertTeam18PostToOurPost(obj: any): Post {
     };
     return post;
 }
+type FilterPostsType = 'all' | 'friends' | 'private';
+
 export default function Album() {
     // console.log("LOCAL STORAGE IN FEED:")
     // console.log(localStorage.getItem('user'))
 
     const [posts, setPosts] = React.useState([]);
-    const [team18Posts, setTeam18Posts] = React.useState([]);
+    const [filterPosts, setFilterPosts] = React.useState<FilterPostsType>('all');
     const user = JSON.parse(localStorage.getItem('user')!);
     const USER_ID = localStorage.getItem('USER_ID');
     const token = JSON.parse(localStorage.getItem('token')!);
@@ -119,7 +124,16 @@ export default function Album() {
                 'Authorization': `Token ${token}`
             }
         });
-
+        //Test our feed
+        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=12`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        }).then(response => {
+            console.log("GET OUR FEED RESPONSE:", response);
+        }).catch(error => {
+            console.log("GET OUR FEED ERROR:", error);
+        });
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
@@ -216,15 +230,15 @@ export default function Album() {
                 const team7PostsPromises = team7Authors.filter(author => {
                     console.log("7TEAM 7 author:", author);
                     console.log("author.id:", author.id);
-                    console.log(217,author.length);
+                    console.log(217, author.length);
                     return author.length == 36;
                 }).map(author => getTeam7Posts(author));
-                console.log(219,team7PostsPromises)
+                console.log(219, team7PostsPromises)
                 Promise.all(team7PostsPromises).then(team7PostsArrays => {
                     console.log("220:", team7PostsArrays);
                     const team7Posts = [].concat(...team7PostsArrays);
                     console.log("7TEAM 7 POSTS IN PROMISE:", team7Posts);
-                    setPosts([...authorPosts,...team18PostsSave, ...team7Posts]);
+                    setPosts([...authorPosts, ...team18PostsSave, ...team7Posts]);
                 }).catch(error => {
                     console.log("IN THIRD PROMISE", error);
                 }
@@ -295,10 +309,24 @@ export default function Album() {
                                 </Stack>
                                 <Stack
                                     sx={{ pt: 20 }}
-                                    direction="column"
+                                    direction="row"
                                     spacing={2}
                                     justifyContent="center"
                                 >
+                                    <FormControl variant="outlined" sx={{minWidth: 150}} >
+                                        <InputLabel id="filter-posts-label">Filter</InputLabel>
+                                        <Select
+                                            labelId="filter-posts-label"
+                                            id="filter-posts"
+                                            onChange={(event) => setFilterPosts(event.target.value.toString().toLowerCase())}
+                                            label="Filter"
+                                            defaultValue={"all"}
+                                        >
+                                            <MenuItem value="all">All</MenuItem>
+                                            <MenuItem value="friends">Friends</MenuItem>
+                                            <MenuItem value="private">Private</MenuItem>
+                                        </Select>
+                                    </FormControl>
                                     <Button variant="contained" href='./NewPost' startIcon={<AddIcon />}>New Post</Button>
                                 </Stack>
                             </Stack>
@@ -393,7 +421,7 @@ export default function Album() {
                                         alt="Post Picture"
                                         src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
                                     />
-                                    {USER_ID === selectedPost?.author?.id ?
+                                    {USER_ID === selectedPost?.author?.id.split("/").pop() ?
                                         <Stack
                                             // justifyItems={"end"}
                                             //sx={{ right:0, top: 0}}
