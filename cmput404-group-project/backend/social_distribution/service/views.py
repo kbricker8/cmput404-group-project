@@ -541,7 +541,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
         comment_uuid = uuid.uuid4()
-        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(comment_uuid)
         serializer.save(id=id, uuid=comment_uuid, post=post, author=author)
         post.count += 1
         post.save()
