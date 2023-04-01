@@ -60,8 +60,8 @@ class Likes(models.Model):
     type = 'Like'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes')
 
-    # content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
-    # object_id = models.URLField(null=True)
+    content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
+    object_id = models.URLField(null=True)
     # object = GenericForeignKey()
 
     object = models.URLField(blank=True)
