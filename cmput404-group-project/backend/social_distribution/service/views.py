@@ -588,27 +588,26 @@ class CommentsViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, post_pk, pk, *args, **kwargs):
         object = Comment.objects.get(uuid=pk)
-        serializer = LikeSerializer(data=request.data)
-        if serializer.is_valid():
-            authorid = serializer.data.get('author')
-            author = get_object_or_404(Author, uuid=authorid)
-            summary = f"{author.displayName} liked your comment"
-            if Likes.objects.filter(author=author, object_uuid=pk).count():
-                return Response({"detail": ["Request already exists."]},
-                            status=status.HTTP_400_BAD_REQUEST)
-            like = Likes(summary=summary, author=author, object=object.id)
-            like.save()
-            object.numLikes += 1
-            object.save()
-            liked = Liked.objects.get(author=author)
-            liked.items.add(like)
-            # add to the authors inbox
-            serializer = LikesSerializer(instance=like)
-            inbox = Inbox.objects.get(author=object.author)
-            inbox.items.append(serializer.data)
-            inbox.save()
-            return Response({"detail": ["Liked comment."]},
-                        status=status.HTTP_200_OK)
+        user = request.user
+        author = Author.get_author_from_user(user=user)
+        summary = f"{author.displayName} liked your post"
+        if Likes.objects.filter(author=author, object=object).count():
+            return Response({"detail": ["Request already exists."]},
+                        status=status.HTTP_400_BAD_REQUEST)
+        like = Likes(summary=summary, author=author, object=object.id)
+        like.save()
+        object.numLikes += 1
+        object.save()
+        liked = Liked.objects.get(author=author)
+        liked.items.add(like)
+        # add to the authors inbox
+        serializer = LikesSerializer(instance=like)
+        inbox = Inbox.objects.get(author=object.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
+        return Response({"detail": ["Liked post."]},
+                    status=status.HTTP_200_OK)
+        
 
 #create an inbox class to handle incoming posts to the inbox endpoint and get the inbox of the current user
 class InboxViewSet(viewsets.GenericViewSet):
