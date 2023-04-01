@@ -35,7 +35,7 @@ export default function EditPost() {
         console.log(postTitle, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.put(`${OUR_API_URL}service/authors/${USER_ID}/posts/${post.id}/`, {
+        axios.put(`${OUR_API_URL}service/authors/${USER_ID}/posts/${post.id.split('/').pop()}/`, {
             source: OUR_API_URL,
             origin: OUR_API_URL,
             title: postTitle,
