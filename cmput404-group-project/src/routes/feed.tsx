@@ -352,10 +352,14 @@ export default function Album() {
     const handleComment = (clickedPost: { id: any; } | null, commentValue: string) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
         console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log(clickedPost.id);
+        console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        console.log("POST ID:", clickedPost.id.split("/").pop());
         console.log("COMMENT VALUE:", commentValue);
+        //console log for the axios statement
+        console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/")
+        
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {
-            author: user.id,
+            author: user.id.split("/").pop(),
             comment: commentValue,
             contentType: "text/plain",
             },
@@ -552,7 +556,7 @@ export default function Album() {
                                             </Grid>
                                             <Button
                                                 sx={{ marginLeft: 3}}
-                                                type="submit"
+                                                type="button"
                                                 variant="contained"
                                                 startIcon={<AddIcon />}
                                                 onClick={()=>handleComment(selectedPost, commentValue)}                                                    
