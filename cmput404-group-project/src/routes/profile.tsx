@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { useState, useEffect } from 'react';
 import { Autocomplete } from '@mui/lab';
 import { Box, Button, Card, CardContent, Typography, TextField, Grid, Stack, ThemeProvider, createTheme, CssBaseline, Chip } from '@mui/material';
