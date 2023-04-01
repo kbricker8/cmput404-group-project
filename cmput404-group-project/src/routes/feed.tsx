@@ -168,6 +168,7 @@ export default function Album() {
         console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log(clickedPost.id);
         console.log("COMMENT VALUE:", commentValue);
+        console.log("USER ID:", user.id);
 
         axios.post(`http://127.0.0.1:8000/service/authors/${clickedPost.author.id}/posts/${clickedPost.id}/comments/`, {
             author: user.id,
@@ -364,7 +365,7 @@ export default function Album() {
                                                 </Grid>
                                                 <Button
                                                     sx={{ marginLeft: 3}}
-                                                    type="submit"
+                                                    type="button"
                                                     variant="contained"
                                                     startIcon={<AddIcon />}
                                                     onClick={()=>handleComment(selectedPost, commentValue)}                                                    
