@@ -535,13 +535,14 @@ class CommentsViewSet(viewsets.GenericViewSet):
         
         post_id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk
         post = Post.objects.get(id=post_id)
-
+        user = request.user
+        author = Author.get_author_from_user(user=user)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
         comment_uuid = uuid.uuid4()
         id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
-        serializer.save(id=id, uuid=comment_uuid, post=post)
+        serializer.save(id=id, uuid=comment_uuid, post=post, author=author)
         post.count += 1
         post.save()
         # add comment to the authors inbox
