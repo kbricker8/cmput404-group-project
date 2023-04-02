@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
-import { CardActionArea, IconButton, Modal } from '@mui/material';
+import { ButtonGroup, CardActionArea, IconButton, Modal } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import { ClassNames } from '@emotion/react';
 import { Form } from 'react-router-dom';
@@ -31,12 +31,15 @@ import ToggleButton from '@mui/material/ToggleButton';
 import { Author } from '../types/author';
 import { number } from 'prop-types';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Pagination from '@mui/material/Pagination';
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
 import { minHeight, typography } from '@mui/system';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
+
 
 const modalStyle = {
     position: 'absolute' as 'absolute',
@@ -321,16 +324,22 @@ export default function Album() {
     //commentListDummy contains all parameters for a comment
     const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: number}];
     var [actualComments, setActualComments] = React.useState(commentListDummy);
+    //commentCount is the number of comments for a post
+    var [commentCount, setCommentCount] = React.useState(0);
+    //commentPage is the page number of comments for a post
+    const [commentPage, setCommentPage] = React.useState(1);
+    
     //const for comments list for each post  
-    const commentList = (clickedPost: { id: any; } | null) => {
+    const commentList = (clickedPost: { id: any; } | null, page: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/ to get comments for post
         //console.log(JSON.parse(localStorage.getItem('user')!).id)
         console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         console.log("THIS IS THE CLICKED POST", clickedPost)
         console.log("THIS IS THE USER ID", user.id)
+        console.log("THIS IS THE COMMENT PAGE", page)
 
-        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {            
+        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/?p=${commentPage}`, {            
             headers: {
                 'Authorization': `Token ${token}`
             }
@@ -344,6 +353,8 @@ export default function Album() {
             console.log("COMMENTS LIST:", commentsList);
             console.log("COMMENTS LIST LENGTH:", commentsList.length);
             setActualComments(commentsList);
+            console.log("DATA COUNT:", response.data.count);
+            setCommentCount(response.data.count);
             return commentsList;
         }).catch((error) => { console.log("GET COMMENTS ERROR:", error); })
     };
@@ -373,19 +384,36 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE COMMENT ERROR:", error); })
     };
 
+    const handleCommentPageChange = (event, page: number) => {
+        console.log("THIS IS THE PAGE", page);
+        console.log("THIS IS THE COMMENT PAGE", commentPage);
+        setCommentPage(page);
+        console.log("THIS IS THE PAGE", page);
+        console.log("THIS IS THE COMMENT PAGE", commentPage);
+    };
+
+    React.useEffect(() => {
+        if (selectedPost) {
+            commentList(selectedPost, commentPage);
+        }
+    }, [commentPage]);
+
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
         var commentsList;
         setOpen(true);
+        setCommentPage(1);
         setSelectedPost(clickedPost);
-        commentList(clickedPost);
+        commentList(clickedPost, 1);
         console.log("ACTUAL COMMENTS:", actualComments);
     };
     const handleClose = () => {
         setOpen(false);
         setSelectedPost(null);
         setActualComments(commentListDummy);
+        setCommentCount(0);
+        setCommentPage(1);
     };
 
     return (
@@ -631,6 +659,8 @@ export default function Album() {
                                         </Stack>
                                         : null}
                                 </Stack>
+                                
+
                                 {actualComments.length === 0 ? 
                                     <Typography id="modal-modal-content" sx={{ mt: 0, paddingLeft:5 }}>
                                         {"No comments yet!"}
@@ -638,6 +668,29 @@ export default function Album() {
                                 : null}
                                 {actualComments.length > 0 ?
                                     <Container>
+                                        {/* toggleButtonGroup that has options depending on actualComments.length */}
+                                        <ToggleButtonGroup 
+                                            sx={{bgcolor: 'grey.500', color: 'white', height: 25}}
+                                            value={commentPage}
+                                            exclusive
+                                            aria-label="page selection"
+                                            onChange = {handleCommentPageChange}
+                                        >
+                                            <ToggleButton value = "1">1</ToggleButton>
+                                            {commentCount > 5 ?
+                                            <ToggleButton value = "2">2</ToggleButton>
+                                            : null}
+                                            {commentCount > 10 ?
+                                            <ToggleButton value = "3">3</ToggleButton>
+                                            : null}
+                                            {commentCount > 15 ?
+                                            <ToggleButton value = "4">4</ToggleButton>
+                                            : null}
+                                            {commentCount > 20 ?
+                                            <ToggleButton value = "5">5</ToggleButton>
+                                            : null}
+                                        </ToggleButtonGroup>
+                                        
                                     <Stack 
                                         spacing={1}
                                         sx = {{
@@ -660,8 +713,7 @@ export default function Album() {
                                         }}>
                                             {/* use map to iterate through list of comments from list of comments */}
                                             {actualComments?.map((value, index) => (
-                                            <Grid alignItems='flex-start' 
-                                                
+                                            <Grid alignItems='flex-start'   
                                                 >
                                                 {/* <ListItem
                                                     sx={{padding: 2}}
