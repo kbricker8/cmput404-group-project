@@ -129,6 +129,8 @@ export default function Album() {
     const navigate = useNavigate();
     const [commentValue, setCommentValue] = React.useState('');
     const [clickedLike, setClickedLike] = React.useState(false);//const for like button before and after click
+    //const for whether or not the user has liked the author's post
+    const [clickedCommentLike, setClickedCommentLike] = React.useState(false);//const for comment like button before and after click
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
             localStorage.setItem('refreshed', 'true');
@@ -303,6 +305,7 @@ export default function Album() {
             )
         .then((response) => {
             console.log("MAKE LIKE RESPONSE:", response);
+            handleCommentPageChange(null, commentPage);
         }).catch((error) => { console.log("MAKE LIKE ERROR:", error); })
     };
     const handleCommentLike = (clickedPost: { id: any; } | null, clickedComment: {id : any;}) => {
@@ -381,6 +384,7 @@ export default function Album() {
         .then((response) => {
             console.log("MAKE COMMENT RESPONSE:", response);
             console.log("COMMENT VALUE:", commentValue);
+            handleCommentPageChange(null, 1);
         }).catch((error) => { console.log("MAKE COMMENT ERROR:", error); })
     };
 
@@ -398,10 +402,47 @@ export default function Album() {
         }
     }, [commentPage]);
 
+    //const for checking if the user has liked a post
+    const checkLike = (clickedPost: { id: any; } | null) => {
+        //use GET service/authors/{authorId}/posts/{postId}/likes/ to check if user has liked post
+        console.log(JSON.parse(localStorage.getItem('user')!).id)
+        console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
+        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/likes/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+                }
+            }
+        )
+        .then((response) => {
+            //if the response.data does not contain the user id, then the user has not liked the post
+            console.log("CHECK LIKE RESPONSE:", response);
+            console.log("LIKES LIST:", response.data);
+            //map response data into a list
+            const authorIds = response.data.map(item => item.author.id);
+            console.log("AUTHOR IDS:", authorIds);
+            const authorsList = authorIds.map(item => item.split("/").pop());
+            console.log("AUTHORS LIST:", authorsList);
+            console.log("USER ID:", user.id.split("/").pop());
+            //if authorsList contains the user id, then the user has liked the post
+            if (authorsList.includes(user.id.split("/").pop())) {
+                console.log("USER HAS LIKED POST");
+                setClickedLike(true);
+            }
+            else {
+                console.log("USER HAS NOT LIKED POST");
+                setClickedLike(false);
+            }
+        }).catch((error) => { console.log("CHECK LIKE ERROR:", error); })
+    };
+                
+        
+
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
         var commentsList;
+        checkLike(clickedPost);
         setOpen(true);
         setCommentPage(1);
         setSelectedPost(clickedPost);
@@ -571,9 +612,16 @@ export default function Album() {
                                             <Grid item xs={12}>
                                                 <TextField
                                                     // make background white
-                                                    sx={{ bgcolor: 'white', borderRadius: 2, borderColor: 'grey.500', borderWidth: 5, borderStyle: 'solid'}}
+                                                    sx={{ bgcolor: '#19191a', borderRadius: 0, borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid', 
+                                                        '& .MuiInputBase-input': {
+                                                        color: 'white'
+                                                      },
+                                                        '& .MuiInputLabel-root': {
+                                                        color: 'white'
+                                                        },
+                                                    }}
                                                     id="CommentId"
-                                                    label="Comment"
+                                                    label="Add a comment!"
                                                     multiline
                                                     rows={2}
                                                     defaultValue="Default Value"
@@ -583,11 +631,15 @@ export default function Album() {
                                                 />
                                             </Grid>
                                             <Button
-                                                sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3}}
+                                                sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
+                                                borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
+                                                }}
                                                 type="button"
-                                                variant="contained"
+                                                variant="outlined"
                                                 startIcon={<AddIcon />}
-                                                onClick={()=>handleComment(selectedPost, commentValue)}                                                    
+                                                onClick={()=> 
+                                                    handleComment(selectedPost, commentValue)
+                                                }                                                    
                                             >
                                                 Submit comment
                                             </Button>
@@ -649,8 +701,7 @@ export default function Album() {
                                                     onClick={() => {
                                                         handleLike(selectedPost);
                                                         setClickedLike(!clickedLike);
-                                                    }}
-                                                    
+                                                    }}                                        
                                                 >  
                                                     {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                                 </IconButton>
@@ -670,7 +721,12 @@ export default function Album() {
                                     <Container>
                                         {/* toggleButtonGroup that has options depending on actualComments.length */}
                                         <ToggleButtonGroup 
-                                            sx={{bgcolor: 'grey.500', color: 'white', height: 25}}
+                                            sx={{bgcolor: '#19191a', color: 'white', height: 25, borderRadius: 2, borderColor: '#19191a', borderStyle: 'solid', paddingBottom:3,                                       
+                                            '& .MuiToggleButton-root': {
+                                                color: 'white',
+                                                borderColor: 'white',
+                                            },
+                                            }}
                                             value={commentPage}
                                             exclusive
                                             aria-label="page selection"
@@ -697,10 +753,10 @@ export default function Album() {
                                             width: '100%', 
                                             maxWidth: 400, 
                                             height: 200,
-                                            bgcolor: 'grey.500', 
-                                            borderColor: 'grey.500', 
-                                            borderRadius: 2, 
-                                            borderWidth: 5, 
+                                            bgcolor: '#19191a', 
+                                            borderColor: '#19191a', 
+                                            borderRadius: 0, 
+                                            borderWidth: 2, 
                                             borderStyle: 'solid', 
                                             marginLeft: 0,
                                             overflowX: 'hidden',
@@ -715,11 +771,6 @@ export default function Album() {
                                             {actualComments?.map((value, index) => (
                                             <Grid alignItems='flex-start'   
                                                 >
-                                                {/* <ListItem
-                                                    sx={{padding: 2}}
-                                                    key = {index}
-                                                    disableGutters
-                                                > */}
                                                 <Card
                                                     sx={{ 
                                                         height: "100%", 
@@ -729,14 +780,17 @@ export default function Album() {
                                                         bgcolor : '#19191a',
                                                         color: 'white', 
                                                         borderColor: 'grey.500',
-                                                        borderRadius: 2,
+                                                        borderRadius: 1,
                                                         paddingBottom: 1, }}
                                                     variant="outlined"
                                                     color='white'
                                                 >
-                                                    <span>{value.author.displayName} :</span>{" "}
-                                                    {/* <span>comment: {value.comment}</span>{" "} */}
+                                                    {/* <span>{""}{value.author.displayName} :</span>{" "} */}
                                                     {/* </ListItem> */}
+                                                    <ListItemText
+                                                        sx={{paddingLeft: 1}}
+                                                        primary={value.author.displayName}
+                                                    />
                                                     <Container
                                                         maxWidth="md"
                                                         component="footer"
@@ -747,11 +801,14 @@ export default function Album() {
                                                         >
                                                     </Container>
                                                     <ListItemText
-                                                    sx={{padding: 1}}
-                                                    primary={value.comment}
-                                                    // secondary={secondary ? 'Secondary text' : null}
+                                                        sx={{padding: 1}}
+                                                        primary={value.comment}
+                                                        // secondary={secondary ? 'Secondary text' : null}
                                                     />
-                                                    <Typography variant="caption" component="h3">
+                                                    <Typography 
+                                                        variant="caption" component="h3"
+                                                        sx={{paddingLeft: 1}}
+                                                        >
                                                         {value.numLikes}{" likes"}
                                                     
                                                         <IconButton
@@ -760,10 +817,10 @@ export default function Album() {
                                                             onClick={() => {
                                                                 var commentId = value.id;
                                                                 handleCommentLike(selectedPost, commentId);
-                                                                setClickedLike(!clickedLike);
+                                                                setClickedCommentLike(!clickedCommentLike);
                                                             }}
                                                         >  
-                                                            {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                            {clickedCommentLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                                         </IconButton>
                                                     </Typography>
                                                 </Card>
