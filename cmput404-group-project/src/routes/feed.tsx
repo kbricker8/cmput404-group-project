@@ -100,7 +100,7 @@ type FilterPostsType = 'all' | 'friends' | 'private';
 export default function Album() {
     // console.log("LOCAL STORAGE IN FEED:")
     // console.log(localStorage.getItem('user'))
-
+    const [friends, setFriends] = React.useState([]);
     const [posts, setPosts] = React.useState([]);
     const [filterPosts, setFilterPosts] = React.useState<FilterPostsType>('all');
     const user = JSON.parse(localStorage.getItem('user')!);
@@ -124,6 +124,18 @@ export default function Album() {
                 'Authorization': `Token ${token}`
             }
         });
+        // Get user friends
+        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
+            headers: {
+              'Authorization': `Token ${token}`
+            }
+          }).then(response => {
+            console.log("GET OUR FRIENDS RESPONSE:", response)
+            console.log(response.data.items.map(item => item.toString().split("/").pop()));
+            setFriends(response.data.items.map(item => item.toString().split("/").pop()));
+          }).catch(error => {
+            console.log("GET OUR FRIENDS ERROR:", error)
+            });
         //Test our feed
         axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=12`, {
             headers: {
@@ -337,7 +349,16 @@ export default function Album() {
                     <Container sx={{ py: 8 }} maxWidth="lg">
                         {/* End hero unit */}
                         <Grid container spacing={4}>
-                            {posts?.map((post) => (
+                            {posts?.filter(post =>{
+                                if(filterPosts === "all"){
+                                    return true;
+                                }
+                                else if(filterPosts === "friends"){
+                                    console.log("IN FILTER",friends,"AND",post.author.id.split("/").pop())
+                                    return friends.includes(post.author.id.split("/").pop());
+                                }
+                            }
+                            ).map((post) => (
                                 <Grid item key={post} md={3}>
                                     <Card
                                         sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px" }}
