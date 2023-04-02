@@ -426,7 +426,7 @@ class PostsViewSet(viewsets.GenericViewSet):
         serializer = ImagePostsSerializer(instance=image)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'], url_path='image_post')
+    @action(detail=True, methods=['post'])
     def image_post(self, request, author_pk, pk, *args, **kwargs):
         # accept image from client
         post = Post.objects.get(uuid=pk)
