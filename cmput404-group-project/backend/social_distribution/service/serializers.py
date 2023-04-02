@@ -53,10 +53,6 @@ class FollowersSerializer(serializers.ModelSerializer):
         model = Followers
         fields = ('type', 'author', 'items')
 
-    def to_representation(self, instance):
-        self.fields['items'] = AuthorSerializer(read_only=True, many=True)
-        return super().to_representation(instance)
-
 class FollowingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Following
