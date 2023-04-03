@@ -119,7 +119,7 @@ type FilterPostsType = 'all' | 'friends' | 'private';
 export default function Album() {
     // console.log("LOCAL STORAGE IN FEED:")
     // console.log(localStorage.getItem('user'))
-
+    const [friends, setFriends] = React.useState([]);
     const [posts, setPosts] = React.useState([]);
     const [filterPosts, setFilterPosts] = React.useState<FilterPostsType>('all');
     const user = JSON.parse(localStorage.getItem('user')!);
@@ -147,15 +147,23 @@ export default function Album() {
                 'Authorization': `Token ${token}`
             }
         });
+        // Get user friends
+        // axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
+        //     headers: {
+        //         'Authorization': `Token ${token}`
+        //     }
+        // }).then(response => {
+        //     console.log("GET OUR FRIENDS RESPONSE:", response)
+        //     console.log(response.data.items.map(item => item.toString().split("/").pop()));
+        //     setFriends(response.data.items.map(item => item.toString().split("/").pop()));
+        // }).catch(error => {
+        //     console.log("GET OUR FRIENDS ERROR:", error)
+        // });
         //Test our feed
-        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=12`, {
+        const getOurFeed = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=999`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
-        }).then(response => {
-            console.log("GET OUR FEED RESPONSE:", response);
-        }).catch(error => {
-            console.log("GET OUR FEED ERROR:", error);
         });
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
@@ -171,6 +179,7 @@ export default function Album() {
                 return team18Authors;
             });
 
+
         const getTeam18Posts = (authorId) => axios.get(`${TEAM18_API_URL}service/authors/${authorId}/posts/`)
             .then(response => {
                 console.log("GET GROUP 18 POSTS RESPONSE:", response);
@@ -178,6 +187,7 @@ export default function Album() {
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
+
         const getTeam7Authors = axios.get(`${TEAM7_API_URL}authors/`, {
             headers: {
                 'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
@@ -224,50 +234,64 @@ export default function Album() {
         //     console.log("ERROR", error);
         // });
 
-        Promise.all([getOurAuthors]).then(responses => {
-            const authors = responses[0].data.items;
-            console.log("IN FIRST PROMISE", authors);
-        });
+        // Promise.all([getOurFeed]).then(responses => {
+        //     const ourPosts = responses[0].data.items;
+        //     console.log("IN FIRST PROMISE AUTHORS", authors);
+        // });
 
-        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Authors])
+
+        Promise.all([getOurFeed, getTeam18Authors, getTeam7Authors])
             .then(responses => {
-                console.log("RESPONSES", responses);
-                const authorPosts = responses[0].data.posts;
+                const ourPosts = responses[0].data.posts;
+                console.log("IN FIRST PROMISE OUR POSTS", ourPosts)
                 const team18Authors = responses[1];
                 const team7Authors = responses[2];
-                let team18PostsSave = [];
-                console.log("TEAM 18 AUTHORS:", team18Authors);
-                const team18PostsPromises = team18Authors.filter(author => {
-                    console.log("author:", author);
-                    console.log("author.id:", author.id);
-                    return author.length == 32;
-                }).map(author => getTeam18Posts(author));
-                Promise.all(team18PostsPromises).then(team18PostsArrays => {
-                    const team18Posts = [].concat(...team18PostsArrays);
-                    team18PostsSave = team18Posts;
-                    //setPosts([...authorPosts, ...team18Posts]);
-                }).catch(error => {
-                    console.log("IN SECOND PROMISE", error);
-                });
-                console.log("7TEAM 7 AUTHORS:", team7Authors);
-                const team7PostsPromises = team7Authors.filter(author => {
-                    console.log("7TEAM 7 author:", author);
-                    console.log("author.id:", author.id);
-                    console.log(217, author.length);
-                    return author.length == 36;
-                }).map(author => getTeam7Posts(author));
-                console.log(219, team7PostsPromises)
-                Promise.all(team7PostsPromises).then(team7PostsArrays => {
-                    console.log("220:", team7PostsArrays);
-                    const team7Posts = [].concat(...team7PostsArrays);
-                    console.log("7TEAM 7 POSTS IN PROMISE:", team7Posts);
-                    setPosts([...authorPosts, ...team18PostsSave, ...team7Posts]);
-                }).catch(error => {
-                    console.log("IN THIRD PROMISE", error);
-                }
-                );
+                console.log("IN SECOND PROMISE", ourPosts, team18Authors, team7Authors);
+                const team18PostsPromises = team18Authors.filter(author => author.length === 32).map(author => getTeam18Posts(author));
+                const team7PostsPromises = team7Authors.filter(author => author.length === 36).map(author => getTeam7Posts(author));
+
+                return Promise.all([...team18PostsPromises, ...team7PostsPromises])
+                    .then(allPostsArrays => {
+                        const team18Posts = [].concat(...allPostsArrays.slice(0, team18PostsPromises.length));
+                        const team7Posts = [].concat(...allPostsArrays.slice(team18PostsPromises.length));
+
+                        // Set friends here:
+                        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
+                            headers: {
+                                'Authorization': `Token ${token}`
+                            }
+                        }).then(response => {
+                            console.log("GET OUR FRIENDS RESPONSE:", response);
+                            console.log(response.data.items.map(item => item.toString().split("/").pop()));
+                            setFriends(response.data.items.map(item => item.toString().split("/").pop()));
+                            // ourPosts.forEach(post => {
+                            //     console.log("POST VIS:", post.visibility,typeof(post.visibility));
+                            //     if (post.visibility === "PRIVATE") {
+                            //         console.log("PRIVATE POST:", post);
+                            //     }
+                            // });
+                            const filteredPosts = ourPosts.concat(team18Posts, team7Posts)
+                                .filter(post => post.visibility === "PUBLIC" || ((post.visibility === "PRIVATE" || post.visibility =="FRIENDS") && !friends.includes(post.author.id.split("/").pop())));
+                            console.log("AUTHOR POSTS:", ourPosts);
+                            console.log("TEAM 18 POSTS:", team18Posts);
+                            console.log("TEAM 7 POSTS:", team7Posts);
+                            console.log("ALL POSTS:", ourPosts.concat(team18Posts, team7Posts));
+                            console.log("FILTERED POSTS:", filteredPosts);
+                            function diffPostsArray(arr1: Post[], arr2: Post[]): Post[] {
+                                const ids2 = new Set(arr2.map(post => post.id));
+                                return arr1.filter(post => !ids2.has(post.id));
+                              }
+                            console.log("DIFFERENT POSTS:", diffPostsArray(ourPosts.concat(team18Posts, team7Posts), filteredPosts));
+                            setPosts(filteredPosts);
+                        }).catch(error => {
+                            console.log("GET OUR FRIENDS ERROR:", error);
+                        });
+
+                    }).catch(error => {
+                        console.log("IN POSTS PROMISES ERROR", error);
+                    });
             }).catch(error => {
-                console.log("IN LAST PROMISE", error);
+                console.log("IN LAST PROMISE ERROR", error);
             });
     }, []);
 
@@ -583,7 +607,7 @@ export default function Album() {
                                     spacing={2}
                                     justifyContent="center"
                                 >
-                                    <FormControl variant="outlined" sx={{minWidth: 150}} >
+                                    <FormControl variant="outlined" sx={{ minWidth: 150 }} >
                                         <InputLabel id="filter-posts-label">Filter</InputLabel>
                                         <Select
                                             labelId="filter-posts-label"
@@ -607,7 +631,16 @@ export default function Album() {
                     <Container sx={{ py: 8 }} maxWidth="lg">
                         {/* End hero unit */}
                         <Grid container spacing={4}>
-                            {posts?.map((post) => (
+                            {posts?.filter(post => {
+                                if (filterPosts === "all") {
+                                    return true;
+                                }
+                                else if (filterPosts === "friends") {
+                                    //console.log("IN FILTER", friends, "AND", post.author.id.split("/").pop())
+                                    return friends.includes(post.author.id.split("/").pop());
+                                }
+                            }
+                            ).map((post) => (
                                 <Grid item key={post} md={3}>
                                     <Card
                                         sx={{ height: "100%", display: 'flex', flexDirection: 'column', maxHeight: "390px" }}
@@ -684,6 +717,9 @@ export default function Album() {
                                         <Typography id="modal-modal-source" sx={{ mt: 2 }}>
                                             Source (for proving ): {selectedPost?.source ?? 'No source'}
                                         </Typography>
+                                        <Typography id="modal-modal-source" sx={{ mt: 2 }}>
+                                            Visibility: {selectedPost?.visibility ?? 'No vis'}
+                                        </Typography> 
                                         <Container
                                             maxWidth="md"
                                             component="footer"

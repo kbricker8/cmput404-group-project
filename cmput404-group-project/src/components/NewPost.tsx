@@ -90,8 +90,8 @@ export default function NewPost() {
                                         onChange={(e) => setVisibility(e.target.value as string)}
                                     >
                                         <MenuItem value={"PUBLIC"}>Public</MenuItem>
-                                        <MenuItem value={"PRIVATE"}>Private (Friends)</MenuItem>
-                                        <MenuItem value={"FRIENDS"}>Private</MenuItem>
+                                        <MenuItem value={"FRIENDS"}>Private (Friends)</MenuItem>
+                                        <MenuItem value={"PRIVATE"}>Private</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
