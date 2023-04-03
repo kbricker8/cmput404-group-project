@@ -597,7 +597,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         user = request.user
         author = Author.get_author_from_user(user=user)
         summary = f"{author.displayName} liked your comment"
-        if Likes.objects.filter(author=author, object=object).count():
+        if Likes.objects.filter(author=author, object=object.id).count():
             return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
         like = Likes(summary=summary, author=author, object=object.id)
