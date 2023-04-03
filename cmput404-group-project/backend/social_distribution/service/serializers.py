@@ -174,7 +174,6 @@ class CommentItemSerializer(serializers.Serializer):
     id = serializers.CharField()
     type = serializers.CharField()
     author = serializers.CharField()
-    post = serializers.CharField()
     comment = serializers.CharField(max_length = 255)
     contentType = serializers.CharField()
     published = serializers.CharField()
