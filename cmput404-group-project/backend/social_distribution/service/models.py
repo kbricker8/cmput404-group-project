@@ -138,7 +138,7 @@ class Comment(models.Model):
     id = models.URLField(primary_key = True, max_length=400)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'comment'
-    author = models.JSONField()
+    author = models.JSONField(null=True)
     post = models.ForeignKey(Post, null=True, on_delete=models.CASCADE, related_name='comment')
     comment = models.TextField(max_length = 255, default = '')
     contentType = models.CharField(max_length = 20)
