@@ -101,8 +101,10 @@ export default function NewPost() {
                         }
                     }).then((response) => {
                         console.log("MAKE IMAGE POST RESPONSE:", response);
-                        // navigate(-1)
-                    }).catch((error) => { console.log("MAKE IMAGE POST ERROR:", error); })
+                        navigate(-1)
+                    }).catch((error) => { 
+                        console.log("MAKE IMAGE POST ERROR:", error);
+                        navigate(-1); })
                 });
         }
         else {

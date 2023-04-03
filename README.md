@@ -11,6 +11,9 @@ Jacob Gerun
 
 ## Links/References
 
+GitHub activity:
+https://grubersjoe.github.io/react-github-calendar/
+
 For base64 conversion/image upload:
 https://gist.github.com/wambuguedison/a195f73f118dcae977e41aa5fbef1899
 https://www.w3docs.com/tools/image-base64
