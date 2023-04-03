@@ -137,14 +137,10 @@ export default function Album() {
         //     console.log("GET OUR FRIENDS ERROR:", error)
         // });
         //Test our feed
-        axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=12`, {
+        const getOurFeed = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/?page_size=999`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
-        }).then(response => {
-            console.log("GET OUR FEED RESPONSE:", response);
-        }).catch(error => {
-            console.log("GET OUR FEED ERROR:", error);
         });
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
@@ -215,18 +211,19 @@ export default function Album() {
         //     console.log("ERROR", error);
         // });
 
-        Promise.all([getOurAuthors]).then(responses => {
-            const authors = responses[0].data.items;
-            console.log("IN FIRST PROMISE", authors);
-        });
+        // Promise.all([getOurFeed]).then(responses => {
+        //     const ourPosts = responses[0].data.items;
+        //     console.log("IN FIRST PROMISE AUTHORS", authors);
+        // });
 
 
-        Promise.all([getAuthorPosts, getTeam18Authors, getTeam7Authors])
+        Promise.all([getOurFeed, getTeam18Authors, getTeam7Authors])
             .then(responses => {
-                const authorPosts = responses[0].data.posts;
+                const ourPosts = responses[0].data.posts;
+                console.log("IN FIRST PROMISE OUR POSTS", ourPosts)
                 const team18Authors = responses[1];
                 const team7Authors = responses[2];
-
+                console.log("IN SECOND PROMISE", ourPosts, team18Authors, team7Authors);
                 const team18PostsPromises = team18Authors.filter(author => author.length === 32).map(author => getTeam18Posts(author));
                 const team7PostsPromises = team7Authors.filter(author => author.length === 36).map(author => getTeam7Posts(author));
 
@@ -244,26 +241,34 @@ export default function Album() {
                             console.log("GET OUR FRIENDS RESPONSE:", response);
                             console.log(response.data.items.map(item => item.toString().split("/").pop()));
                             setFriends(response.data.items.map(item => item.toString().split("/").pop()));
-
-                            const filteredPosts = authorPosts.concat(team18Posts, team7Posts)
-                                .filter(post => post.visibility === "PUBLIC" || (post.visibility === "PRIVATE" && !friends.includes(post.author.id.split("/").pop())));
-                            console.log("ALL POSTS:", authorPosts.concat(team18Posts, team7Posts));
+                            // ourPosts.forEach(post => {
+                            //     console.log("POST VIS:", post.visibility,typeof(post.visibility));
+                            //     if (post.visibility === "PRIVATE") {
+                            //         console.log("PRIVATE POST:", post);
+                            //     }
+                            // });
+                            const filteredPosts = ourPosts.concat(team18Posts, team7Posts)
+                                .filter(post => post.visibility === "PUBLIC" || ((post.visibility === "PRIVATE" || post.visibility =="FRIENDS") && !friends.includes(post.author.id.split("/").pop())));
+                            console.log("AUTHOR POSTS:", ourPosts);
+                            console.log("TEAM 18 POSTS:", team18Posts);
+                            console.log("TEAM 7 POSTS:", team7Posts);
+                            console.log("ALL POSTS:", ourPosts.concat(team18Posts, team7Posts));
                             console.log("FILTERED POSTS:", filteredPosts);
                             function diffPostsArray(arr1: Post[], arr2: Post[]): Post[] {
                                 const ids2 = new Set(arr2.map(post => post.id));
                                 return arr1.filter(post => !ids2.has(post.id));
                               }
-                            console.log("DIFFERENT POSTS:", diffPostsArray(authorPosts, filteredPosts));
+                            console.log("DIFFERENT POSTS:", diffPostsArray(ourPosts.concat(team18Posts, team7Posts), filteredPosts));
                             setPosts(filteredPosts);
                         }).catch(error => {
                             console.log("GET OUR FRIENDS ERROR:", error);
                         });
 
                     }).catch(error => {
-                        console.log("IN POSTS PROMISES", error);
+                        console.log("IN POSTS PROMISES ERROR", error);
                     });
             }).catch(error => {
-                console.log("IN LAST PROMISE", error);
+                console.log("IN LAST PROMISE ERROR", error);
             });
     }, []);
 
@@ -361,7 +366,7 @@ export default function Album() {
                                     return true;
                                 }
                                 else if (filterPosts === "friends") {
-                                    console.log("IN FILTER", friends, "AND", post.author.id.split("/").pop())
+                                    //console.log("IN FILTER", friends, "AND", post.author.id.split("/").pop())
                                     return friends.includes(post.author.id.split("/").pop());
                                 }
                             }
@@ -436,6 +441,9 @@ export default function Album() {
                                         <Typography id="modal-modal-source" sx={{ mt: 2 }}>
                                             Source (for proving ): {selectedPost?.source ?? 'No source'}
                                         </Typography>
+                                        <Typography id="modal-modal-source" sx={{ mt: 2 }}>
+                                            Visibility: {selectedPost?.visibility ?? 'No vis'}
+                                        </Typography> 
                                         {/* </Container> */}
                                     </Stack>
                                     <Box
