@@ -103,7 +103,6 @@ class CommentsSerializer(serializers.ModelSerializer):
     #     )
     id = serializers.CharField(required=False)
     published = serializers.DateTimeField(required=False, read_only=True)
-    post = serializers.UUIDField(required=False, read_only=True)
 
     class Meta:
         model = Comment
