@@ -1,1 +1,1 @@
-web: gunicorn social_distribution.wsgi
+web: cd cmput404-group-project && npm run dev
