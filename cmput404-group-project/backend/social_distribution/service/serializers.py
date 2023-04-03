@@ -110,7 +110,7 @@ class CommentsSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'author', 'comment', 'contentType', 'published', 'numLikes', 'post')
     
     def to_representation(self, instance):
-        self.fields['author'] = AuthorSerializer(read_only=True)
+        # self.fields['author'] = AuthorSerializer(read_only=True)
         # self.fields['post'] = PostSerializer(read_only=True)
         return super().to_representation(instance)
 

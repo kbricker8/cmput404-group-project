@@ -542,12 +542,13 @@ class CommentsViewSet(viewsets.GenericViewSet):
         post = Post.objects.get(id=post_id)
         user = request.user
         author = Author.get_author_from_user(user=user)
+        author_serializer = AuthorSerializer(instance=author)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
         comment_uuid = uuid.uuid4()
         id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(comment_uuid)
-        serializer.save(id=id, uuid=comment_uuid, post=post, author=author)
+        serializer.save(id=id, uuid=comment_uuid, post=post, author=author_serializer.data)
         post.count += 1
         post.save()
         # add comment to the authors inbox
@@ -556,30 +557,30 @@ class CommentsViewSet(viewsets.GenericViewSet):
         inbox.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-    def update(self, request, pk, *args, **kwargs):
-        user = request.user
-        partial = kwargs.pop('partial', False)
-        instance = Comment.objects.get(uuid=pk)
-        author = instance.author
-        if (author.user != user):
-            return Response({"detail": ["Not authorized to do that."]},
-                            status=status.HTTP_401_UNAUTHORIZED)
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        comment = serializer.validated_data['comment']
-        instance.comment = comment
-        instance.save()
-        serializer = CommentsSerializer(instance=instance)
+    # def update(self, request, pk, *args, **kwargs):
+    #     user = request.user
+    #     partial = kwargs.pop('partial', False)
+    #     instance = Comment.objects.get(uuid=pk)
+    #     author = instance.author
+    #     if (author.user != user):
+    #         return Response({"detail": ["Not authorized to do that."]},
+    #                         status=status.HTTP_401_UNAUTHORIZED)
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     comment = serializer.validated_data['comment']
+    #     instance.comment = comment
+    #     instance.save()
+    #     serializer = CommentsSerializer(instance=instance)
 
-        return Response(serializer.data)
+    #     return Response(serializer.data)
     
     def destroy(self, request, pk, *args, **kwargs):
         user = request.user
         instance = Comment.objects.get(uuid=pk)
-        author = instance.author
-        if (author.user != user):
-            return Response({"detail": ["Not authorized to do that."]},
-                            status=status.HTTP_401_UNAUTHORIZED)
+        # author = instance.author
+        # if (author.user != user):
+        #     return Response({"detail": ["Not authorized to do that."]},
+        #                     status=status.HTTP_401_UNAUTHORIZED)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -608,7 +609,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
         liked.items.add(like)
         # add to the authors inbox
         serializer = LikesSerializer(instance=like)
-        inbox = Inbox.objects.get(author=object.author)
+        inbox = Inbox.objects.get(author=object.author['id'])
         inbox.items.append(serializer.data)
         inbox.save()
         return Response({"detail": ["Liked comment."]},
