@@ -180,7 +180,6 @@ class CommentItemSerializer(serializers.Serializer):
     summary = serializers.CharField(required=False)
 
 class LikeItemSerializer(serializers.Serializer):
-    context = serializers.CharField(required=True)
     summary = serializers.CharField(required=True)
     type = serializers.JSONField(required=True)
     author = serializers.JSONField(required=True)
