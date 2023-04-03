@@ -140,7 +140,9 @@ export default function Album() {
     const [clickedLike, setClickedLike] = React.useState(false);//const for like button before and after click
     //const for whether or not the user has liked the author's post
     const [clickedCommentLike, setClickedCommentLike] = React.useState(false);//const for comment like button before and after click
+    const [team21PostCheck, setTeam21PostCheck] = React.useState(false);
     const [team18PostCheck, setTeam18PostCheck] = React.useState(false);
+    const [team7PostCheck, setTeam7PostCheck] = React.useState(false);
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
             localStorage.setItem('refreshed', 'true');
@@ -352,7 +354,6 @@ export default function Album() {
     };
     const handleCommentLike = (clickedPost: { id: any; } | null, clickedComment: {id : any;}) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like/ to add likes to comment
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("CLICKED COMMENTS", clickedComment.split("/").pop());
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${clickedComment.split("/").pop()}/like/`, {
         },
@@ -387,7 +388,6 @@ export default function Album() {
     //const for comments list for each post  
     const commentList = (clickedPost: { id: any; } | null, page: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/ to get comments for post
-        //console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST", clickedPost)
@@ -516,7 +516,6 @@ export default function Album() {
     //handleComment takes two arguments: the post that the comment is being made on, and the comment itself
     const handleComment = (clickedPost: { id: any; } | null, commentValue: string) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE BIG AUTHOR ID", user.id);
         // console.log("POST ID:", clickedPost.id.split("/").pop());
@@ -544,7 +543,6 @@ export default function Album() {
     const handleComment18 = (clickedPost: { id: any; } | null, commentValue: string) => {
         console.log("This is team 18's post id", clickedPost.id.split("/").pop());
         console.log("This is team 18's author id", clickedPost?.author?.id.split("/").pop());
-        //console log for the axios statement
         console.log("AXIOS: ", TEAM18_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "inbox");
         axios.post(`${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/inbox`, {
             "type": "comment",
@@ -559,7 +557,7 @@ export default function Album() {
             },
             "comment": commentValue,
             "contentType": "text/plain",
-            "id": `${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`,
+            "id": `${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/5c22662c-552d-4919-a8a4-33d348792f3f`,
         }).then((response) => {
             console.log("MAKE COMMENT RESPONSE:", response);
             console.log("COMMENT VALUE:", commentValue);
@@ -595,7 +593,6 @@ export default function Album() {
     //const for checking if the user has liked a post
     const checkLike = (clickedPost: { id: any; } | null) => {
         //use GET service/authors/{authorId}/posts/{postId}/likes/ to check if user has liked post
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/likes/`, {
@@ -629,7 +626,6 @@ export default function Album() {
     //const for checking if the user has liked a comment
     const checkCommentLike = (clickedComment: { id: any; } | null, clickedPost: { id: any; } | null, index: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/{commentId}/likes/ to check if user has liked comment
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         //console.log("THIS IS THE CLICKED COMMENT ID", clickedComment.id.split("/").pop());
         // console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/", clickedComment, "/likes/");
@@ -711,6 +707,7 @@ export default function Album() {
         setSelectedPost(clickedPost);
         if (hostName[2] === "social-distribution-group21.herokuapp.com") {
             console.log("This is a team 21 post");
+            setCheckTeam21Post(true);
             commentList(clickedPost, 1);
         }
         if (hostName[2] === "distributed-social-net.herokuapp.com") {
@@ -719,6 +716,11 @@ export default function Album() {
             console.log("18 POST ID: ", hostName[7])
             setTeam18PostCheck(true);
             commentList18(clickedPost, 1);
+        }
+        if (hostName[2] === "https://sd-7-433-api.herokuapp.com/api/") {
+            console.log("This is a team 7 post");
+            setTeam7PostCheck(true);
+            commentList20(clickedPost, 1);
         }
         console.log("ACTUAL COMMENTS:", actualComments);
         // displayList = [{actualComments}, {commentLiked}];
@@ -734,7 +736,9 @@ export default function Album() {
         setActualComments(commentListDummy);
         setCommentCount(0);
         setCommentPage(1);
+        setCheckTeam21Post(false);
         setTeam18PostCheck(false);
+        setTeam7PostCheck(false);
     };
 
     return (
@@ -966,8 +970,24 @@ export default function Album() {
                                                     Submit comment on team 18's post
                                                 </Button>
                                             :null}
-                                            {/* if team 18 post check is false */}
-                                            {!team18PostCheck ?
+                                            {/* if team 7 post check is true */}
+                                            {team7PostCheck ?
+                                                <Button
+                                                    sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
+                                                    borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
+                                                    }}
+                                                    type="button"
+                                                    variant="outlined"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={()=> 
+                                                        handleComment7(selectedPost, commentValue)
+                                                    }                                                    
+                                                >
+                                                    Submit comment on team 7's post
+                                                </Button>
+                                            :null}
+                                            {/* if team 21 post check is true */}
+                                            {team21PostCheck ?
                                                 <Button
                                                     sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
                                                     borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
