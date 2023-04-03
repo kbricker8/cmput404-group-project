@@ -171,7 +171,9 @@ function Navbar() {
           {inbox.map((notif) => (
             (notif.type == "FollowRequest") || (notif.type == "Like")
               ? <MenuItem style={noPointer}>{notif.summary}</MenuItem>
-              : null
+              : ((notif.type == "comment")
+                ? <MenuItem style={noPointer}>{notif.author.displayName} commented "{notif.comment}"</MenuItem>
+                : null)
             // likes, follow requests have summaries
             // comments and posts do not
           ))}

@@ -31,7 +31,9 @@ import { Author } from '../types/author';
 import { number } from 'prop-types';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import GitHubCalendar from 'react-github-calendar';
+import Markdown from 'markdown-to-jsx';
 import ShareIcon from '@mui/icons-material/Share';
+
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
@@ -845,12 +847,15 @@ export default function Album() {
                                     >
                                         Welcome {user.displayName || "User"}!
                                     </Typography>
-                                    <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
+                                    <Typography variant="h6" align="left" paddingLeft={5} paddingBottom={2} color="text.secondary" paragraph>
                                         This is your <em>dashboard</em>. View public posts here or publish your own!
                                     </Typography>
                                         {gitHubClicked 
                                             ?
-                                            <GitHubCalendar username={gitHubUsername} />
+                                            <div>
+                                                <p><b>This is <em>{gitHubUsername}'s</em> activity on GitHub!</b></p>
+                                                <GitHubCalendar username={gitHubUsername} />
+                                            </div>
                                             :
                                             <Stack
                                                 // sx={{ pt: 20 }}
@@ -993,9 +998,24 @@ export default function Album() {
                                         <Typography id="modal-title" variant="h4" component="h2">
                                             <b>{selectedPost?.title ?? 'No title'}</b>
                                         </Typography>
+
+                                        {/* ORIGINAL */}
+                                        
                                         <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                             {selectedPost?.content ?? 'No content'}
                                         </Typography>
+
+                                        {/* MARKDOWN ALT */}
+
+                                        {/* {selectedPost?.postType !== "text/markdown" ?
+                                            <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                {selectedPost?.content ?? 'No content'}
+                                            </Typography>
+                                        :   <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                <Markdown>{selectedPost?.content ?? 'No content'}</Markdown>
+                                            </Typography> 
+                                        } */}
+
                                         <Typography id="modal-modal-source" sx={{ mt: 2 }}>
                                             Source (for proving ): {selectedPost?.source ?? 'No source'}
                                         </Typography>
