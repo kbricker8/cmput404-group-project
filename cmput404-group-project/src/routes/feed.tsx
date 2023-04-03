@@ -31,6 +31,7 @@ import { Author } from '../types/author';
 import { number } from 'prop-types';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import GitHubCalendar from 'react-github-calendar';
+import ShareIcon from '@mui/icons-material/Share';
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
@@ -38,6 +39,7 @@ import { minHeight, typography } from '@mui/system';
 // import convertTeam18PostToOurPost from '../helper_functions/convertTeam18PostToOurPost';
 const theme = createTheme();
 
+const pageSize = 5;
 
 const modalStyle = {
     position: 'absolute' as 'absolute',
@@ -112,6 +114,13 @@ function convertTeam18PostToOurPost(obj: any): Post {
     };
     return post;
 }
+
+// function convertTeam18CommentToOurComment(obj: any): any {
+//     const comment = {
+//         id: obj.id,
+//         type: obj.type,
+
+
 type FilterPostsType = 'all' | 'friends' | 'private';
 
 export default function Album() {
@@ -132,6 +141,9 @@ export default function Album() {
     const [clickedLike, setClickedLike] = React.useState(false);//const for like button before and after click
     //const for whether or not the user has liked the author's post
     const [clickedCommentLike, setClickedCommentLike] = React.useState(false);//const for comment like button before and after click
+    const [team21PostCheck, setTeam21PostCheck] = React.useState(false);
+    const [team18PostCheck, setTeam18PostCheck] = React.useState(false);
+    const [team7PostCheck, setTeam7PostCheck] = React.useState(false);
     const refreshPage = () => {
         if (localStorage.getItem('refreshed') === 'false') {
             localStorage.setItem('refreshed', 'true');
@@ -220,6 +232,14 @@ export default function Album() {
                 console.log("TEAM 18 POSTS:", team18Posts);
                 return team18Posts;
             });
+
+        // const getTeam18Comments = (postID) => axios.get(`${TEAM18_API_URL}service/posts/${postID}/comments/`)
+        //     .then(response => {
+        //         console.log("GET GROUP 18 COMMENTS RESPONSE:", response);
+        //         const team18Comments = response.data.items.map(item => convertTeam18CommentToOurComment(item));
+        //         console.log("TEAM 18 COMMENTS:", team18Comments);
+        //         return team18Comments;
+        //     });
 
         const getTeam7Authors = axios.get(`${TEAM7_API_URL}authors/`, {
             headers: {
@@ -387,7 +407,6 @@ export default function Album() {
     };
     const handleCommentLike = (clickedPost: { id: any; } | null, clickedComment: {id : any;}) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like/ to add likes to comment
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("CLICKED COMMENTS", clickedComment.split("/").pop());
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${clickedComment.split("/").pop()}/like/`, {
         },
@@ -402,7 +421,7 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE COMMENT LIKE ERROR:", error); })
     };
     //commentListDummy contains all parameters for a comment
-    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: number}];
+    const commentListDummy = [{id: '', comment: '', contentType: '', published: '', author: '', post_id: '', numlikes: number, liked: false}];
     var [actualComments, setActualComments] = React.useState(commentListDummy);
     //commentCount is the number of comments for a post
     var [commentCount, setCommentCount] = React.useState(0);
@@ -422,7 +441,6 @@ export default function Album() {
     //const for comments list for each post  
     const commentList = (clickedPost: { id: any; } | null, page: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/ to get comments for post
-        //console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST", clickedPost)
@@ -435,17 +453,70 @@ export default function Album() {
             }
         }
         )
-        .then((response) => {
+        .then( (response) => {
             console.log("GET COMMENTS RESPONSE:", response);
             // return response.data.items;
             // put data in a list
-            const commentsList = response.data.comments;
+            const tempCommentsList = response.data.comments;
+            console.log("TEMP COMMENTS LIST:", tempCommentsList);
+            const commentsList =  tempCommentsList.map((comment: any) => {
+                var nestedLiked = false;
+                axios.get(`${comment.id}/likes/`, {
+                    //console log for axios statement
+                    headers: {
+                        'Authorization': `Token ${token}`
+                        }
+                    }
+                )
+                .then((response) => { 
+                    const authorIds = response.data.map(item => item.author.id);
+                    const authorsList = authorIds.map(item => item.split("/").pop());
+                    if (authorsList.includes(user.id.split("/").pop())) {
+                        console.log("COMMENT LIKED:", comment.id);
+                        return {
+                            // id: comment.id,
+                            // comment: comment.comment,
+                            // contentType: comment.contentType,
+                            // published: comment.published,
+                            // author: comment.author,
+                            // post: comment.post,
+                            // numLikes: comment.numLikes,
+                            // liked: true
+                            nestedLiked: true
+                        };  
+                    }
+                    else {
+                        console.log("USER HAS NOT LIKED COMMENT", comment.id);
+                        return {
+                            // id: comment.id,
+                            // comment: comment.comment,
+                            // contentType: comment.contentType,
+                            // published: comment.published,
+                            // author: comment.author,
+                            // post: comment.post,
+                            // numLikes: comment.numLikes,
+                            // liked: false
+                            nestedLiked: false
+                        };  
+                    }
+                }).catch((error) => { console.log("CHECK COMMENT LIKE ERROR:", error); })
+                return {
+                    id: comment.id,
+                    comment: comment.comment,
+                    contentType: comment.contentType,
+                    published: comment.published,
+                    author: comment.author,
+                    post: comment.post,
+                    numLikes: comment.numLikes,
+                    liked: nestedLiked,
+                };
+            });
+            console.log("COMMENTS LISTTTTTTTTTT:", commentsList);
             // console.log("COMMENTS LIST:", commentsList);
             // console.log("DATA COUNT:", response.data.count);
             setCommentCount(response.data.count);
             // console.log("COMMENTS LIST LENGTH:", commentsList.length);
-            
-            
+          
             //map the list of comments to get a list of comment ids and put them in a list
             const commentIds = commentsList.map((comment: { id: any; }) => comment.id.split("/").pop());
             setCommentIdList(commentIds);
@@ -476,10 +547,28 @@ export default function Album() {
             return commentsList;
         }).catch((error) => { console.log("GET COMMENTS ERROR:", error); })
     };
+
+    const commentList18 = (clickedPost: { id: any; } | null, page: number) => {
+        //console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
+        //console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        axios.get(`${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments`, {
+            headers: {
+            }
+        }
+        )
+        .then( (response) => {
+            console.log("GET COMMENTS RESPONSE:", response);
+            // return response.data.items;
+            // put data in a list
+            const tempCommentsList = response.data.comments;
+            console.log("TEMP COMMENTS LIST:", tempCommentsList);
+            setActualComments(tempCommentsList);
+        }).catch((error) => { console.log("GET COMMENTS ERROR:", error); })
+    };
+
     //handleComment takes two arguments: the post that the comment is being made on, and the comment itself
     const handleComment = (clickedPost: { id: any; } | null, commentValue: string) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE BIG AUTHOR ID", user.id);
         // console.log("POST ID:", clickedPost.id.split("/").pop());
@@ -503,6 +592,43 @@ export default function Album() {
         }).catch((error) => { console.log("MAKE COMMENT ERROR:", error); })
     };
 
+    //const handleComment on Team18 post
+    const handleComment18 = (clickedPost: { id: any; } | null, commentValue: string) => {
+        console.log("This is team 18's post id", clickedPost.id.split("/").pop());
+        console.log("This is team 18's author id", clickedPost?.author?.id.split("/").pop());
+        console.log("AXIOS: ", TEAM18_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "inbox");
+        axios.post(`${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/inbox`, {
+            "type": "comment",
+            "author": {
+                "displayName": "team21",
+                "github": "https://github.com/n30phyte",
+                "host": "https://distributed-social-net.herokuapp.com/",
+                "id": `https://distributed-social-net.herokuapp.com/service/authors/61c0f0f7d85d43cf8997b790e2701c00`,
+                "profileImage": "NULL",
+                "type": "author",
+                "url": "https://distributed-social-net.herokuapp.com/service/authors/61c0f0f7d85d43cf8997b790e2701c00",
+            },
+            "comment": commentValue,
+            "contentType": "text/plain",
+            "id": `${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/5c22662c-552d-4919-a8a4-33d348792f3f`,
+        }).then((response) => {
+            console.log("MAKE COMMENT RESPONSE:", response);
+            console.log("COMMENT VALUE:", commentValue);
+            handleCommentPageChange(null, 1);
+        }
+        ).catch((error) => { console.log("MAKE COMMENT ERROR:", error); })
+    };
+
+    const handleComment7 = (clickedPost: { id: any; } | null, commentValue: string) => {
+        console.log("This is team 7's post id", clickedPost.id.split("/").pop());
+        console.log("This is team 7's author id", clickedPost?.author?.id.split("/").pop());
+        //console log for the axios statement
+        console.log("AXIOS: ", TEAM7_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/")
+        // axios.post(`${TEAM7_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments`, {
+    };
+
+
+
     const handleCommentPageChange = (event, page: number) => {
         // console.log("THIS IS THE PAGE", page);
         // console.log("THIS IS THE COMMENT PAGE", commentPage);
@@ -520,7 +646,6 @@ export default function Album() {
     //const for checking if the user has liked a post
     const checkLike = (clickedPost: { id: any; } | null) => {
         //use GET service/authors/{authorId}/posts/{postId}/likes/ to check if user has liked post
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/likes/`, {
@@ -554,7 +679,6 @@ export default function Album() {
     //const for checking if the user has liked a comment
     const checkCommentLike = (clickedComment: { id: any; } | null, clickedPost: { id: any; } | null, index: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/{commentId}/likes/ to check if user has liked comment
-        // console.log(JSON.parse(localStorage.getItem('user')!).id)
         // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
         //console.log("THIS IS THE CLICKED COMMENT ID", clickedComment.id.split("/").pop());
         // console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/", clickedComment, "/likes/");
@@ -597,15 +721,60 @@ export default function Album() {
     //     console.log("PROMISE ALL:", values);
     // });
 
+    // const handleShare = (event, clickedPost: { id: any; } | null) => {
+    //     axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
+    //         headers: {
+    //             'Authorization': `Token ${token}`
+    //             }
+    //         },
+    //         source: OUR_API_URL,
+    //         origin: OUR_API_URL,
+    //         title: postTitle,
+    //         description: postDescription,
+    //         content: postContent,
+    //         contentType: postType,
+    //         author: user.id,
+    //         categories: {},
+    //         count: 0,
+    //         published: new Date().toISOString(),
+    //         visibility: visibility,
+    //         unlisted: false,
+    //     )
+    //     .then((response) => {
+    //         console.log("HANDLE SHARE RESPONSE:", response);
+    //         console.log("does this even do anything lol")
+    //     }).catch((error) => { console.log("HANDLE SHARE ERROR:", error); })
+    // };
+
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
     const handleOpen = (clickedPost: React.SetStateAction<null>) => {
         var commentsList;
         checkLike(clickedPost);
+        // console.log("CLICKED POSTTTTTTTT:", clickedPost.id.split());
+        var hostName = clickedPost.id.split("/");
+        console.log("HOST NAME:", hostName);
+        console.log("FULL HOST NAME" , clickedPost);
         setOpen(true);
         setCommentPage(1);
         setSelectedPost(clickedPost);
-        commentList(clickedPost, 1);
+        if (hostName[2] === "social-distribution-group21.herokuapp.com") {
+            console.log("This is a team 21 post");
+            setCheckTeam21Post(true);
+            commentList(clickedPost, 1);
+        }
+        if (hostName[2] === "distributed-social-net.herokuapp.com") {
+            console.log("This is a team 18 post");
+            console.log("18 HOST NAME:", hostName[2]);
+            console.log("18 POST ID: ", hostName[7])
+            setTeam18PostCheck(true);
+            commentList18(clickedPost, 1);
+        }
+        if (hostName[2] === "https://sd-7-433-api.herokuapp.com/api/") {
+            console.log("This is a team 7 post");
+            setTeam7PostCheck(true);
+            commentList20(clickedPost, 1);
+        }
         console.log("ACTUAL COMMENTS:", actualComments);
         // displayList = [{actualComments}, {commentLiked}];
         // console.log("DISPLAY LIST:", displayList);
@@ -620,6 +789,9 @@ export default function Album() {
         setActualComments(commentListDummy);
         setCommentCount(0);
         setCommentPage(1);
+        setCheckTeam21Post(false);
+        setTeam18PostCheck(false);
+        setTeam7PostCheck(false);
     };
 
     return (
@@ -756,13 +928,16 @@ export default function Album() {
                                                     pt: '0%',
                                                 }}
                                                 // image="https://source.unsplash.com/random"
-                                                image="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                                alt="random"
+                                                // image="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
+                                                // alt="random"
                                             />
                                         </CardActionArea>
                                     </Card>
                                 </Grid>
                             ))}
+                            {/* <Pagination
+                                count = {10}
+                            /> */}
                         </Grid>
                         <Modal
                             open={selectedPost}
@@ -823,8 +998,20 @@ export default function Album() {
                                                     setClickedLike(!clickedLike);
                                                 }}                                        
                                             >  
-                                                {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />} Like
                                             </IconButton>
+                                            {USER_ID !== selectedPost?.author?.id.split("/").pop() ?
+                                            <Button 
+                                                type="submit"
+                                                sx={{color : 'light-blue'}}
+                                                startIcon={<ShareIcon />}
+                                                onClick={() => {
+                                                    handleShare(selectedPost);
+                                                }}
+                                            >
+                                                Share
+                                            </Button>
+                                            : null}
                                         </Container>
                                         {/* </Container> */}
                                         <Box component="form" noValidate
@@ -850,19 +1037,55 @@ export default function Album() {
                                                     onChange={(e) => setCommentValue(e.target.value)}
                                                 />
                                             </Grid>
-                                            <Button
-                                                sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
-                                                borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
-                                                }}
-                                                type="button"
-                                                variant="outlined"
-                                                startIcon={<AddIcon />}
-                                                onClick={()=> 
-                                                    handleComment(selectedPost, commentValue)
-                                                }                                                    
-                                            >
-                                                Submit comment
-                                            </Button>
+                                            {/* if team 18 post check is true */}
+                                            {team18PostCheck ?
+                                                <Button
+                                                    sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
+                                                    borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
+                                                    }}
+                                                    type="button"
+                                                    variant="outlined"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={()=> 
+                                                        handleComment18(selectedPost, commentValue)
+                                                    }                                                    
+                                                >
+                                                    Submit comment on team 18's post
+                                                </Button>
+                                            :null}
+                                            {/* if team 7 post check is true */}
+                                            {team7PostCheck ?
+                                                <Button
+                                                    sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
+                                                    borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
+                                                    }}
+                                                    type="button"
+                                                    variant="outlined"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={()=> 
+                                                        handleComment7(selectedPost, commentValue)
+                                                    }                                                    
+                                                >
+                                                    Submit comment on team 7's post
+                                                </Button>
+                                            :null}
+                                            {/* if team 21 post check is true */}
+                                            {team21PostCheck ?
+                                                <Button
+                                                    sx={{ marginLeft: 0, marginTop: 1, marginBottom: 3, bgcolor: '#19191a', borderRadius: 0, 
+                                                    borderColor: 'grey.500', borderWidth: 1, borderStyle: 'solid',                                                    
+                                                    }}
+                                                    type="button"
+                                                    variant="outlined"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={()=> 
+                                                        handleComment(selectedPost, commentValue)
+                                                    }                                                    
+                                                >
+                                                    Submit comment
+                                                </Button>
+                                            :null}
+                                            
 
                                             <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                                 {"Comments:"}
@@ -1052,7 +1275,14 @@ export default function Album() {
                                                             variant="caption" component="h3"
                                                             sx={{paddingLeft: 1}}
                                                             >
-                                                            {value.numLikes}{" likes"}
+                                                            {value.numLikes}{" likes"} 
+                                                            {value.liked === true ? 
+                                                                <Typography
+                                                                    sx={{paddingLeft: 1}}
+                                                                    variant="caption" component="h3"
+                                                                    >
+                                                                </Typography>
+                                                            : null}
                                                         
                                                             <IconButton
                                                                 sx={{color : 'red'}}
@@ -1063,9 +1293,11 @@ export default function Album() {
                                                                     var commentId = value.id;
                                                                     handleCommentLike(selectedPost, commentId);
                                                                     setClickedCommentLike(!clickedCommentLike);
+                                                                    value.liked = true;
                                                                 }}
                                                             >  
-                                                                {clickedCommentLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                                {/* {value.liked ? <FavoriteIcon /> : <FavoriteBorderIcon />} */}
+                                                                {clickedCommentLike? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                                             </IconButton>
                                                         </Typography>
                                                     {/* : null} */}
