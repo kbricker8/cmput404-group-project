@@ -112,6 +112,31 @@ export default function Profile() {
       }
       )
   };
+  const testOnclick = () => {
+    console.log('TEST ONCLICK');
+    const us = "7af755c7-0164-4949-9f9f-996616208335";
+    const team18 = "d1e33fd42e1c441d90bb13558883aae3";
+    // axios.post(`${TEAM18_API_URL}service/authors`, {
+    //   "url": `https://distributed-social-net.herokuapp.com/service/authors/${us}`,
+    //   "host": "https://social-distribution-group21.herokuapp.com/",
+    //   "displayName": "boop",
+    //   "github": "string",
+    //   "profileImage": "string"
+    // }).then((response) => {
+    //   console.log('TEAM18 SIGN UP RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM18 SIGN UP ERROR:', error);
+    // });
+    // 401 from team18, cant put
+    axios.put(`${TEAM18_API_URL}service/authors/${team18}/followers/${us}/`).then((response) => {
+      console.log('TEAM18 RESPONSE:', response);
+    }
+    ).catch((error) => {
+      console.log('TEAM18 ERROR:', error);
+    });
+  };
+  
   useEffect(() => {
     const getOurAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
@@ -136,7 +161,11 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
+    // const getTeam18Following = 
+    axios.get(`${TEAM18_API_URL}service/authors/${USER_ID}/following/`).then((response) => {
+      console.log('TEAM18 FOLLOWING:', response);
 
+    });
     const getFollowers = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
       headers: {
         'Authorization': `Token ${token}`
@@ -230,7 +259,7 @@ export default function Profile() {
               </Stack>
             </Container>
           </Box>
-
+          <Button onClick={testOnclick}>Test</Button>
           <Box sx={{ marginBottom: '30px', paddingTop: '25px', paddingLeft: '25px' }} alignContent="center">
             <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
               <Grid item>
