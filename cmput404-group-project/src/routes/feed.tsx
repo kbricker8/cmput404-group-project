@@ -780,9 +780,10 @@ export default function Album() {
         setOpen(true);
         setCommentPage(1);
         setSelectedPost(clickedPost);
+        console.log("HOST NAME: ", hostName[2]);
         if (hostName[2] === "social-distribution-group21.herokuapp.com") {
             console.log("This is a team 21 post");
-            setCheckTeam21Post(true);
+            setTeam21PostCheck(true);
             commentList(clickedPost, 1);
         }
         if (hostName[2] === "distributed-social-net.herokuapp.com") {
@@ -795,7 +796,7 @@ export default function Album() {
         if (hostName[2] === "https://sd-7-433-api.herokuapp.com/api/") {
             console.log("This is a team 7 post");
             setTeam7PostCheck(true);
-            commentList20(clickedPost, 1);
+            // commentList7(clickedPost, 1);
         }
         console.log("ACTUAL COMMENTS:", actualComments);
         // displayList = [{actualComments}, {commentLiked}];
@@ -811,7 +812,7 @@ export default function Album() {
         setActualComments(commentListDummy);
         setCommentCount(0);
         setCommentPage(1);
-        setCheckTeam21Post(false);
+        setTeam21PostCheck(false);
         setTeam18PostCheck(false);
         setTeam7PostCheck(false);
     };

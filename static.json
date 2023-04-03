@@ -1,0 +1,7 @@
+{
+    "root": "./cmput404-group-project/dist",
+    "clean_urls": true,
+    "routes": {
+      "/**": "index.html"
+    }
+  }
