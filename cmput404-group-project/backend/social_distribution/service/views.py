@@ -638,12 +638,12 @@ class InboxViewSet(viewsets.GenericViewSet):
             inbox.items.append(serializer.data)
             inbox.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = CommentItemSerializer(data=data)
+        serializer = FollowRequestItemSerializer(data=data)
         if serializer.is_valid():
             inbox.items.append(serializer.data)
             inbox.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = FollowRequestItemSerializer(data=data)
+        serializer = CommentItemSerializer(data=data)
         if serializer.is_valid():
             inbox.items.append(serializer.data)
             inbox.save()
