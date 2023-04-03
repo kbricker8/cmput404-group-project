@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
 import { ConstructionOutlined } from '@mui/icons-material';
-import { OUR_API_URL } from '../consts/api_connections';
+import { OUR_API_URL, TEAM18_API_URL, TEAM7_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 type Follower = {
@@ -118,7 +118,14 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
-
+    const getTeam18Authors =
+      axios.get(`${TEAM18_API_URL}service/authors`);
+    const getTeam7Authors =
+      axios.get(`${TEAM7_API_URL}authors/`, {
+        headers: {
+          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        }
+      });
     const getFriends = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
       headers: {
         'Authorization': `Token ${token}`
@@ -141,11 +148,11 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
-    
-    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing])
+
+    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors])
       .then((responses) => {
-        const [allAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse] = responses;
-        
+        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse] = responses;
+
         const processItems = (items, type) => {
           return items.map((item) => {
             const id = item.toString().split(/[/]+/).pop();
@@ -159,27 +166,29 @@ export default function Profile() {
             });
           });
         };
-    
-        const authors = allAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
-        setAuthors(authors);
-    
+
+        const authors = ourAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        const team18Authors = team18AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        const team7Authors = team7AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        setAuthors([...authors, ...team18Authors, ...team7Authors]);
+
         const friendPromises = processItems(friendsResponse.data.items, "FRIEND");
         const followerPromises = processItems(followersResponse.data.items, "FOLLOWER");
         const followingPromises = processItems(followingResponse.data.items, "FOLLOWING");
-    
+
         Promise.all(followerPromises).then((followers) => {
           setFollowers(followers);
         });
-    
+
         Promise.all(friendPromises).then((friends) => {
           setFriends(friends);
           setFollowers(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
         });
-    
+
         Promise.all(followingPromises).then((following) => {
           setFollowing(following);
         });
-    
+
         const followRequests: FollowRequest[] = [];
         for (const followerRequest of followRequestsResponse.data) {
           const id = followerRequest.actor.id.toString().split(/[/]+/).pop();
