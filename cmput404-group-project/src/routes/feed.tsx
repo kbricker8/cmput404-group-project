@@ -31,7 +31,9 @@ import { Author } from '../types/author';
 import { number } from 'prop-types';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import GitHubCalendar from 'react-github-calendar';
+import Markdown from 'markdown-to-jsx';
 import ShareIcon from '@mui/icons-material/Share';
+
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
 import { Post } from '../types/post';
@@ -778,9 +780,10 @@ export default function Album() {
         setOpen(true);
         setCommentPage(1);
         setSelectedPost(clickedPost);
+        console.log("HOST NAME: ", hostName[2]);
         if (hostName[2] === "social-distribution-group21.herokuapp.com") {
             console.log("This is a team 21 post");
-            setCheckTeam21Post(true);
+            setTeam21PostCheck(true);
             commentList(clickedPost, 1);
         }
         if (hostName[2] === "distributed-social-net.herokuapp.com") {
@@ -793,7 +796,7 @@ export default function Album() {
         if (hostName[2] === "https://sd-7-433-api.herokuapp.com/api/") {
             console.log("This is a team 7 post");
             setTeam7PostCheck(true);
-            commentList20(clickedPost, 1);
+            // commentList7(clickedPost, 1);
         }
         console.log("ACTUAL COMMENTS:", actualComments);
         // displayList = [{actualComments}, {commentLiked}];
@@ -809,7 +812,7 @@ export default function Album() {
         setActualComments(commentListDummy);
         setCommentCount(0);
         setCommentPage(1);
-        setCheckTeam21Post(false);
+        setTeam21PostCheck(false);
         setTeam18PostCheck(false);
         setTeam7PostCheck(false);
     };
@@ -844,12 +847,15 @@ export default function Album() {
                                     >
                                         Welcome {user.displayName || "User"}!
                                     </Typography>
-                                    <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
+                                    <Typography variant="h6" align="left" paddingLeft={5} paddingBottom={2} color="text.secondary" paragraph>
                                         This is your <em>dashboard</em>. View public posts here or publish your own!
                                     </Typography>
                                         {gitHubClicked 
                                             ?
-                                            <GitHubCalendar username={gitHubUsername} />
+                                            <div>
+                                                <p><b>This is <em>{gitHubUsername}'s</em> activity on GitHub!</b></p>
+                                                <GitHubCalendar username={gitHubUsername} />
+                                            </div>
                                             :
                                             <Stack
                                                 // sx={{ pt: 20 }}
@@ -992,9 +998,24 @@ export default function Album() {
                                         <Typography id="modal-title" variant="h4" component="h2">
                                             <b>{selectedPost?.title ?? 'No title'}</b>
                                         </Typography>
+
+                                        {/* ORIGINAL */}
+                                        
                                         <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                             {selectedPost?.content ?? 'No content'}
                                         </Typography>
+
+                                        {/* MARKDOWN ALT */}
+
+                                        {/* {selectedPost?.postType !== "text/markdown" ?
+                                            <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                {selectedPost?.content ?? 'No content'}
+                                            </Typography>
+                                        :   <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                                <Markdown>{selectedPost?.content ?? 'No content'}</Markdown>
+                                            </Typography> 
+                                        } */}
+
                                         <Typography id="modal-modal-source" sx={{ mt: 2 }}>
                                             Source (for proving ): {selectedPost?.source ?? 'No source'}
                                         </Typography>
