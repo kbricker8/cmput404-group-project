@@ -9,19 +9,17 @@ from django.contrib.contenttypes.models import ContentType
 # dont forget to update the admin.py, serializers.py, view.py, and urls.y files when you add/edit models
 # also makemigations and migrate
 
-baseURL = "https://social-distribution-group21.herokuapp.com/"
-
 class Author(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'author'
-    url = models.URLField(max_length=200, blank=True)
-    host = models.URLField(max_length=200, blank=True)
+    url = models.URLField(blank=True, max_length=400)
+    host = models.URLField(blank=True)
     displayName = models.CharField(max_length=150)
-    github = models.URLField(max_length=200, blank=True)
-    profileImage = models.URLField(max_length=200, blank=True)
+    github = models.URLField(blank=True, max_length=400)
+    profileImage = models.URLField(blank=True, max_length=400)
 
     user = models.ForeignKey(User, default=1, null=True, on_delete=models.CASCADE, related_name='author') # the user account that the author object is linked to
 
@@ -31,7 +29,7 @@ class Author(models.Model):
 class Followers(models.Model):
     type = "Followers"
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     author = models.ForeignKey(Author, default=1, on_delete=models.CASCADE, related_name='followers', unique=True)
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followingitem')
 
@@ -41,7 +39,7 @@ class Followers(models.Model):
 class Following(models.Model):
     type = "Following"
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     author = models.OneToOneField(Author, on_delete=models.CASCADE, related_name='following')
     items = models.ManyToManyField(Author, blank=True, symmetrical=False, related_name='followeritem')
 
@@ -51,7 +49,7 @@ class Following(models.Model):
 class FollowRequest(models.Model):
     type = 'FollowRequest'
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     summary = models.CharField(max_length = 255)
     actor = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='sent_requests') # the person sending the follow req
     object = models.ForeignKey(Author, default=1, max_length=200, on_delete=models.CASCADE, related_name='received_requests') # the person receiving the follow req
@@ -62,11 +60,11 @@ class Likes(models.Model):
     type = 'Like'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='likes')
 
-    # content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
-    # object_id = models.URLField(null=True)
+    content_type = models.ForeignKey(ContentType, default=1, on_delete=models.CASCADE)
+    object_id = models.URLField(null=True, max_length=400)
     # object = GenericForeignKey()
 
-    object = models.URLField(blank=True)
+    object = models.URLField(blank=True, max_length=400)
 
     class Meta:
         verbose_name_plural = "likes"
@@ -74,7 +72,7 @@ class Likes(models.Model):
 class Liked(models.Model):
     type = 'liked'
 
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='liked', unique=True)
     items = models.ManyToManyField(Likes, blank=True, symmetrical=False, related_name='liked')
 
@@ -96,9 +94,9 @@ class Post(models.Model):
 
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     uuid = models.UUIDField(default=uuid.uuid4)
-    url = models.URLField(default='')
+    url = models.URLField(default='', max_length=400)
     type = 'post'
     title = models.CharField(max_length = 255)
     source = models.URLField(max_length = 255, null = True) #where did you get this post from
@@ -126,10 +124,10 @@ class Post(models.Model):
     
 class ImagePosts(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    temp_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key=True, default="1", max_length=400)
     type = 'ImagePost'
     post = models.ForeignKey(Post, on_delete = models.CASCADE, related_name='image', null=True)
-    image = models.ImageField(null = True, blank = True)
+    image = models.TextField(null = True, blank = True)
 
     class Meta:
         verbose_name_plural = "images"
@@ -137,7 +135,7 @@ class ImagePosts(models.Model):
 class Comment(models.Model):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     uuid = models.UUIDField(default=uuid.uuid4)
     type = 'comment'
     author = models.ForeignKey(Author, null=True, on_delete = models.CASCADE, related_name='comment')
@@ -152,10 +150,13 @@ class Comment(models.Model):
 
     def _str_(self):
         return self.comment
+    
+    class Meta:
+        ordering = ['-published']
 
 #build an inbox class which has a foreign key to the author and a jsonfield that stores posts, comments, and likes
 class Inbox(models.Model):
-    id = models.URLField(primary_key = True, max_length = 255)
+    id = models.URLField(primary_key = True, max_length=400)
     type = 'inbox'
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='inbox')
     items = models.JSONField(default=list, blank = True)

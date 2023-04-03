@@ -100,23 +100,23 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'd4rk8qk77e365q', 
-#         'USER': 'tukvsxspdnotdd', 
-#         'PASSWORD': '61d1a38a9e81615fc6a7a3c289f518bc40667e0ed0079b6369c160aa2159c9ac',
-#         'HOST': 'ec2-3-93-160-246.compute-1.amazonaws.com', 
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'd4rk8qk77e365q', 
+        'USER': 'tukvsxspdnotdd', 
+        'PASSWORD': '61d1a38a9e81615fc6a7a3c289f518bc40667e0ed0079b6369c160aa2159c9ac',
+        'HOST': 'ec2-3-93-160-246.compute-1.amazonaws.com', 
+        'PORT': '5432',
+    }
+}
 
 
 # Password validation

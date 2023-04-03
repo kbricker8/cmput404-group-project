@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -173,11 +174,10 @@ class PostItemSerializer(serializers.Serializer):
 class CommentItemSerializer(serializers.Serializer):
     id = serializers.CharField()
     type = serializers.CharField()
-    author = serializers.CharField()
-    post = serializers.CharField()
+    author = serializers.JSONField()
     comment = serializers.CharField(max_length = 255)
     contentType = serializers.CharField()
-    published = serializers.CharField()
+    published = serializers.DateTimeField(required=False, default=timezone.now)
     summary = serializers.CharField(required=False)
 
 class LikeItemSerializer(serializers.Serializer):
