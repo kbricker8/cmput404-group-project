@@ -310,8 +310,8 @@ export default function Album() {
     };
     const handleCommentLike = (clickedPost: { id: any; } | null, clickedComment: {id : any;}) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/{commentId}/like/ to add likes to comment
-        console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log("CLICKED COMMENTS", clickedComment.split("/").pop());
+        // console.log(JSON.parse(localStorage.getItem('user')!).id)
+        // console.log("CLICKED COMMENTS", clickedComment.split("/").pop());
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${clickedComment.split("/").pop()}/like/`, {
         },
         {
@@ -331,16 +331,26 @@ export default function Album() {
     var [commentCount, setCommentCount] = React.useState(0);
     //commentPage is the page number of comments for a post
     const [commentPage, setCommentPage] = React.useState(1);
+
+    //list for checking if a comment is liked by the user
+
+    var commentLiked = Array(0,0,0,0,0);
+    console.log("COMMENT LIKED", commentLiked);
+    var commentIdListdummy = [{id: ''}]
+    var [commentIdList, setCommentIdList] = React.useState(commentIdListdummy);
+
+    var displayCommentsDummy = [{id: '', comment: '', liked: 0}]
+    var displayComments = React.useState(displayCommentsDummy);
     
     //const for comments list for each post  
     const commentList = (clickedPost: { id: any; } | null, page: number) => {
         //use GET service/authors/{authorId}/posts/{postId}/comments/ to get comments for post
         //console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
-        console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
-        console.log("THIS IS THE CLICKED POST", clickedPost)
-        console.log("THIS IS THE USER ID", user.id)
-        console.log("THIS IS THE COMMENT PAGE", page)
+        // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
+        // console.log("THIS IS THE CLICKED POST", clickedPost)
+        // console.log("THIS IS THE USER ID", user.id)
+        // console.log("THIS IS THE COMMENT PAGE", page)
 
         axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/?p=${commentPage}`, {            
             headers: {
@@ -353,24 +363,52 @@ export default function Album() {
             // return response.data.items;
             // put data in a list
             const commentsList = response.data.comments;
-            console.log("COMMENTS LIST:", commentsList);
-            console.log("COMMENTS LIST LENGTH:", commentsList.length);
-            setActualComments(commentsList);
-            console.log("DATA COUNT:", response.data.count);
+            // console.log("COMMENTS LIST:", commentsList);
+            // console.log("DATA COUNT:", response.data.count);
             setCommentCount(response.data.count);
+            // console.log("COMMENTS LIST LENGTH:", commentsList.length);
+            
+            
+            //map the list of comments to get a list of comment ids and put them in a list
+            const commentIds = commentsList.map((comment: { id: any; }) => comment.id.split("/").pop());
+            setCommentIdList(commentIds);
+            console.log("COMMENT IDS:", commentIds);
+            // console.log("COMMENT IDS:", commentIds);
+            // for every comment in the list, check if the user has liked it using checkCommentLike
+            for (let i = 0; i < commentIds.length; i++) {
+                // if (checkCommentLike(actualComments[i])) {
+                //     console.log("USER HAS LIKED THIS COMMENT", actualComments[i]);
+                // }
+                // console.log("THIS IS THE POST ID FOR THE COMMENT", clickedPost.id.split("/").pop());
+                // console.log("THIS IS THE AUTHOR ID FOR THE COMMENT", clickedPost?.author?.id.split("/").pop());
+                checkCommentLike(commentIds[i], clickedPost, i)
+                console.log("This is the first comment list", commentsList[i]); 
+                // commentsList[i].liked = commentLiked[i];  
+                // commentsList[i].liked = 1;     
+                console.log("This is the actual second comment list", commentsList[i]); 
+                //get just the comment from actual comments and put it in a new list
+                // const displayComments = actualComments.map((comment: { comment: any; }) => comment.comment);
+                // console.log("DISPLAY COMMENTS", displayComments);
+
+                // console.log("checkcommentslikes", checkCommentLike(commentIds[i], clickedPost));
+                // console.log("ACTUAL COMMENTS", commentIds[i]);
+                // setDisplayComments[i].liked = checkCommentLike(commentIds[i], clickedPost)
+                // add 
+            }
+            setActualComments(commentsList);
             return commentsList;
         }).catch((error) => { console.log("GET COMMENTS ERROR:", error); })
     };
     //handleComment takes two arguments: the post that the comment is being made on, and the comment itself
     const handleComment = (clickedPost: { id: any; } | null, commentValue: string) => {
         //use POST service/authors/{authorId}/posts/{postId}/comments/ to add comments to post
-        console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
-        console.log("THIS IS THE BIG AUTHOR ID", user.id);
-        console.log("POST ID:", clickedPost.id.split("/").pop());
-        console.log("COMMENT VALUE:", commentValue);
+        // console.log(JSON.parse(localStorage.getItem('user')!).id)
+        // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        // console.log("THIS IS THE BIG AUTHOR ID", user.id);
+        // console.log("POST ID:", clickedPost.id.split("/").pop());
+        // console.log("COMMENT VALUE:", commentValue);
         //console log for the axios statement
-        console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/")
+        // console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/")
         
         axios.post(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/`, {
             comment: commentValue,
@@ -389,11 +427,11 @@ export default function Album() {
     };
 
     const handleCommentPageChange = (event, page: number) => {
-        console.log("THIS IS THE PAGE", page);
-        console.log("THIS IS THE COMMENT PAGE", commentPage);
+        // console.log("THIS IS THE PAGE", page);
+        // console.log("THIS IS THE COMMENT PAGE", commentPage);
         setCommentPage(page);
-        console.log("THIS IS THE PAGE", page);
-        console.log("THIS IS THE COMMENT PAGE", commentPage);
+        // console.log("THIS IS THE PAGE", page);
+        // console.log("THIS IS THE COMMENT PAGE", commentPage);
     };
 
     React.useEffect(() => {
@@ -405,9 +443,9 @@ export default function Album() {
     //const for checking if the user has liked a post
     const checkLike = (clickedPost: { id: any; } | null) => {
         //use GET service/authors/{authorId}/posts/{postId}/likes/ to check if user has liked post
-        console.log(JSON.parse(localStorage.getItem('user')!).id)
-        console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
-        console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
+        // console.log(JSON.parse(localStorage.getItem('user')!).id)
+        // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        // console.log("THIS IS THE CLICKED POST ID", clickedPost.id.split("/").pop());
         axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/likes/`, {
             headers: {
                 'Authorization': `Token ${token}`
@@ -416,14 +454,14 @@ export default function Album() {
         )
         .then((response) => {
             //if the response.data does not contain the user id, then the user has not liked the post
-            console.log("CHECK LIKE RESPONSE:", response);
-            console.log("LIKES LIST:", response.data);
+            // console.log("CHECK LIKE RESPONSE:", response);
+            // console.log("LIKES LIST:", response.data);
             //map response data into a list
             const authorIds = response.data.map(item => item.author.id);
-            console.log("AUTHOR IDS:", authorIds);
+            // console.log("AUTHOR IDS:", authorIds);
             const authorsList = authorIds.map(item => item.split("/").pop());
-            console.log("AUTHORS LIST:", authorsList);
-            console.log("USER ID:", user.id.split("/").pop());
+            // console.log("AUTHORS LIST:", authorsList);
+            // console.log("USER ID:", user.id.split("/").pop());
             //if authorsList contains the user id, then the user has liked the post
             if (authorsList.includes(user.id.split("/").pop())) {
                 console.log("USER HAS LIKED POST");
@@ -435,8 +473,52 @@ export default function Album() {
             }
         }).catch((error) => { console.log("CHECK LIKE ERROR:", error); })
     };
-                
-        
+
+    //const for checking if the user has liked a comment
+    const checkCommentLike = (clickedComment: { id: any; } | null, clickedPost: { id: any; } | null, index: number) => {
+        //use GET service/authors/{authorId}/posts/{postId}/comments/{commentId}/likes/ to check if user has liked comment
+        // console.log(JSON.parse(localStorage.getItem('user')!).id)
+        // console.log("THIS IS THE CLICKED POST AUTHOR ID", clickedPost?.author?.id.split("/").pop());
+        //console.log("THIS IS THE CLICKED COMMENT ID", clickedComment.id.split("/").pop());
+        // console.log("AXIOS: ", OUR_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "/posts/", clickedPost.id.split("/").pop(), "/comments/", clickedComment, "/likes/");
+        axios.get(`${OUR_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${clickedComment}/likes/`, {
+            //console log for axios statement
+            headers: {
+                'Authorization': `Token ${token}`
+                }
+            }
+        )
+        .then((response) => {
+            //if the response.data does not contain the user id, then the user has not liked the comment
+            // console.log("CHECK COMMENT LIKE RESPONSE:", response);
+            // console.log("LIKES LIST:", response.data);
+            //map response data into a list
+            const authorIds = response.data.map(item => item.author.id);
+            // console.log("AUTHOR IDS:", authorIds);
+            const authorsList = authorIds.map(item => item.split("/").pop());
+            // console.log("AUTHORS LIST:", authorsList);
+            // console.log("USER ID:", user.id.split("/").pop());
+            //if authorsList contains the user id, then the user has liked the comment
+            if (authorsList.includes(user.id.split("/").pop())) {
+                console.log("USER HAS LIKED COMMENT", clickedComment);
+                commentLiked[index] = 1;
+                // displayComments[index].liked = 1;
+                // console.log("displayComments[index]:", displayComments[index]);
+                console.log("COMMENT LIKED:", commentLiked);
+                return true;
+            }
+            else {
+                console.log("USER HAS NOT LIKED COMMENT", clickedComment);
+                return false;
+            }
+        }).catch((error) => { console.log("CHECK COMMENT LIKE ERROR:", error); })
+    };
+
+    
+    // //promose.all for checking if the user has liked a comment
+    // Promise.all([commentList, checkCommentLike, checkLike]).then((values) => {
+    //     console.log("PROMISE ALL:", values);
+    // });
 
     const [open, setOpen] = React.useState(false);
     const [selectedPost, setSelectedPost] = React.useState(null);
@@ -448,6 +530,12 @@ export default function Album() {
         setSelectedPost(clickedPost);
         commentList(clickedPost, 1);
         console.log("ACTUAL COMMENTS:", actualComments);
+        // displayList = [{actualComments}, {commentLiked}];
+        // console.log("DISPLAY LIST:", displayList);
+        // // console log for first element of displayList
+        // console.log("ACTUAL COMMENTS:", displayList[0].actualComments);
+        // // console log for second element of displayList
+        // console.log("COMMENT LIKED:", displayList[1].commentLiked);
     };
     const handleClose = () => {
         setOpen(false);
@@ -573,7 +661,7 @@ export default function Album() {
                                     sx={{ pb: 2 }}
                                     direction="row"
                                     spacing={10}
-                                    justifyContent="end"
+                                    justifyContent="start"
                                 >
                                     <Stack
                                         sx={{ pb: 2 }}
@@ -605,6 +693,19 @@ export default function Album() {
                                                 borderColor: 'white',
                                             }}
                                             >
+                                        </Container>
+                                        <Container>                                              
+                                            <IconButton
+                                                sx={{color : 'red'}}
+                                                aria-label="add to favorites"
+                                                edge="start"
+                                                onClick={() => {
+                                                    handleLike(selectedPost);
+                                                    setClickedLike(!clickedLike);
+                                                }}                                        
+                                            >  
+                                                {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                            </IconButton>
                                         </Container>
                                         {/* </Container> */}
                                         <Box component="form" noValidate
@@ -651,7 +752,7 @@ export default function Album() {
                                         
                                         
                                     </Stack>
-                                    <Box
+                                    {/* <Box
                                         component="img"
                                         sx={{
                                             height: 300,
@@ -661,7 +762,7 @@ export default function Album() {
                                         // justifyItems="right"
                                         alt="Post Picture"
                                         src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                    />
+                                    /> */}
                                     {USER_ID === selectedPost?.author?.id.split("/").pop() ?
                                         <Stack
                                             // justifyItems={"end"}
@@ -694,7 +795,7 @@ export default function Album() {
                                             >
                                                 Edit
                                             </Button>
-                                            <Container>                                              
+                                            {/* <Container>                                              
                                                 <IconButton
                                                     sx={{color : 'red'}}
                                                     aria-label="add to favorites"
@@ -705,10 +806,22 @@ export default function Album() {
                                                 >  
                                                     {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                                 </IconButton>
-                                            </Container>
+                                            </Container> */}
 
                                         </Stack>
                                         : null}
+                                        {/* <Container>                                              
+                                                <IconButton
+                                                    sx={{color : 'red'}}
+                                                    aria-label="add to favorites"
+                                                    onClick={() => {
+                                                        handleLike(selectedPost);
+                                                        setClickedLike(!clickedLike);
+                                                    }}                                        
+                                                >  
+                                                    {clickedLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                </IconButton>
+                                            </Container> */}
                                 </Stack>
                                 
 
@@ -768,6 +881,8 @@ export default function Album() {
                                             },
                                         }}>
                                             {/* use map to iterate through list of comments from list of comments */}
+                                            
+                                            {/* {displayList[0]?.actualComments?.map((value, index) => ( */}
                                             {actualComments?.map((value, index) => (
                                             <Grid alignItems='flex-start'   
                                                 >
@@ -805,24 +920,36 @@ export default function Album() {
                                                         primary={value.comment}
                                                         // secondary={secondary ? 'Secondary text' : null}
                                                     />
-                                                    <Typography 
-                                                        variant="caption" component="h3"
-                                                        sx={{paddingLeft: 1}}
-                                                        >
-                                                        {value.numLikes}{" likes"}
-                                                    
-                                                        <IconButton
-                                                            sx={{color : 'red'}}
-                                                            aria-label="add to favorites"
-                                                            onClick={() => {
-                                                                var commentId = value.id;
-                                                                handleCommentLike(selectedPost, commentId);
-                                                                setClickedCommentLike(!clickedCommentLike);
-                                                            }}
-                                                        >  
-                                                            {clickedCommentLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                                                        </IconButton>
-                                                    </Typography>
+                                                    {/* {commentLiked[index] === 0 ?
+                                                        <Typography 
+                                                            variant="caption" component="h3"
+                                                            sx={{paddingLeft: 1}}
+                                                            >
+                                                            {value.numLikes}{" likes"}
+                                                        </Typography>
+                                                     : null}
+                                                    {commentLiked[index] === 1 ? */}
+                                                        <Typography 
+                                                            variant="caption" component="h3"
+                                                            sx={{paddingLeft: 1}}
+                                                            >
+                                                            {value.numLikes}{" likes"}
+                                                        
+                                                            <IconButton
+                                                                sx={{color : 'red'}}
+                                                                aria-label="add to favorites"
+                                                                // make the button smaller
+                                                                size= "small"
+                                                                onClick={() => {
+                                                                    var commentId = value.id;
+                                                                    handleCommentLike(selectedPost, commentId);
+                                                                    setClickedCommentLike(!clickedCommentLike);
+                                                                }}
+                                                            >  
+                                                                {clickedCommentLike ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                            </IconButton>
+                                                        </Typography>
+                                                    {/* : null} */}
                                                 </Card>
                                             </Grid>
                                             ))
