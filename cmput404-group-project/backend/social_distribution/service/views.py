@@ -628,7 +628,7 @@ class InboxViewSet(viewsets.GenericViewSet):
         inbox = get_object_or_404(Inbox, author__uuid=author_pk)
         data = request.data
 
-        likeserializer = LikeSerializer(data=data)
+        likeserializer = LikeItemSerializer(data=data)
         if likeserializer.is_valid():
             inbox.items.append(likeserializer.data)
             inbox.save()
