@@ -644,9 +644,9 @@ class InboxViewSet(viewsets.GenericViewSet):
             return Response(followserializer.data, status=status.HTTP_201_CREATED)
         commentserializer = CommentsSerializer(data=data)
         if commentserializer.is_valid():
+            commentserializer.save()
             inbox.items.append(commentserializer.data)
             inbox.save()
-            commentserializer.save()
             return Response(commentserializer.data, status=status.HTTP_201_CREATED)
         likeserializer = LikeItemSerializer(data=data)
         if likeserializer.is_valid():
