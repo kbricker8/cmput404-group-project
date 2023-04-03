@@ -183,6 +183,9 @@ class AuthorsViewSet(viewsets.GenericViewSet):
 
         return Response(serializer.data)
     
+    def perform_update(self, serializer):
+        serializer.save()
+    
     @swagger_auto_schema(responses={200: openapi.Response('',UserSerializer)})
     @action(detail=True)
     def get_user(self, request, pk, *args, **kwargs):
