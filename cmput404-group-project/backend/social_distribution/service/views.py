@@ -583,7 +583,8 @@ class CommentsViewSet(viewsets.GenericViewSet):
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
         # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
-        likes = Likes.objects.filter(object_uuid = pk).all()
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk
+        likes = Likes.objects.filter(object = id).all()
         serializer = LikesSerializer(instance=likes, many=True)
         return Response(serializer.data)
     
