@@ -8,7 +8,6 @@ pnpm-debug.log*
 lerna-debug.log*
 ../social-distribution
 node_modules
-dist
 dist-ssr
 *.local
 
