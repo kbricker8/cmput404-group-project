@@ -36,20 +36,23 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-      - name: Change directory
-        run: cd cmput404-group-project
       - name: Install dependencies
+        working-directory: ./cmput404-group-project
         run: npm install
       - name: Build
+        working-directory: ./cmput404-group-project
         run: npm run build
       - name: Setup Pages
+        working-directory: ./cmput404-group-project
         uses: actions/configure-pages@v3
       - name: Upload artifact
+        working-directory: ./cmput404-group-project
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload dist repository
           path: './dist'
       - name: Deploy to GitHub Pages
+        working-directory: ./cmput404-group-project
         id: deployment
         uses: actions/deploy-pages@v1
 GitLab Pages and GitLab CI
