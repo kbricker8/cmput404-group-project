@@ -486,7 +486,7 @@ export default function Profile() {
               </Box>
             </Grid>
             <Grid item xs={3}>
-              <Box sx={{ borderColor: 'grey.500', height: '100%' }}>
+              <Box sx={{ borderRight: 1, borderColor: 'grey.500', height: '100%' }}>
                 <Container component="main" maxWidth="xs">
                   <CssBaseline />
 

@@ -1001,20 +1001,20 @@ export default function Album() {
 
                                         {/* ORIGINAL */}
                                         
-                                        <Typography id="modal-modal-content" sx={{ mt: 2 }}>
+                                        {/* <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                             {selectedPost?.content ?? 'No content'}
-                                        </Typography>
+                                        </Typography> */}
 
                                         {/* MARKDOWN ALT */}
 
-                                        {/* {selectedPost?.postType !== "text/markdown" ?
+                                        {selectedPost?.contentType !== "text/markdown" ?
                                             <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                                 {selectedPost?.content ?? 'No content'}
                                             </Typography>
                                         :   <Typography id="modal-modal-content" sx={{ mt: 2 }}>
                                                 <Markdown>{selectedPost?.content ?? 'No content'}</Markdown>
                                             </Typography> 
-                                        } */}
+                                        }
 
                                         <Typography id="modal-modal-source" sx={{ mt: 2 }}>
                                             Source (for proving ): {selectedPost?.source ?? 'No source'}
