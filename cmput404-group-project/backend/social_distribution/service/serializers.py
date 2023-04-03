@@ -155,7 +155,7 @@ class InboxSerializer(serializers.ModelSerializer):
 class PostItemSerializer(serializers.Serializer):
     id = serializers.CharField()
     type = serializers.CharField()
-    title = serializers.CharField(required=False)
+    title = serializers.CharField(required=True)
     source = serializers.CharField(required=False)
     origin = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
@@ -180,11 +180,11 @@ class CommentItemSerializer(serializers.Serializer):
     summary = serializers.CharField(required=False)
 
 class LikeItemSerializer(serializers.Serializer):
-    context = serializers.CharField(required=False)
-    summary = serializers.CharField(required=False)
-    type = serializers.JSONField(required=False)
-    author = serializers.JSONField(required=False)
-    object = serializers.CharField(required=False)
+    context = serializers.CharField(required=True)
+    summary = serializers.CharField(required=True)
+    type = serializers.JSONField(required=True)
+    author = serializers.JSONField(required=True)
+    object = serializers.CharField(required=True)
 
 class FollowRequestItemSerializer(serializers.Serializer):
     type = serializers.CharField()

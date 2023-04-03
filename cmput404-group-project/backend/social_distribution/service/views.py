@@ -630,12 +630,7 @@ class InboxViewSet(viewsets.GenericViewSet):
         # inbox = Inbox.objects.get(author__uuid=author_pk)
         inbox = get_object_or_404(Inbox, author__uuid=author_pk)
         data = request.data
-
-        likeserializer = LikeItemSerializer(data=data)
-        if likeserializer.is_valid():
-            inbox.items.append(likeserializer.data)
-            inbox.save()
-            return Response(likeserializer.data, status=status.HTTP_201_CREATED)
+        
         postserializer = PostItemSerializer(data=data)
         if postserializer.is_valid():
             inbox.items.append(postserializer.data)
@@ -651,6 +646,11 @@ class InboxViewSet(viewsets.GenericViewSet):
             inbox.items.append(commentserializer.data)
             inbox.save()
             return Response(commentserializer.data, status=status.HTTP_201_CREATED)
+        likeserializer = LikeItemSerializer(data=data)
+        if likeserializer.is_valid():
+            inbox.items.append(likeserializer.data)
+            inbox.save()
+            return Response(likeserializer.data, status=status.HTTP_201_CREATED)
         
         return Response({
             "like": likeserializer.errors, 
