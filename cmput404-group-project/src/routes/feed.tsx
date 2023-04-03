@@ -13,8 +13,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Copyright from "../assets/copyright";
-import { ButtonGroup, CardActionArea, IconButton, Modal } from '@mui/material';
-import TextField from '@mui/material/TextField';
+import { ButtonGroup, CardActionArea, IconButton, Modal, TextField, ToggleButtonGroup } from '@mui/material';
 import { ClassNames } from '@emotion/react';
 import { Form } from 'react-router-dom';
 //import CommentPost from '../components/CommentPost';
@@ -31,8 +30,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import { Author } from '../types/author';
 import { number } from 'prop-types';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Pagination from '@mui/material/Pagination';
+import GitHubCalendar from 'react-github-calendar';
 import ShareIcon from '@mui/icons-material/Share';
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
@@ -131,9 +129,12 @@ export default function Album() {
     const [friends, setFriends] = React.useState([]);
     const [posts, setPosts] = React.useState([]);
     const [filterPosts, setFilterPosts] = React.useState<FilterPostsType>('all');
+    const [gitHubUsername, setgitHubUsername] = React.useState('');
+    const [gitHubClicked, setgitHubClicked] = React.useState();
     const user = JSON.parse(localStorage.getItem('user')!);
     const USER_ID = localStorage.getItem('USER_ID');
     const token = JSON.parse(localStorage.getItem('token')!);
+
     const postsRef = React.useRef(null);
     const navigate = useNavigate();
     const [commentValue, setCommentValue] = React.useState('');
@@ -177,6 +178,38 @@ export default function Album() {
                 'Authorization': `Token ${token}`
             }
         });
+
+        // const getGitHub = () => {
+        //     // const user = JSON.parse(localStorage.getItem('user')!);
+        if (user.github) {
+            setgitHubUsername(user.github.split('/')[3]);
+            setgitHubClicked(true);
+            console.log('OLD GITHUB: ' + gitHubUsername);
+        }
+        else {
+            setgitHubClicked(false);
+        }
+
+        const handleGitHub = () => {
+            console.log("USERNAME: " + gitHubUsername)
+            axios.put(`${OUR_API_URL}service/authors/${USER_ID}/`, {
+                type: "author",
+                id: `${user.id}`,
+                url: `https://social-distribution-group21.herokuapp.com/service/authors/"${user.id}`,
+                host: "https://social-distribution-group21.herokuapp.com/",
+                displayName: user.displayName,
+                github: `https://github.com/${gitHubUsername}`,
+                profileImage: "",
+            }, {
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+            }).then((response) => {
+                console.log("MAKE PUT RESPONSE:", response);
+                localStorage.setItem('gitHub', 'false');
+            }).catch((error) => { console.log("MAKE PUT ERROR:", error); })
+        }
+
         const getAuthorPosts = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/posts/feed/`, {
             headers: {
                 'Authorization': `Token ${token}`
@@ -313,8 +346,7 @@ export default function Album() {
             }).catch(error => {
                 console.log("IN LAST PROMISE ERROR", error);
             });
-    }, []);
-
+    }, [gitHubUsername]);
 
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
@@ -330,6 +362,27 @@ export default function Album() {
                 console.log("MAKE DELETE RESPONSE:", response);
             }).catch((error) => { console.log("MAKE DELETE ERROR:", error); })
     };
+
+    const handleGitHub = () => {
+        console.log("USERNAME: " + gitHubUsername)
+        axios.put(`${OUR_API_URL}service/authors/${USER_ID}/`, {
+            type: "author",
+            id: `${user.id}`,
+            url: `https://social-distribution-group21.herokuapp.com/service/authors/"${user.id}`,
+            host: "https://social-distribution-group21.herokuapp.com/",
+            displayName: user.displayName,
+            github: `https://github.com/${gitHubUsername}`,
+            profileImage: "",
+        }, {
+        headers: {
+            'Authorization': `Token ${token}`
+        }
+        }).then((response) => {
+            console.log("MAKE PUT RESPONSE:", response);
+            localStorage.setItem('gitHub', 'false');
+            user.github = `https://github.com/${gitHubUsername}`;
+        }).catch((error) => { console.log("MAKE PUT ERROR:", error); })
+    }
 
     const handleLike = (clickedPost: { id: any; } | null) => {
         //use POST service/authors/{authorId}/posts/{postId}/like/ to add likes to post
@@ -772,6 +825,36 @@ export default function Album() {
                                     <Typography variant="h6" align="left" paddingLeft={5} color="text.secondary" paragraph>
                                         This is your <em>dashboard</em>. View public posts here or publish your own!
                                     </Typography>
+                                        {gitHubClicked 
+                                            ?
+                                            <GitHubCalendar username={gitHubUsername} />
+                                            :
+                                            <Stack
+                                                // sx={{ pt: 20 }}
+                                                direction="row"
+                                                spacing={2}
+                                                justifyContent="center"
+                                            >
+                                                <TextField
+                                                    fullWidth
+                                                    id="github username"
+                                                    label="GitHub Username"
+                                                    name="github username"
+                                                    autoComplete="github username"
+                                                    onChange={(e) => { setgitHubUsername(e.target.value) }}
+                                                />
+                                                <Button 
+                                                    // type="submit"
+                                                    variant="outlined"
+                                                    onClick={handleGitHub}
+                                                    // onClick={() => {
+                                                    //     handleGitHub();
+                                                    // }}
+                                                >
+                                                    Add your GitHub activity!
+                                                </Button>
+                                            </Stack>
+                                        }     
                                 </Stack>
                                 <Stack
                                     sx={{ pt: 20 }}
@@ -793,7 +876,7 @@ export default function Album() {
                                             <MenuItem value="private">Private</MenuItem>
                                         </Select>
                                     </FormControl>
-                                    <Button variant="contained" href='./NewPost' startIcon={<AddIcon />}>New Post</Button>
+                                    <Button variant="contained" href='./NewPost' startIcon={<AddIcon />} style={{maxHeight: '75px'}}>New Post</Button>
                                 </Stack>
                             </Stack>
                         </Container>

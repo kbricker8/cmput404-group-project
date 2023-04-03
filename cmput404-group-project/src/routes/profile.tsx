@@ -11,6 +11,7 @@ const theme = createTheme();
 type Follower = {
   id?: string;
   name?: string;
+  host?: string;
 };
 
 type FollowRequest = {
@@ -35,7 +36,7 @@ export default function Profile() {
   const USER_ID = localStorage.getItem('USER_ID')!;
   const token = JSON.parse(localStorage.getItem('token')!);
   const handleAddFollower = () => {
-    if (selectedAuthor) {
+    if (selectedAuthor?.host === OUR_API_URL) {
       console.log('ADD FOLLOWER:', selectedAuthor);
       axios
         .post(`${OUR_API_URL}service/authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/follow-request/${USER_ID}/send/`, {}, {
@@ -50,6 +51,42 @@ export default function Profile() {
           console.log('ADD FOLLOWER ERROR:', error);
           console.log('ERROR:', selectedAuthor.id.toString().split(/[/]+/).pop());
         });
+    }
+    console.log('SELECTED AUTHOR:', selectedAuthor)
+    if (selectedAuthor?.host === "https://sd-7-433-api.herokuapp.com") {
+      console.log('ADD FOLLOWER TEAM 7:', selectedAuthor);
+      axios.post(`${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox/`,
+        {
+          summary: "Our author wants to follow you",
+          type: "follow",
+          author: { url: `${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}` },
+          object: `${OUR_API_URL}service/authors/${USER_ID}`,
+        },
+        {
+          headers: {
+            'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+          }
+        }
+      ).then((response) => {
+        console.log('TEAM7 AUTHOR RESPONSE:', response);
+      }).catch((error) => {
+        console.log('TEAM7 AUTHOR ERROR:', error);
+      });
+    }
+    if (selectedAuthor?.host === "https://distributed-social-net.herokuapp.com/") {
+      console.log('ADD FOLLOWER TEAM 18:', selectedAuthor);
+      axios.post(`${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox`,
+        {
+          summary: "Our author wants to follow you",
+          type: "follow",
+          author: { url: `${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}` },
+          object_id: `${OUR_API_URL}service/authors/${USER_ID}`,
+        }
+      ).then((response) => {
+        console.log('TEAM18 ADD FOLLOWER RESPONSE:', response);
+      }).catch((error) => {
+        console.log('TEAM18  ADD FOLLOWER ERROR:', error);
+      });
     }
   };
   const handleRemoveFollower = (followerId: string) => {
@@ -79,7 +116,7 @@ export default function Profile() {
       console.log('REMOVE FOLLOWER ERROR:', error);
     });
   };
-  const handleAcceptRequest = (request: FollowRequest) => {
+  const handleAcceptRequest = (request: FollowRequest, host: string) => {
     console.log('ACCEPT REQUEST:', request);
     axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id.toString().split(/[/]+/).pop()}/accept/`, {}, {
       headers: {
@@ -89,7 +126,7 @@ export default function Profile() {
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
-        setFollowers([...followers, { id: request.id.toString().split(/[/]+/).pop(), name: request.name }]);
+        setFollowers([...followers, { id: request.id.toString().split(/[/]+/).pop(), name: request.name, host: OUR_API_URL }]);
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
       }
@@ -112,6 +149,113 @@ export default function Profile() {
       }
       )
   };
+  const testOnclick = () => {
+    console.log('TEST ONCLICK');
+    //boop5
+    // const us = "134fdf86-19be-4245-884f-3dd8c6731d66";
+    //boop 
+    const us = "a71a002a-b0e3-401b-81f1-a7222de30720";
+    // Sign up to team 18
+    // axios.post(`${TEAM18_API_URL}service/authors`, {
+    //   "url": `https://distributed-social-net.herokuapp.com/134fdf86-19be-4245-884f-3dd8c6731d66`,
+    //   "host": "https://social-distribution-group21.herokuapp.com/",
+    //   "displayName": "boop5",
+    //   "github": "https://github.com/jacob-gerun",
+    //   "profileImage": ""
+    // }).then((response) => {
+    //   console.log('TEAM18 SIGN UP RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM18 SIGN UP ERROR:', error);
+    // });
+    // 401 from team18, cant put
+    // const team18 = "d1e33fd42e1c441d90bb13558883aae3";
+    // axios.put(`${TEAM18_API_URL}service/authors/${team18}/followers/134fdf86-19be-4245-884f-3dd8c6731d66`).then((response) => {
+    //   console.log('TEAM18 RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM18 ERROR:', error);
+    // });
+    //Sign up to team 7
+    // C. S. Lewis ID
+    const team7 = "12fae447-fb43-4cbc-84f9-8965aab66926"
+    // axios.put(`${TEAM7_API_URL}/authors/${team7}/followers/${us}/`,
+    // {
+    //   headers: {
+    //     'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //   }
+    // }).then((response) => {
+    //   console.log('TEAM7 AUTHOR RESPONSE:', response);
+    // }).catch((error) => {
+    //   console.log('TEAM7 AUTHOR ERROR:', error);
+    // }
+    // );
+    axios.post(`${OUR_API_URL}authors/${us}/inbox/`,
+    {
+      summary: "Our author wants to follow you",
+      type: "follow",
+      object: `${TEAM7_API_URL}authors/${team7}` ,
+      author: { url: `${OUR_API_URL}service/authors/${us}`},
+    },
+    {
+      headers: {
+        'Authorization': `Token ${token}`
+      },
+      data: {
+        summary: "Our author wants to follow you",
+        type: "follow",
+        object: `${TEAM7_API_URL}authors/${team7}` ,
+        author: { url: `${OUR_API_URL}service/authors/${us}`},
+      }
+    }
+  ).then((response) => {
+    console.log('TEAM7 AUTHOR RESPONSE:', response);
+  }).catch((error) => {
+    console.log('TEAM7 AUTHOR ERROR:', error);
+  });
+    // axios.post(`${OUR_API_URL}authors/${us}/inbox/`,
+    //   {
+    //     summary: "Our author wants to follow you",
+    //     type: "follow",
+    //     object: `${TEAM7_API_URL}authors/${team7}` ,
+    //     author: { url: `${OUR_API_URL}service/authors/${us}`},
+    //   },
+    //   {
+    //     headers: {
+    //       'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //     },
+    //     data: {
+    //       summary: "Our author wants to follow you",
+    //       type: "follow",
+    //       object: `${TEAM7_API_URL}authors/${team7}` ,
+    //       author: { url: `${OUR_API_URL}service/authors/${us}`},
+    //     }
+    //   }
+    // ).then((response) => {
+    //   console.log('TEAM7 AUTHOR RESPONSE:', response);
+    // }).catch((error) => {
+    //   console.log('TEAM7 AUTHOR ERROR:', error);
+    // });
+    // axios.post(`${TEAM7_API_URL}/authors/`,
+    //   {
+    //     headers: {
+    //       'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //     }
+    //   }, {
+    //   "url": `https://distributed-social-net.herokuapp.com/${us}`,
+    //   "host": "https://social-distribution-group21.herokuapp.com/",
+    //   "displayName": "boop5",
+    //   "github": "https://github.com/jacob-gerun",
+    //   "profileImage": ""
+    // }).then((response) => {
+    //   console.log('TEAM7 SIGN UP RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM7 SIGN UP ERROR:', error);
+    // });
+
+  };
+
   useEffect(() => {
     const getOurAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
@@ -136,7 +280,11 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
+    // const getTeam18Following = 
+    axios.get(`${TEAM18_API_URL}service/authors/${USER_ID}/following/`).then((response) => {
+      console.log('TEAM18 FOLLOWING:', response);
 
+    });
     const getFollowers = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/followers/`, {
       headers: {
         'Authorization': `Token ${token}`
@@ -148,10 +296,20 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
-
-    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors])
+    //Get inbox follow requests
+    const getInbox = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/inbox/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    // }).then((response) => {
+    //   console.log('OUR INBOX:', response);
+    // }).catch((error) => {
+    //   console.log('OUR INBOX ERROR:', error);
+    // });
+    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors,getInbox])
       .then((responses) => {
-        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse] = responses;
+        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse,inboxResponse] = responses;
 
         const processItems = (items, type) => {
           return items.map((item) => {
@@ -162,7 +320,7 @@ export default function Profile() {
               }
             }).then((response) => {
               console.log(`GET ${type} INFO :`, response);
-              return { id, name: response.data.displayName };
+              return { id, name: response.data.displayName, host: OUR_API_URL };
             });
           });
         };
@@ -175,8 +333,11 @@ export default function Profile() {
         const friendPromises = processItems(friendsResponse.data.items, "FRIEND");
         const followerPromises = processItems(followersResponse.data.items, "FOLLOWER");
         const followingPromises = processItems(followingResponse.data.items, "FOLLOWING");
-
+        console.log("IN PROMISE INBOX",inboxResponse.data.items);
+        const inboxFollowRequests = inboxResponse.data.items.filter((item) => item.type === "follow-request");
+        console.log("INBOX FOLLOW REQUESTS",inboxFollowRequests);
         Promise.all(followerPromises).then((followers) => {
+          console.log('FOLLOWERS:', followers);
           setFollowers(followers);
         });
 
@@ -230,7 +391,7 @@ export default function Profile() {
               </Stack>
             </Container>
           </Box>
-
+          <Button onClick={testOnclick}>Test</Button>
           <Box sx={{ marginBottom: '30px', paddingTop: '25px', paddingLeft: '25px' }} alignContent="center">
             <Grid container spacing={2} alignItems="center" sx={{ marginTop: '16px' }}>
               <Grid item>
