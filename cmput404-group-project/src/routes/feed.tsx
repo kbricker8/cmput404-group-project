@@ -136,6 +136,7 @@ export default function Album() {
     const token = JSON.parse(localStorage.getItem('token')!);
 
     const postsRef = React.useRef(null);
+    const [images, setimages] = React.useState({});
     const navigate = useNavigate();
     const [commentValue, setCommentValue] = React.useState('');
     const [clickedLike, setClickedLike] = React.useState(false);//const for like button before and after click
@@ -348,6 +349,25 @@ export default function Album() {
             });
     }, [gitHubUsername]);
 
+    React.useEffect(() => {
+        posts.forEach((post) => {
+          if (post.contentType === "image/png;base64") {
+            axios
+              .get(`${post.id}/image`, {
+                headers: {
+                  Authorization: `Token ${token}`,
+                },
+              })
+              .then((response) => {
+                setimages((previmages) => ({
+                  ...previmages,
+                  [post.id]: response.data.image,
+                }));
+              })
+              .catch((error) => console.log(error));
+          }
+        });
+      }, [posts, token]);
     const handleDelete = (clickedPost: { id: any; } | null) => {
         // clickedPost.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
@@ -794,6 +814,8 @@ export default function Album() {
         setTeam7PostCheck(false);
     };
 
+    
+
     return (
         <ThemeProvider theme={theme}>
             <Container sx={{ pt: 5 }}>
@@ -921,16 +943,17 @@ export default function Album() {
                                                     {post.count}{" comments"}
                                                 </Typography>
                                             </CardContent>
-                                            <CardMedia
-                                                component="img"
-                                                sx={{
+                                            {post.contentType === "image/png;base64" && (
+                                                <CardMedia
+                                                    component="img"
+                                                    sx={{
                                                     // 16:9
-                                                    pt: '0%',
-                                                }}
-                                                // image="https://source.unsplash.com/random"
-                                                // image="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                                // alt="random"
-                                            />
+                                                    pt: "0%",
+                                                    }}
+                                                    src={images[post.id]}
+                                                    alt="random"
+                                                />
+                                            )}
                                         </CardActionArea>
                                     </Card>
                                 </Grid>
@@ -1094,7 +1117,19 @@ export default function Album() {
                                         
                                         
                                     </Stack>
-                                    {/* <Box
+                                    {/*
+                                    post.contentType === "image/png;base64" && (
+                                                <CardMedia
+                                                    component="img"
+                                                    sx={{
+                                                    // 16:9
+                                                    pt: "0%",
+                                                    }}
+                                                    src={images[post.id]}
+                                                    alt="random"
+                                                />
+                                    */
+                                    selectedPost?.contentType === "image/png;base64" && (<Box
                                         component="img"
                                         sx={{
                                             height: 300,
@@ -1103,8 +1138,8 @@ export default function Album() {
                                         // display="flex"
                                         // justifyItems="right"
                                         alt="Post Picture"
-                                        src="https://imgs.search.brave.com/QN5ZdDJqJOAbe6gdG8zLNq8JswG2gpccOqUKb12nVPg/rs:fit:260:260:1/g:ce/aHR0cHM6Ly93d3cu/YmlpYWluc3VyYW5j/ZS5jb20vd3AtY29u/dGVudC91cGxvYWRz/LzIwMTUvMDUvbm8t/aW1hZ2UuanBn"
-                                    /> */}
+                                        src={images[selectedPost.id]}
+                                    />)}
                                     {USER_ID === selectedPost?.author?.id.split("/").pop() ?
                                         <Stack
                                             // justifyItems={"end"}
