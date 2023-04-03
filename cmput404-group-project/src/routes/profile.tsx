@@ -56,38 +56,38 @@ export default function Profile() {
     if (selectedAuthor?.host === "https://sd-7-433-api.herokuapp.com") {
       console.log('ADD FOLLOWER TEAM 7:', selectedAuthor);
       axios.post(`${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox/`,
-      {
-        summary: "Our author wants to follow you",
-        type: "follow",
-        author: {url:`${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}`},
-        object: `${OUR_API_URL}service/authors/${USER_ID}`,
-      },
-      {
-        headers: {
-          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        {
+          summary: "Our author wants to follow you",
+          type: "follow",
+          author: { url: `${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}` },
+          object: `${OUR_API_URL}service/authors/${USER_ID}`,
+        },
+        {
+          headers: {
+            'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+          }
         }
-      }
-    ).then((response) => {
-      console.log('TEAM7 AUTHOR RESPONSE:', response);
-    }).catch((error) => {
-      console.log('TEAM7 AUTHOR ERROR:', error);
-    });
+      ).then((response) => {
+        console.log('TEAM7 AUTHOR RESPONSE:', response);
+      }).catch((error) => {
+        console.log('TEAM7 AUTHOR ERROR:', error);
+      });
     }
     if (selectedAuthor?.host === "https://distributed-social-net.herokuapp.com/") {
       console.log('ADD FOLLOWER TEAM 18:', selectedAuthor);
       axios.post(`${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox`,
-      {
-        summary: "Our author wants to follow you",
-        type: "follow",
-        author: {url:`${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}`},
-        object_id: `${OUR_API_URL}service/authors/${USER_ID}`,
-      }
-    ).then((response) => {
-      console.log('TEAM18 ADD FOLLOWER RESPONSE:', response);
-    }).catch((error) => {
-      console.log('TEAM18  ADD FOLLOWER ERROR:', error);
-    });
-  }
+        {
+          summary: "Our author wants to follow you",
+          type: "follow",
+          author: { url: `${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}` },
+          object_id: `${OUR_API_URL}service/authors/${USER_ID}`,
+        }
+      ).then((response) => {
+        console.log('TEAM18 ADD FOLLOWER RESPONSE:', response);
+      }).catch((error) => {
+        console.log('TEAM18  ADD FOLLOWER ERROR:', error);
+      });
+    }
   };
   const handleRemoveFollower = (followerId: string) => {
     setConfirmRemove(followerId);
@@ -152,7 +152,9 @@ export default function Profile() {
   const testOnclick = () => {
     console.log('TEST ONCLICK');
     //boop5
-    const us = "134fdf86-19be-4245-884f-3dd8c6731d66";
+    // const us = "134fdf86-19be-4245-884f-3dd8c6731d66";
+    //boop 
+    const us = "a71a002a-b0e3-401b-81f1-a7222de30720";
     // Sign up to team 18
     // axios.post(`${TEAM18_API_URL}service/authors`, {
     //   "url": `https://distributed-social-net.herokuapp.com/134fdf86-19be-4245-884f-3dd8c6731d66`,
@@ -188,30 +190,52 @@ export default function Profile() {
     //   console.log('TEAM7 AUTHOR ERROR:', error);
     // }
     // );
-    axios.post(`${TEAM7_API_URL}authors/${team7}/inbox/`,
-      {
+    axios.post(`${OUR_API_URL}authors/${us}/inbox/`,
+    {
+      summary: "Our author wants to follow you",
+      type: "follow",
+      object: `${TEAM7_API_URL}authors/${team7}` ,
+      author: { url: `${OUR_API_URL}service/authors/${us}`},
+    },
+    {
+      headers: {
+        'Authorization': `Token ${token}`
+      },
+      data: {
         summary: "Our author wants to follow you",
         type: "follow",
-        author: {url:`${TEAM7_API_URL}authors/${team7}`},
-        object: `${OUR_API_URL}service/authors/${us}`,
-      },
-      {
-        headers: {
-          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
-        },
-        data: {
-          summary: "Our author wants to follow you",
-          type: "follow",
-          author: { "url": `${OUR_API_URL}service/authors/${us}` },
-          object: `${TEAM7_API_URL}authors/${team7}`
-
-        }
+        object: `${TEAM7_API_URL}authors/${team7}` ,
+        author: { url: `${OUR_API_URL}service/authors/${us}`},
       }
-    ).then((response) => {
-      console.log('TEAM7 AUTHOR RESPONSE:', response);
-    }).catch((error) => {
-      console.log('TEAM7 AUTHOR ERROR:', error);
-    });
+    }
+  ).then((response) => {
+    console.log('TEAM7 AUTHOR RESPONSE:', response);
+  }).catch((error) => {
+    console.log('TEAM7 AUTHOR ERROR:', error);
+  });
+    // axios.post(`${OUR_API_URL}authors/${us}/inbox/`,
+    //   {
+    //     summary: "Our author wants to follow you",
+    //     type: "follow",
+    //     object: `${TEAM7_API_URL}authors/${team7}` ,
+    //     author: { url: `${OUR_API_URL}service/authors/${us}`},
+    //   },
+    //   {
+    //     headers: {
+    //       'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //     },
+    //     data: {
+    //       summary: "Our author wants to follow you",
+    //       type: "follow",
+    //       object: `${TEAM7_API_URL}authors/${team7}` ,
+    //       author: { url: `${OUR_API_URL}service/authors/${us}`},
+    //     }
+    //   }
+    // ).then((response) => {
+    //   console.log('TEAM7 AUTHOR RESPONSE:', response);
+    // }).catch((error) => {
+    //   console.log('TEAM7 AUTHOR ERROR:', error);
+    // });
     // axios.post(`${TEAM7_API_URL}/authors/`,
     //   {
     //     headers: {
@@ -272,10 +296,20 @@ export default function Profile() {
         'Authorization': `Token ${token}`
       }
     });
-
-    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors])
+    //Get inbox follow requests
+    const getInbox = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/inbox/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    // }).then((response) => {
+    //   console.log('OUR INBOX:', response);
+    // }).catch((error) => {
+    //   console.log('OUR INBOX ERROR:', error);
+    // });
+    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors,getInbox])
       .then((responses) => {
-        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse] = responses;
+        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse,inboxResponse] = responses;
 
         const processItems = (items, type) => {
           return items.map((item) => {
@@ -299,7 +333,9 @@ export default function Profile() {
         const friendPromises = processItems(friendsResponse.data.items, "FRIEND");
         const followerPromises = processItems(followersResponse.data.items, "FOLLOWER");
         const followingPromises = processItems(followingResponse.data.items, "FOLLOWING");
-
+        console.log("IN PROMISE INBOX",inboxResponse.data.items);
+        const inboxFollowRequests = inboxResponse.data.items.filter((item) => item.type === "follow-request");
+        console.log("INBOX FOLLOW REQUESTS",inboxFollowRequests);
         Promise.all(followerPromises).then((followers) => {
           console.log('FOLLOWERS:', followers);
           setFollowers(followers);
