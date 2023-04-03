@@ -628,28 +628,33 @@ class InboxViewSet(viewsets.GenericViewSet):
         inbox = get_object_or_404(Inbox, author__uuid=author_pk)
         data = request.data
 
-        serializer = LikeSerializer(data=data)
-        if serializer.is_valid():
-            inbox.items.append(serializer.data)
+        likeserializer = LikeSerializer(data=data)
+        if likeserializer.is_valid():
+            inbox.items.append(likeserializer.data)
             inbox.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = PostItemSerializer(data=data)
-        if serializer.is_valid():
-            inbox.items.append(serializer.data)
+            return Response(likeserializer.data, status=status.HTTP_201_CREATED)
+        postserializer = PostItemSerializer(data=data)
+        if postserializer.is_valid():
+            inbox.items.append(postserializer.data)
             inbox.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = FollowRequestItemSerializer(data=data)
-        if serializer.is_valid():
-            inbox.items.append(serializer.data)
+            return Response(postserializer.data, status=status.HTTP_201_CREATED)
+        followserializer = FollowRequestItemSerializer(data=data)
+        if followserializer.is_valid():
+            inbox.items.append(followserializer.data)
             inbox.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = CommentItemSerializer(data=data)
-        if serializer.is_valid():
-            inbox.items.append(serializer.data)
+            return Response(followserializer.data, status=status.HTTP_201_CREATED)
+        commentserializer = CommentItemSerializer(data=data)
+        if commentserializer.is_valid():
+            inbox.items.append(commentserializer.data)
             inbox.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(commentserializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "like": likeserializer.errors, 
+            "post": postserializer.errors, 
+            "followreq": followserializer.errors, 
+            "comment": commentserializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['Post'])
     def clear(self, request, author_pk=None, *args, **kwargs):
