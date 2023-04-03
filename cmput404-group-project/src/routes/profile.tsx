@@ -11,6 +11,7 @@ const theme = createTheme();
 type Follower = {
   id?: string;
   name?: string;
+  host?: string;
 };
 
 type FollowRequest = {
@@ -35,7 +36,7 @@ export default function Profile() {
   const USER_ID = localStorage.getItem('USER_ID')!;
   const token = JSON.parse(localStorage.getItem('token')!);
   const handleAddFollower = () => {
-    if (selectedAuthor) {
+    if (selectedAuthor?.host === OUR_API_URL) {
       console.log('ADD FOLLOWER:', selectedAuthor);
       axios
         .post(`${OUR_API_URL}service/authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/follow-request/${USER_ID}/send/`, {}, {
@@ -51,6 +52,42 @@ export default function Profile() {
           console.log('ERROR:', selectedAuthor.id.toString().split(/[/]+/).pop());
         });
     }
+    console.log('SELECTED AUTHOR:', selectedAuthor)
+    if (selectedAuthor?.host === "https://sd-7-433-api.herokuapp.com") {
+      console.log('ADD FOLLOWER TEAM 7:', selectedAuthor);
+      axios.post(`${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox/`,
+      {
+        summary: "Our author wants to follow you",
+        type: "follow",
+        author: {url:`${TEAM7_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}`},
+        object: `${OUR_API_URL}service/authors/${USER_ID}`,
+      },
+      {
+        headers: {
+          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        }
+      }
+    ).then((response) => {
+      console.log('TEAM7 AUTHOR RESPONSE:', response);
+    }).catch((error) => {
+      console.log('TEAM7 AUTHOR ERROR:', error);
+    });
+    }
+    if (selectedAuthor?.host === "https://distributed-social-net.herokuapp.com/") {
+      console.log('ADD FOLLOWER TEAM 18:', selectedAuthor);
+      axios.post(`${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}/inbox`,
+      {
+        summary: "Our author wants to follow you",
+        type: "follow",
+        author: {url:`${TEAM18_API_URL}authors/${selectedAuthor.id.toString().split(/[/]+/).pop()}`},
+        object_id: `${OUR_API_URL}service/authors/${USER_ID}`,
+      }
+    ).then((response) => {
+      console.log('TEAM18 ADD FOLLOWER RESPONSE:', response);
+    }).catch((error) => {
+      console.log('TEAM18  ADD FOLLOWER ERROR:', error);
+    });
+  }
   };
   const handleRemoveFollower = (followerId: string) => {
     setConfirmRemove(followerId);
@@ -79,7 +116,7 @@ export default function Profile() {
       console.log('REMOVE FOLLOWER ERROR:', error);
     });
   };
-  const handleAcceptRequest = (request: FollowRequest) => {
+  const handleAcceptRequest = (request: FollowRequest, host: string) => {
     console.log('ACCEPT REQUEST:', request);
     axios.post(`${OUR_API_URL}service/authors/${USER_ID}/follow-request/${request.id.toString().split(/[/]+/).pop()}/accept/`, {}, {
       headers: {
@@ -89,7 +126,7 @@ export default function Profile() {
       (response) => {
         console.log('ACCEPT REQUEST RESPONSE:', response);
         setFollowRequests(followRequests.filter((followRequest) => followRequest.id !== request.id));
-        setFollowers([...followers, { id: request.id.toString().split(/[/]+/).pop(), name: request.name }]);
+        setFollowers([...followers, { id: request.id.toString().split(/[/]+/).pop(), name: request.name, host: OUR_API_URL }]);
       }).catch((error) => {
         console.log('ACCEPT REQUEST ERROR:', error);
       }
@@ -114,14 +151,15 @@ export default function Profile() {
   };
   const testOnclick = () => {
     console.log('TEST ONCLICK');
-    const us = "7af755c7-0164-4949-9f9f-996616208335";
-    const team18 = "d1e33fd42e1c441d90bb13558883aae3";
+    //boop5
+    const us = "134fdf86-19be-4245-884f-3dd8c6731d66";
+    // Sign up to team 18
     // axios.post(`${TEAM18_API_URL}service/authors`, {
-    //   "url": `https://distributed-social-net.herokuapp.com/service/authors/${us}`,
+    //   "url": `https://distributed-social-net.herokuapp.com/134fdf86-19be-4245-884f-3dd8c6731d66`,
     //   "host": "https://social-distribution-group21.herokuapp.com/",
-    //   "displayName": "boop",
-    //   "github": "string",
-    //   "profileImage": "string"
+    //   "displayName": "boop5",
+    //   "github": "https://github.com/jacob-gerun",
+    //   "profileImage": ""
     // }).then((response) => {
     //   console.log('TEAM18 SIGN UP RESPONSE:', response);
     // }
@@ -129,14 +167,71 @@ export default function Profile() {
     //   console.log('TEAM18 SIGN UP ERROR:', error);
     // });
     // 401 from team18, cant put
-    axios.put(`${TEAM18_API_URL}service/authors/${team18}/followers/${us}/`).then((response) => {
-      console.log('TEAM18 RESPONSE:', response);
-    }
-    ).catch((error) => {
-      console.log('TEAM18 ERROR:', error);
+    // const team18 = "d1e33fd42e1c441d90bb13558883aae3";
+    // axios.put(`${TEAM18_API_URL}service/authors/${team18}/followers/134fdf86-19be-4245-884f-3dd8c6731d66`).then((response) => {
+    //   console.log('TEAM18 RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM18 ERROR:', error);
+    // });
+    //Sign up to team 7
+    // C. S. Lewis ID
+    const team7 = "12fae447-fb43-4cbc-84f9-8965aab66926"
+    // axios.put(`${TEAM7_API_URL}/authors/${team7}/followers/${us}/`,
+    // {
+    //   headers: {
+    //     'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //   }
+    // }).then((response) => {
+    //   console.log('TEAM7 AUTHOR RESPONSE:', response);
+    // }).catch((error) => {
+    //   console.log('TEAM7 AUTHOR ERROR:', error);
+    // }
+    // );
+    axios.post(`${TEAM7_API_URL}authors/${team7}/inbox/`,
+      {
+        summary: "Our author wants to follow you",
+        type: "follow",
+        author: {url:`${TEAM7_API_URL}authors/${team7}`},
+        object: `${OUR_API_URL}service/authors/${us}`,
+      },
+      {
+        headers: {
+          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        },
+        data: {
+          summary: "Our author wants to follow you",
+          type: "follow",
+          author: { "url": `${OUR_API_URL}service/authors/${us}` },
+          object: `${TEAM7_API_URL}authors/${team7}`
+
+        }
+      }
+    ).then((response) => {
+      console.log('TEAM7 AUTHOR RESPONSE:', response);
+    }).catch((error) => {
+      console.log('TEAM7 AUTHOR ERROR:', error);
     });
+    // axios.post(`${TEAM7_API_URL}/authors/`,
+    //   {
+    //     headers: {
+    //       'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+    //     }
+    //   }, {
+    //   "url": `https://distributed-social-net.herokuapp.com/${us}`,
+    //   "host": "https://social-distribution-group21.herokuapp.com/",
+    //   "displayName": "boop5",
+    //   "github": "https://github.com/jacob-gerun",
+    //   "profileImage": ""
+    // }).then((response) => {
+    //   console.log('TEAM7 SIGN UP RESPONSE:', response);
+    // }
+    // ).catch((error) => {
+    //   console.log('TEAM7 SIGN UP ERROR:', error);
+    // });
+
   };
-  
+
   useEffect(() => {
     const getOurAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
@@ -191,7 +286,7 @@ export default function Profile() {
               }
             }).then((response) => {
               console.log(`GET ${type} INFO :`, response);
-              return { id, name: response.data.displayName };
+              return { id, name: response.data.displayName, host: OUR_API_URL };
             });
           });
         };
@@ -206,6 +301,7 @@ export default function Profile() {
         const followingPromises = processItems(followingResponse.data.items, "FOLLOWING");
 
         Promise.all(followerPromises).then((followers) => {
+          console.log('FOLLOWERS:', followers);
           setFollowers(followers);
         });
 
