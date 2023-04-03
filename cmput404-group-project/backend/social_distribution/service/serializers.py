@@ -184,7 +184,7 @@ class LikeItemSerializer(serializers.Serializer):
     context = serializers.CharField(required=False)
     summary = serializers.CharField(required=False)
     type = serializers.JSONField(required=False)
-    author = serializers.Field(required=False)
+    author = serializers.JSONField(required=False)
     object = serializers.CharField(required=False)
 
 class FollowRequestItemSerializer(serializers.Serializer):
