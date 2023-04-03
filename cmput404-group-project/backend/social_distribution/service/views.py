@@ -10,7 +10,9 @@ from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import uuid
-
+import base64
+from django.core.files.base import ContentFile
+import binascii
 from .paginations import PostsPagination, CommentsPagination, PostsPaginatorInspectorClass, CommentsPaginatorInspectorClass
 
 # import serializers
@@ -37,8 +39,8 @@ from .serializers import FollowRequestItemSerializer
 from django.contrib.auth.models import User
 from .models import Post, ImagePosts, Author, Comment, FollowRequest, Followers, Following, Liked, Likes, Inbox
 
-# baseURL = "https://social-distribution-group21.herokuapp.com/"
-baseURL = "http://127.0.0.1:8000/"
+baseURL = "https://social-distribution-group21.herokuapp.com/"
+# baseURL = "http://127.0.0.1:8000/"
 
 
 class UsersViewSet(viewsets.GenericViewSet):
@@ -59,20 +61,21 @@ class UsersViewSet(viewsets.GenericViewSet):
         author = Author(id=id, uuid=author_uuid, url=id, host=baseURL, displayName=serializer.data.get("username"), user=user)
         author.save()
 
-        followers_id = baseURL + 'service/authors/' + str(author.id) + '/followers/'
+        followers_id = str(author.id) + '/followers/'
         followers = Followers(id=followers_id, author = author)
         followers.save()
 
-        following_id = baseURL + 'service/authors/' + str(author.id) + '/following/'
+        following_id = str(author.id) + '/following/'
         following = Following(id=following_id, author = author)
         following.save()
 
-        liked_id = baseURL + 'service/authors/' + str(author.id) + '/liked/'
+        liked_id = str(author.id) + '/liked/'
         liked = Liked(id=liked_id, author=author)
         liked.save()
 
-        inbox_id = baseURL + 'service/authors/' + str(author.id) + '/inbox/'
+        inbox_id = str(author.id) + '/inbox/'
         inbox = Inbox(id=inbox_id, author=author)
+        inbox.save()
 
         token = Token.objects.create(user=user)
 
@@ -265,10 +268,14 @@ class FollowRequestViewSet(viewsets.GenericViewSet):
         if FollowRequest.objects.filter(actor=actor, object=object).count(): # request already exists
             return Response({"detail": ["Request already exists."]},
                             status=status.HTTP_400_BAD_REQUEST)
-        id = baseURL + "service/authors/"+str(object.id)+"/follow-request"+str(actor.id)+"/"
+        id = baseURL + "service/authors/"+str(object.uuid)+"/follow-request/"+str(actor.uuid)+"/"
         follow_request = FollowRequest(id=id, summary=summary, actor=actor, object=object)
         follow_request.save()
         serializer = FollowRequestSerializer(instance=follow_request)
+        # add to inbox of the user
+        inbox = Inbox.objects.get(author=object)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
@@ -356,7 +363,7 @@ class PostsViewSet(viewsets.GenericViewSet):
 
     @swagger_auto_schema(pagination_class=PostsPagination, paginator_inspectors=[PostsPaginatorInspectorClass])
     def list(self, request, author_pk=None, *args, **kwargs): # overrides the default list method
-        posts = Post.objects.filter(author__uuid = author_pk).all()
+        posts = Post.objects.filter( Q(author__uuid = author_pk) & Q(unlisted=False) ).all()
         page = self.paginate_queryset(posts)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -419,6 +426,18 @@ class PostsViewSet(viewsets.GenericViewSet):
         serializer = ImagePostsSerializer(instance=image)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['post'])
+    def image_post(self, request, author_pk, pk, *args, **kwargs):
+        # accept image from client
+        post = Post.objects.get(uuid=pk)
+        image_data = request.data.get('image')
+        if image_data:
+            id = baseURL + 'service/authors/' + author_pk + '/posts/' + pk + '/image'
+            ImagePosts.objects.create(post=post, image=image_data, id=id)
+            return Response({"status": "Image uploaded successfully"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "No image data found"}, status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=True)
     def likes(self, request, author_pk, pk, *args, **kwargs):
         # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
@@ -437,12 +456,17 @@ class PostsViewSet(viewsets.GenericViewSet):
         if Likes.objects.filter(author=author, object=id).count():
             return Response({"detail": ["Request already exists."]},
                         status=status.HTTP_400_BAD_REQUEST)
-        like = Likes(summary=summary, author=author, object=object)
+        like = Likes(summary=summary, author=author, object=object.id)
         like.save()
         object.numLikes += 1
         object.save()
         liked = Liked.objects.get(author=author)
         liked.items.add(like)
+        # add to the authors inbox
+        serializer = LikesSerializer(instance=like)
+        inbox = Inbox.objects.get(author=object.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response({"detail": ["Liked post."]},
                     status=status.HTTP_200_OK)
     
@@ -451,7 +475,9 @@ class PostsViewSet(viewsets.GenericViewSet):
     @action(detail=False)
     def public(self, request, author_pk=None, *args, **kwargs):
         self.pagination_class=PostsPagination
-        posts = Post.objects.filter(visibility='PUBLIC')
+        posts = Post.objects.filter(
+            Q(visibility='PUBLIC') & Q(unlisted=False)
+            )
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
@@ -467,16 +493,16 @@ class PostsViewSet(viewsets.GenericViewSet):
             Q(id__in=followers) & Q(id__in=following)
         ).values_list('id', flat=True)
 
-        my_posts = Post.objects.filter(Q(author__uuid=author_pk))
-        following_posts = Post.objects.filter(
-            Q(author__id__in=following) & ~Q(visibility='FRIENDS')
+        my_posts = Post.objects.filter(Q(author__uuid=author_pk) & Q(unlisted=False) )
+        public_posts = Post.objects.filter(
+            Q(visibility='PUBLIC') & Q(unlisted=False)
         )
-        friend_posts = Post.objects.filter(
-            Q(author__id__in=friends) & Q(visibility='FRIENDS')
+        following_posts = Post.objects.filter(
+            Q(author__id__in=following) & Q(visibility='FRIENDS') & Q(unlisted=False)
         )
         # public_posts = Post.objects.filter(visibility='PUBLIC')
 
-        posts = my_posts | following_posts | friend_posts
+        posts = my_posts | following_posts | public_posts
 
         page = self.paginate_queryset(posts)
         serializer = PostSerializer(page, many=True)
@@ -496,7 +522,8 @@ class CommentsViewSet(viewsets.GenericViewSet):
     
     @swagger_auto_schema(pagination_class=CommentsPagination, paginator_inspectors=[CommentsPaginatorInspectorClass])
     def list(self, request, author_pk=None, post_pk=None, *args, **kwargs):
-        queryset = Comment.objects.filter(post=post_pk).all()
+        post = Post.objects.get(uuid=post_pk)
+        queryset = Comment.objects.filter(post=post).all()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -510,15 +537,20 @@ class CommentsViewSet(viewsets.GenericViewSet):
         
         post_id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk
         post = Post.objects.get(id=post_id)
-
+        user = request.user
+        author = Author.get_author_from_user(user=user)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # self.perform_create(serializer)
         comment_uuid = uuid.uuid4()
-        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(uuid)
-        serializer.save(id=id, uuid=comment_uuid, post=post)
+        id = baseURL+'service/authors/'+author_pk+'/posts/'+post_pk+'/comments/'+str(comment_uuid)
+        serializer.save(id=id, uuid=comment_uuid, post=post, author=author)
         post.count += 1
         post.save()
+        # add comment to the authors inbox
+        inbox = Inbox.objects.get(author=post.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def update(self, request, pk, *args, **kwargs):
@@ -551,29 +583,34 @@ class CommentsViewSet(viewsets.GenericViewSet):
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
         # queryset = Likes.objects.filter(author__uuid = author_pk, object__id = pk).all()
-        likes = Likes.objects.filter(object_uuid = pk).all()
+        id = baseURL + 'service/authors/' + author_pk + '/posts/' + post_pk + '/comments/' + pk
+        likes = Likes.objects.filter(object = id).all()
         serializer = LikesSerializer(instance=likes, many=True)
         return Response(serializer.data)
     
     @action(detail=True, methods=['Post'])
     def like(self, request, author_pk, post_pk, pk, *args, **kwargs):
-        object = self.get_object()
-        serializer = LikeSerializer(data=request.data)
-        if serializer.is_valid():
-            authorid = serializer.data.get('author')
-            author = get_object_or_404(Author, uuid=authorid)
-            summary = f"{author.displayName} liked your comment"
-            if Likes.objects.filter(author=author, object_uuid=pk).count():
-                return Response({"detail": ["Request already exists."]},
-                            status=status.HTTP_400_BAD_REQUEST)
-            like = Likes(summary=summary, author=author, object=object)
-            like.save()
-            object.numLikes += 1
-            object.save()
-            liked = Liked.objects.get(author=author)
-            liked.items.add(like)
-            return Response({"detail": ["Liked comment."]},
-                        status=status.HTTP_200_OK)
+        object = Comment.objects.get(uuid=pk)
+        user = request.user
+        author = Author.get_author_from_user(user=user)
+        summary = f"{author.displayName} liked your comment"
+        if Likes.objects.filter(author=author, object=object).count():
+            return Response({"detail": ["Request already exists."]},
+                        status=status.HTTP_400_BAD_REQUEST)
+        like = Likes(summary=summary, author=author, object=object.id)
+        like.save()
+        object.numLikes += 1
+        object.save()
+        liked = Liked.objects.get(author=author)
+        liked.items.add(like)
+        # add to the authors inbox
+        serializer = LikesSerializer(instance=like)
+        inbox = Inbox.objects.get(author=object.author)
+        inbox.items.append(serializer.data)
+        inbox.save()
+        return Response({"detail": ["Liked comment."]},
+                    status=status.HTTP_200_OK)
+        
 
 #create an inbox class to handle incoming posts to the inbox endpoint and get the inbox of the current user
 class InboxViewSet(viewsets.GenericViewSet):
@@ -581,12 +618,14 @@ class InboxViewSet(viewsets.GenericViewSet):
     serializer_class = InboxSerializer
 
     def list(self, request, author_pk=None, *args, **kwargs):
-        instance = Inbox.objects.get(author__uuid=author_pk)
+        # instance = Inbox.objects.get(author__uuid=author_pk)
+        instance = get_object_or_404(Inbox, author__uuid=author_pk)
         serializer = InboxSerializer(instance=instance)
         return Response(serializer.data)
 
     def create(self, request, author_pk=None, *args, **kwargs):
-        inbox = Inbox.objects.get(author__uuid=author_pk)
+        # inbox = Inbox.objects.get(author__uuid=author_pk)
+        inbox = get_object_or_404(Inbox, author__uuid=author_pk)
         data = request.data
 
         serializer = LikeSerializer(data=data)
@@ -599,55 +638,24 @@ class InboxViewSet(viewsets.GenericViewSet):
             inbox.items.append(serializer.data)
             inbox.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        serializer = CommentItemSerializer(data=data)
-        if serializer.is_valid():
-            inbox.items.append(serializer.data)
-            inbox.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
         serializer = FollowRequestItemSerializer(data=data)
         if serializer.is_valid():
             inbox.items.append(serializer.data)
             inbox.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #serialize data and append to inbox
-        # serializer = ItemSerializer(data=data)
-        # if serializer.is_valid():
-        #     inbox.items.append(serializer.data)
-        #     inbox.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # if iserializer.is_valid():
-        #     iserializer.save()
-        #     item_type = iserializer.data.get('type')
-        #     if item_type == 'post':
-        #         post = iserializer.data.get('items')
-        #         #serialize the post and append data to the inbox
-        #         serializer = PostSerializer(data= post)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'post','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'comment':
-        #         comment = iserializer.data.get('items')
-        #         #serialize the comment and append data to the inbox
-        #         serializer = CommentsSerializer(data= comment)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'comment','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'like':
-        #         like = iserializer.data.get('items')
-        #         #serialize the like and append data to the inbox
-        #         serializer = LikeSerializer(data= like)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'like','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        #     elif item_type == 'follow':
-        #         follow = iserializer.data.get('items')
-        #         #serialize the follow and append data to the inbox
-        #         serializer = FollowRequestSerializer(data= follow)
-        #         if serializer.is_valid():
-        #             serializer.save()
-        #             instance.append({'type':'follow','object':serializer.data})
-        #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = CommentItemSerializer(data=data)
+        if serializer.is_valid():
+            inbox.items.append(serializer.data)
+            inbox.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['Post'])
+    def clear(self, request, author_pk=None, *args, **kwargs):
+        inbox = get_object_or_404(Inbox, author__uuid=author_pk)
+        inbox.items.clear()
+        inbox.save()
+        serializer = InboxSerializer(instance=inbox)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

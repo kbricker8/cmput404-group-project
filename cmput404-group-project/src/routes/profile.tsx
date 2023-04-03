@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Container } from '@mui/system';
 import { Author } from '../types/author';
 import { ConstructionOutlined } from '@mui/icons-material';
-import { OUR_API_URL } from '../consts/api_connections';
+import { OUR_API_URL, TEAM18_API_URL, TEAM7_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 type Follower = {
@@ -23,12 +23,14 @@ type FollowRequest = {
 //   summary: string;
 // };
 export default function Profile() {
+  const [following, setFollowing] = useState<Follower[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [friends, setFriends] = useState<Follower[]>([]);
   const [followRequests, setFollowRequests] = useState<FollowRequest[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [confirmRemoveFriend, setConfirmRemoveFriend] = useState<string | null>(null);
   const user = JSON.parse(localStorage.getItem('user')!);
   const USER_ID = localStorage.getItem('USER_ID')!;
   const token = JSON.parse(localStorage.getItem('token')!);
@@ -58,18 +60,22 @@ export default function Profile() {
     setConfirmRemove(null);
   };
   const handleConfirmRemove = (followerId: string) => {
-    followerId = followerId.toString().split(/[/]+/).pop()!;
+    //followerId = followerId.toString().split(/[/]+/).pop()!;
     setConfirmRemove(null);
-    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/followers/unfollow/`, { "id": followerId }, {
+    console.log('REMOVE FOLLOWER:', followerId);
+    //axios.post(`${OUR_API_URL}service/authors/${USER_ID}/followers/unfollow/`, { "id": followerId }, {
+    axios.post(`${OUR_API_URL}service/authors/${followerId}/followers/unfollow/`, { "id": USER_ID }, {
       headers: {
         'Authorization': `Token ${token}`
       }
     }).then((response) => {
       console.log(followers);
       console.log('REMOVE FOLLOWER RESPONSE:', response);
-      setFollowers(followers.filter((follower) => follower.id!.toString().split(/[/]+/).pop()! !== followerId));
+      //setFollowers(followers.filter((follower) => follower.id!.toString().split(/[/]+/).pop()! !== followerId));
+      setFollowing(following.filter((follower) => follower.id!.toString().split(/[/]+/).pop()! !== followerId));
       setFriends(friends.filter((friend) => friend.id!.toString().split(/[/]+/).pop()! !== followerId));
     }).catch((error) => {
+      console.log('followerId:', followerId);
       console.log('REMOVE FOLLOWER ERROR:', error);
     });
   };
@@ -107,13 +113,25 @@ export default function Profile() {
       )
   };
   useEffect(() => {
-    const getAllAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
+    const getOurAuthors = axios.get(`${OUR_API_URL}service/authors/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
     });
-
+    const getTeam18Authors =
+      axios.get(`${TEAM18_API_URL}service/authors`);
+    const getTeam7Authors =
+      axios.get(`${TEAM7_API_URL}authors/`, {
+        headers: {
+          'Authorization': 'Basic ' + btoa('node01:P*ssw0rd!')
+        }
+      });
     const getFriends = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/friends/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    const getFollowing = axios.get(`${OUR_API_URL}service/authors/${USER_ID}/following/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
@@ -131,61 +149,50 @@ export default function Profile() {
       }
     });
 
-    Promise.all([getAllAuthors, getFriends, getFollowers, getFollowRequests])
+    Promise.all([getOurAuthors, getFriends, getFollowers, getFollowRequests, getFollowing, getTeam18Authors, getTeam7Authors])
       .then((responses) => {
-        const allAuthorsResponse = responses[0];
-        console.log('GET ALL AUTHORS RESPONSE:', allAuthorsResponse);
-        const authors = allAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
-        console.log(authors);
+        const [ourAuthorsResponse, friendsResponse, followersResponse, followRequestsResponse, followingResponse, team18AuthorsResponse, team7AuthorsResponse] = responses;
 
-        const friendsResponse = responses[1];
-        console.log('GET FRIENDS RESPONSE:', friendsResponse);
-        const friendPromises: Promise<Follower>[] = friendsResponse.data.items.map((friend: string) => {
-          friend = friend.toString().split(/[/]+/).pop()!;
-          console.log('FOR EACH FRIEND:', friend);
-          return axios.get(`${OUR_API_URL}service/authors/${friend}/`, {
-            headers: {
-              'Authorization': `Token ${token}`
-            }
-          }).then((response) => {
-            console.log('GET FRIEND INFO :', response);
-            return { id: friend, name: response.data.displayName };
+        const processItems = (items, type) => {
+          return items.map((item) => {
+            const id = item.toString().split(/[/]+/).pop();
+            return axios.get(`${OUR_API_URL}service/authors/${id}/`, {
+              headers: {
+                'Authorization': `Token ${token}`
+              }
+            }).then((response) => {
+              console.log(`GET ${type} INFO :`, response);
+              return { id, name: response.data.displayName };
+            });
           });
-        });
+        };
 
-        Promise.all(friendPromises).then((friends) => {
-          console.log('FRIENDS:', friends);
-          setFriends(friends);
-          setFollowers(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
-          console.log(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
-        });
+        const authors = ourAuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        const team18Authors = team18AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        const team7Authors = team7AuthorsResponse.data.items.filter((author: Author) => author.id.toString().split(/[/]+/).pop() !== USER_ID);
+        setAuthors([...authors, ...team18Authors, ...team7Authors]);
 
-        const followersResponse = responses[2];
-        console.log('GET FOLLOWERS RESPONSE:', followersResponse);
-        const followerPromises: Promise<Follower>[] = followersResponse.data.items.map((follower: string) => {
-          console.log('FOR EACH FOLLOWER:', follower.toString().split(/[/]+/).pop());
-          return axios.get(`${OUR_API_URL}service/authors/${follower.toString().split(/[/]+/).pop()}/`, {
-            headers: {
-              'Authorization': `Token ${token}`
-            }
-          }).then((response) => {
-            console.log('GET FOLLOWER INFO :', response);
-            return { id: follower.toString().split(/[/]+/).pop(), name: response.data.displayName };
-          });
-        });
+        const friendPromises = processItems(friendsResponse.data.items, "FRIEND");
+        const followerPromises = processItems(followersResponse.data.items, "FOLLOWER");
+        const followingPromises = processItems(followingResponse.data.items, "FOLLOWING");
 
         Promise.all(followerPromises).then((followers) => {
-          console.log('FOLLOWERS:', followers);
           setFollowers(followers);
         });
 
-        const followRequestsResponse = responses[3];
-        console.log('GET FOLLOW REQUESTS RESPONSE:', followRequestsResponse);
+        Promise.all(friendPromises).then((friends) => {
+          setFriends(friends);
+          setFollowers(followers.filter((follower) => !friends.some((friend) => friend.id === follower.id)));
+        });
+
+        Promise.all(followingPromises).then((following) => {
+          setFollowing(following);
+        });
+
         const followRequests: FollowRequest[] = [];
         for (const followerRequest of followRequestsResponse.data) {
-          console.log('FOR EACH FOLLOW REQUEST:', followerRequest.toString().split(/[/]+/).pop());
-          followRequests.push({ id: followerRequest.actor.id.toString().split(/[/]+/).pop(), name: followerRequest.actor.displayName });
-          console.log('FOLLOW REQUESTS:', followRequests);
+          const id = followerRequest.actor.id.toString().split(/[/]+/).pop();
+          followRequests.push({ id, name: followerRequest.actor.displayName });
         }
         setFollowRequests(followRequests);
       })
@@ -272,9 +279,21 @@ export default function Profile() {
                       <Card key={friend.id}>
                         <CardContent>
                           <Typography>{friend.name}</Typography>
+                          {/* {confirmRemove === friend.id ? (
+                            <Box>
+                              <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
+                              <Button onClick={() => handleConfirmRemove(friend.id)}>Confirm</Button>
+
+                            </Box>
+                          ) : (
+                            <Button onClick={() => handleRemoveFollower(friend.id)}>Remove</Button>
+                            // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
+
+                          )} */}
                         </CardContent>
                       </Card>
                     ))}
+
                 </Box>
               </Container>
             </Grid>
@@ -297,17 +316,7 @@ export default function Profile() {
                         <Card key={follower.id}>
                           <CardContent>
                             <Typography>{follower.name}</Typography>
-                            {confirmRemove === follower.id ? (
-                              <Box>
-                                <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
-                                <Button onClick={() => handleConfirmRemove(follower.id)}>Confirm</Button>
 
-                              </Box>
-                            ) : (
-                              <Button onClick={() => handleRemoveFollower(follower.id)}>Remove</Button>
-                              // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
-
-                            )}
                           </CardContent>
                         </Card>
                       ))}
@@ -315,7 +324,58 @@ export default function Profile() {
                 </Container>
               </Box>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={3}>
+              <Box sx={{ borderColor: 'grey.500', height: '100%' }}>
+                <Container component="main" maxWidth="xs">
+                  <CssBaseline />
+
+                  <Box
+                    sx={{
+                      marginTop: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="h3" paddingBottom={2}>Following</Typography>
+                    {following.length == 0 ?
+                      <Typography>You are not following anyone yet!</Typography>
+                      : following.map((following) => (
+                        <Card key={following.id}>
+                          <CardContent>
+                            <Typography>{following.name}</Typography>
+                            {confirmRemove === following.id ? (
+                              <Box>
+                                <Button onClick={() => handleCancelRemoveFollower()}>Cancel</Button>
+                                <Button onClick={() => handleConfirmRemove(following.id)}>Confirm</Button>
+
+                              </Box>
+                            ) : (
+                              <Button onClick={() => handleRemoveFollower(following.id)}>Remove</Button>
+                              // <Button onClick={() => handleCancelRemoveFollower(follower.id)}>Remove</Button>
+
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+
+                    {/* POTENTIAL ALTERNATIVE TO CARD/CARDCONTENT */}
+
+                    {/* {followRequests.length == 0 ?
+                    <Typography>No follow requests yet!</Typography>
+                    : followRequests.map((request) => (
+                      <Chip 
+                        key={request.id}
+                        label={request.name}
+                        // onDelete={handleRejectRequest(request)}
+                      />
+                  ))} */}
+
+                  </Box>
+                </Container>
+              </Box>
+            </Grid>
+            <Grid item xs={3}>
               <Box sx={{ borderColor: 'grey.500', height: '100%' }}>
                 <Container component="main" maxWidth="xs">
                   <CssBaseline />
