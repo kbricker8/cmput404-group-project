@@ -36,6 +36,7 @@ function Navbar() {
       }
     }).then((response) => {
       setInbox(response.data.items);
+      console.log("INBOX: " + response)
       // badgeNumber = response.data.items.length;
     });
   }, []);

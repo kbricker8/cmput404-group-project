@@ -9,8 +9,9 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Markdown from 'markdown-to-jsx';
 import Copyright from "../assets/copyright";
-import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
+import { CardActionArea, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, SelectChangeEvent, Stack, TextField } from '@mui/material';
 import { OUR_API_URL } from '../consts/api_connections';
+
 const theme = createTheme();
 
 export default function NewPost() {
@@ -19,15 +20,39 @@ export default function NewPost() {
     const [postTitle, setPostTitle] = React.useState('')
     const [postDescription, setPostDescription] = React.useState('')
     const [postContent, setPostContent] = React.useState('')
+    const [selectedImage, setSelectedImage] = React.useState(null)
     const [image, setImage] = React.useState('')
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
     const USER_ID = localStorage.getItem('USER_ID');
+    const [postID, setpostID] = React.useState('');
 
     const navigate = useNavigate();
 
-    // const handleImageSubmit = 
+    // const handleImageSubmit = event => {
+    //     const fileUploaded = event.target.files[0];
+    //     console.log("UPLOAD IMAGE: " + fileUploaded);
+    // }
 
+
+    const convert = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // check max. file size is not exceeded
+        // size is in bytes
+        if (e.target.files[0].size > 2000000) {
+          console.log("File too large");
+          return;
+        }
+        var reader = new FileReader();
+        reader.readAsDataURL(e.target.files[0]);
+    
+        reader.onload = () => {
+          console.log(reader.result); //base64encoded string
+          setImage(reader.result);
+        };
+        reader.onerror = error => {
+          console.log("Error: ", error);
+        };
+      }
 
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -36,27 +61,93 @@ export default function NewPost() {
         console.log(visibility, postType, postTitle, postDescription, postContent);
 
         //axios.post('http://127.0.0.1:8000/service/authors/'+JSON.parse(localStorage.getItem('user')!).id+'/posts/', {
-        axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
-            source: OUR_API_URL,
-            origin: OUR_API_URL,
-            title: postTitle,
-            description: postDescription,
-            content: postContent,
-            contentType: postType,
-            author: user.id,
-            categories: {},
-            count: 0,
-            published: new Date().toISOString(),
-            visibility: visibility,
-            unlisted: false,
-        }, {
-            headers: {
-                'Authorization': `Token ${token}`
-            }
-        }).then((response) => {
-            console.log("MAKE POST RESPONSE:", response);
-            navigate(-1)
-        }).catch((error) => { console.log("MAKE POST ERROR:", error); })
+        const postBasic = () => {
+            return axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
+                source: OUR_API_URL,
+                origin: OUR_API_URL,
+                title: postTitle,
+                description: postDescription,
+                content: postContent,
+                contentType: postType,
+                author: user.id,
+                categories: {},
+                count: 0,
+                published: new Date().toISOString(),
+                visibility: visibility,
+                unlisted: false,
+            }, {
+                headers: {
+                    'Authorization': `Token ${token}`
+                }
+            }).then((response) => {
+                console.log("MAKE POST RESPONSE:", response);
+                console.log("POST ID: " + response.data.id);
+                const postID = response.data.id
+                return postID
+                // setpostID(response.data.id);
+                // navigate(-1)
+                }).catch((error) => { console.log("MAKE POST ERROR:", error); });
+        }
+
+
+        if (image) {
+            postBasic()
+                .then(postID => {
+                    axios.post(`${postID}/image_post/`, {
+                        image: image,
+                    }, {
+                        headers: {
+                            'Authorization': `Token ${token}`
+                        }
+                    }).then((response) => {
+                        console.log("MAKE IMAGE POST RESPONSE:", response);
+                        navigate(-1)
+                    }).catch((error) => { 
+                        console.log("MAKE IMAGE POST ERROR:", error);
+                        navigate(-1); })
+                });
+        }
+        else {
+            postBasic();
+        }
+
+        // axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
+        //     source: OUR_API_URL,
+        //     origin: OUR_API_URL,
+        //     title: postTitle,
+        //     description: postDescription,
+        //     content: postContent,
+        //     contentType: postType,
+        //     author: user.id,
+        //     categories: {},
+        //     count: 0,
+        //     published: new Date().toISOString(),
+        //     visibility: visibility,
+        //     unlisted: false,
+        // }, {
+        //     headers: {
+        //         'Authorization': `Token ${token}`
+        //     }
+        // }).then((response) => {
+        //     console.log("MAKE POST RESPONSE:", response);
+        //     setpostID(response.data.id);
+        //     console.log("POST ID: " + response.data.id);
+        //     // navigate(-1)
+        // }).catch((error) => { console.log("MAKE POST ERROR:", error); })
+
+
+
+
+        // axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/${postID}/image_post`, {
+        //     image: image,
+        // }, {
+        //     headers: {
+        //         'Authorization': `Token ${token}`
+        //     }
+        // }).then((response) => {
+        //     console.log("MAKE IMAGE POST RESPONSE:", response);
+        //     // navigate(-1)
+        // }).catch((error) => { console.log("MAKE IMAGE POST ERROR:", error); })
     };
 
 
@@ -107,7 +198,7 @@ export default function NewPost() {
                                         <MenuItem value={"text/plain"}>Plaintext</MenuItem>
                                         <MenuItem value={"text/markdown"}>CommonMark</MenuItem>
                                         {/* Change value based on  Image Type*/}
-                                        <MenuItem value={"image"}>Image</MenuItem>
+                                        <MenuItem value={"image/png;base64"}>Image</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -138,20 +229,34 @@ export default function NewPost() {
                                 />
                             </Grid>
                             <Grid item xs={12}>
+                                    {selectedImage && (
+                                    <div>
+                                        <img
+                                            alt="not found"
+                                            width={"100px"}
+                                            src={URL.createObjectURL(selectedImage)}
+                                        />
+                                    <br />
+                                        <button onClick={() => setSelectedImage(null)}>Remove</button>
+                                    </div>
+                                )}
                                 <Button 
                                     variant="contained" 
                                     component="label" 
-                                    // onSubmit={handleImageSubmit}
                                 >
                                     Upload Image
                                     <input 
                                         hidden accept="image/*" 
                                         multiple type="file" 
-                                        // onChange={(event) => {
-                                        //     console.log(event.target.files[0]);
-                                        //     setImage(event);
-                                        //   }}
+                                        name='myImage'
+                                        onChange={(event) => {
+                                            // console.log(event.target.files[0]);
+                                            convert(event);
+                                            setSelectedImage(event.target.files[0]);
+                                            // console.log("IMAGE: " + event.target.files[0])
+                                        }}
                                     />
+
                                 </Button>
                             </Grid>
                             {postType !== "text/markdown" ?
