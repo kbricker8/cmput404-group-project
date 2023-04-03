@@ -526,7 +526,7 @@ class CommentsViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(pagination_class=CommentsPagination, paginator_inspectors=[CommentsPaginatorInspectorClass])
     def list(self, request, author_pk=None, post_pk=None, *args, **kwargs):
         post = Post.objects.get(uuid=post_pk)
-        queryset = Comment.objects.filter(post=post).all()
+        queryset = Comment.objects.filter(id__contains=post.id).all()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
