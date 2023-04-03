@@ -1,1 +1,1 @@
-web: cd cmput404-group-project && npm run dev
+web: bin/start-nginx-solo
