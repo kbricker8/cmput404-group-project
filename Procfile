@@ -1,1 +1,1 @@
-web: gunicorn social_distribution.wsgi
+web: bin/start-nginx-solo
