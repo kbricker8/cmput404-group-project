@@ -93,7 +93,7 @@ export default function NewPost() {
         if (image) {
             postBasic()
                 .then(postID => {
-                    axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/${postID}/image_post/`, {
+                    axios.post(`${postID}/image_post/`, {
                         image: image,
                     }, {
                         headers: {
@@ -198,7 +198,7 @@ export default function NewPost() {
                                         <MenuItem value={"text/plain"}>Plaintext</MenuItem>
                                         <MenuItem value={"text/markdown"}>CommonMark</MenuItem>
                                         {/* Change value based on  Image Type*/}
-                                        <MenuItem value={"image"}>Image</MenuItem>
+                                        <MenuItem value={"image/png;base64"}>Image</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
