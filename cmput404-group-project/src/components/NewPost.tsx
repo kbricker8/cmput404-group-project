@@ -109,6 +109,7 @@ export default function NewPost() {
         }
         else {
             postBasic();
+            navigate(-1);
         }
 
         // axios.post(`${OUR_API_URL}service/authors/${USER_ID}/posts/`, {
