@@ -1,3 +1,4 @@
+//@ts-ignore
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { Router } from 'react-router-dom';
@@ -10,36 +11,7 @@ import NewPost from '../components/NewPost';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 describe('NewPost', () => {
-  class LocalStorageMock {
-    store = {};
 
-    getItem = (key) => {
-      return this.store[key] || null;
-    };
-
-    setItem = (key, value) => {
-      this.store[key] = String(value);
-    };
-
-    removeItem = (key) => {
-      delete this.store[key];
-    };
-
-    clear = () => {
-      this.store = {};
-    };
-
-    get length() {
-      return Object.keys(this.store).length;
-    }
-
-    key = (index) => {
-      const keys = Object.keys(this.store);
-      return keys[index] || null;
-    };
-  }
-
-  //global.localStorage = new LocalStorageMock();
   beforeEach(() => {
     localStorage.setItem('user', JSON.stringify({ id: 'testUserId' }));
     localStorage.setItem('token', JSON.stringify('testToken'));
