@@ -1,34 +1,35 @@
-import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-import './App.css'
+import React from "react";
+import "bootstrap/dist/css/bootstrap.css";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import "./index.css";
+import HomePage from "./pages/home-page.page";
+import ErrorPage from "./error-page";
+import AboutUs from "./pages/about-us.page";
+import SignIn from "./pages/sign-in.page";
+import FeedPage from "./pages/feed.page";
+import NewPost from "./components/NewPost";
+import EditPost from "./components/EditPost";
+import Profile from "./pages/profile.page";
 
-function App() {
-  const [count, setCount] = useState(0)
+export function createApp() {
+  const App = () => (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        {/* <Route path="/AboutUs" element={<AboutUs />} /> */}
+        <Route path="/SignIn" element={<SignIn />} />
+        <Route path="/Feed" element={<FeedPage />} />
+        <Route path="/newPost" element={<NewPost />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/editPost" element={<EditPost />} />
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </Router>
+  );
 
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          {/* <img src={reactLogo} className="logo react" alt="React logo" /> */}
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+  return {
+    App: <App />,
+  };
 }
 
-export default App
+export default createApp().App;

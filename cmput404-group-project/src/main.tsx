@@ -1,62 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import 'bootstrap/dist/css/bootstrap.css';
-import {
-  createBrowserRouter,
-  Outlet,
-  RouterProvider,
-} from "react-router-dom";
-import "./index.css";
-import Root from "./routes/root";
-import HomePage from "./routes/home-page";
-import ErrorPage from "./error-page";
-import AboutUs from "./routes/about-us";
-import SignIn from "./routes/sign-in";
-import FeedPage from "./routes/feed";
-import NewPost from "./components/NewPost";
-import EditPost from "./components/EditPost";
-import Profile from "./routes/profile";
+import ReactDOM from "react-dom";
+import { createApp } from "./App";
+import "bootstrap/dist/css/bootstrap.css";
 
-const router = createBrowserRouter([
-  {
-    element: <Root />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: "/",
-        element: <HomePage />,
-      },
-      // {
-      //   path: "AboutUs",
-      //   element: <AboutUs />,
-      // },
-      {
-        path: "SignIn",
-        element: <SignIn />,
-      },
-      {
-        path: "Feed",
-        element: <FeedPage />,
-      },
-      {
-        path: "newPost",
-        element: <NewPost />,
-      },
-      {
-        path: "profile",
-        element: <Profile />,
-      },
-      {
-        path: "editPost",
-        element: <EditPost />,
-      },
-    ]
-  },
+const { App} = createApp();
 
-]);
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+    {App}
+  </React.StrictMode>,
+  document.getElementById("root")
 );

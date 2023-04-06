@@ -1,7 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import reactRefresh from '@vitejs/plugin-react-refresh';
+import ssr from 'vite-plugin-ssr/plugin';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-})
+  plugins: [reactRefresh(), ssr()],
+  base: '/',
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: 'src/main.tsx',
+    },
+  },
+});
