@@ -102,7 +102,6 @@ describe('NewPost', () => {
 
   });
   test('post title should change on input', async () => {
-    const setPostTitle = jest.fn();
     render(<NewPost />, { wrapper: MemoryRouter });
 
     const input = screen.getByLabelText('Post Description');
@@ -113,8 +112,17 @@ describe('NewPost', () => {
     expect(inputs[3]).toHaveValue('testDescription');
 
   });
+  test('post description should change on input', async () => {
+
+    render(<NewPost />, { wrapper: MemoryRouter });
+
+    const inputs = screen.getAllByDisplayValue('');
+    console.log("inputs:", inputs[1]);
+    fireEvent.change(inputs[3], { target: { value: 'testDescription' } })
+    expect(inputs[3]).toHaveValue('testDescription');
+
+  });
   test('post content should change on input', async () => {
-    const setPostTitle = jest.fn();
     render(<NewPost />, { wrapper: MemoryRouter });
     const inputs = screen.getAllByDisplayValue('');
     console.log("inputs:", inputs[4]);
