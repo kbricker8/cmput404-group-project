@@ -55,7 +55,11 @@ export default function NewPost() {
         };
       }
 
-
+    React.useEffect(() => {
+        console.log("User:",localStorage.getItem('user'));
+        console.log("Token:",localStorage.getItem('token'));
+        console.log("USER_ID:",localStorage.getItem('USER_ID'));
+    }, []);
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         console.log(JSON.parse(localStorage.getItem('user')!).id)
@@ -175,11 +179,12 @@ export default function NewPost() {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="post-visibility-label">Post Visibility</InputLabel>
+                                    <InputLabel id="post-visibility-label" >Post Visibility</InputLabel>
                                     <Select
                                         labelId="post-visibility"
                                         id="post-visibility"
                                         label="Post Visibility"
+                                        aria-labelledby="post-visibility-label"
                                         onChange={(e) => setVisibility(e.target.value as string)}
                                     >
                                         <MenuItem value={"PUBLIC"}>Public</MenuItem>
@@ -195,6 +200,7 @@ export default function NewPost() {
                                         labelId="post-type"
                                         id="post-type"
                                         label="Post Type"
+                                        aria-labelledby="post-type-label"
                                         onChange={(e) => setPostType(e.target.value as string)}
                                     >
                                         <MenuItem value={"text/plain"}>Plaintext</MenuItem>
@@ -205,6 +211,7 @@ export default function NewPost() {
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12}>
+                            <InputLabel id="post-title-label">Post Title</InputLabel>
                                 <TextField
                                     required
                                     fullWidth
@@ -214,10 +221,12 @@ export default function NewPost() {
                                     label="Post Title"
                                     name="post-title"
                                     autoComplete="post-title"
+                                    aria-labelledby='post-title-label'
                                     onChange={(e) => setPostTitle(e.target.value)}
                                 />
                             </Grid>
                             <Grid item xs={12}>
+                            <InputLabel id="post-description-label">Post Description</InputLabel>
                                 <TextField
                                     required
                                     fullWidth
@@ -227,6 +236,7 @@ export default function NewPost() {
                                     label="Post Description"
                                     name="post-description"
                                     autoComplete="post-description"
+                                    aria-labelledby='post-description-label'
                                     onChange={(e) => setPostDescription(e.target.value)}
                                 />
                             </Grid>
@@ -245,12 +255,14 @@ export default function NewPost() {
                                 <Button 
                                     variant="contained" 
                                     component="label" 
+                                    
                                 >
                                     Upload Image
                                     <input 
                                         hidden accept="image/*" 
                                         multiple type="file" 
                                         name='myImage'
+                                        aria-label='myImage'
                                         onChange={(event) => {
                                             // console.log(event.target.files[0]);
                                             convert(event);
