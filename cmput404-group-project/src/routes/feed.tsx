@@ -34,6 +34,7 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import GitHubCalendar from 'react-github-calendar';
 import Markdown from 'markdown-to-jsx';
 import ShareIcon from '@mui/icons-material/Share';
+import {v4 as uuidv4} from 'uuid';
 
 
 import { TEAM7_API_URL, TEAM18_API_URL, OUR_API_URL } from '../consts/api_connections';
@@ -617,6 +618,7 @@ export default function Album() {
 
     //const handleComment on Team18 post
     const handleComment18 = (clickedPost: { id: any; } | null, commentValue: string) => {
+        var uuid = uuidv4();
         console.log("This is team 18's post id", clickedPost.id.split("/").pop());
         console.log("This is team 18's author id", clickedPost?.author?.id.split("/").pop());
         console.log("AXIOS: ", TEAM18_API_URL, "service/authors/", clickedPost?.author?.id.split("/").pop(), "inbox");
@@ -633,7 +635,7 @@ export default function Album() {
             },
             "comment": commentValue,
             "contentType": "text/plain",
-            "id": `${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/5c22662c-552d-4919-a8a4-33d348792f3f`,
+            "id": `${TEAM18_API_URL}service/authors/${clickedPost?.author?.id.split("/").pop()}/posts/${clickedPost.id.split("/").pop()}/comments/${uuid}}`,
         }).then((response) => {
             console.log("MAKE COMMENT RESPONSE:", response);
             console.log("COMMENT VALUE:", commentValue);
