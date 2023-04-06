@@ -3,12 +3,8 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { Router } from 'react-router-dom';
 import { createMemoryHistory } from 'history';
 import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
-import { findByRole } from '@testing-library/react';
-import { selectOption } from '@testing-library/dom';
 import axios from 'axios';
 import NewPost from '../components/NewPost';
-import { wait } from '@testing-library/user-event/dist/types/utils';
 
 
 jest.mock('axios');
