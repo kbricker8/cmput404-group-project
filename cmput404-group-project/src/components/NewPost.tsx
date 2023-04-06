@@ -16,13 +16,13 @@ import { OUR_API_URL } from '../consts/api_connections';
 const theme = createTheme();
 
 export default function NewPost() {
-    const [visibility, setVisibility] = React.useState('')
-    const [postType, setPostType] = React.useState('')
-    const [postTitle, setPostTitle] = React.useState('')
-    const [postDescription, setPostDescription] = React.useState('')
-    const [postContent, setPostContent] = React.useState('')
-    const [selectedImage, setSelectedImage] = React.useState(null)
-    const [image, setImage] = React.useState('')
+    const [visibility, setVisibility] = React.useState('');
+    const [postType, setPostType] = React.useState('');
+    const [postTitle, setPostTitle] = React.useState('');
+    const [postDescription, setPostDescription] = React.useState('');
+    const [postContent, setPostContent] = React.useState('');
+    const [selectedImage, setSelectedImage] = React.useState(null);
+    const [image, setImage] = React.useState('');
     const user = JSON.parse(localStorage.getItem('user')!);
     const token = JSON.parse(localStorage.getItem('token')!);
     const USER_ID = localStorage.getItem('USER_ID');
