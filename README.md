@@ -1,5 +1,8 @@
 # cmput404-group-project
 
+[![Social Distribution Youtube Link](https://img.youtube.com/vi/FWlIKXEkNqI/0.jpg)](https://www.youtube.com/watch?v=FWlIKXEkNqI)
+
+
 
 Author:
 ------
