@@ -17,7 +17,8 @@ import NewPost from "./components/NewPost";
 import EditPost from "./components/EditPost";
 import Profile from "./routes/profile";
 
-const basename = process.env.PUBLIC_URL || '';
+
+const basename = "cmput404-group-project/" || '';
 
 const router = createBrowserRouter([
   {
