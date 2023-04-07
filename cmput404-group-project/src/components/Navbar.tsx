@@ -75,7 +75,7 @@ function Navbar() {
     console.log("USER IS NULL", localStorage.getItem('USER_ID'));
     signInSignOut = 
     <NavLink
-      to="/SignIn"
+      to="/cmput404-group-project/SignIn"
       className={({ isActive }) =>
         "nav-links" + (isActive ? " activated" : "")
       }
@@ -86,7 +86,7 @@ function Navbar() {
     </NavLink>
 
     homePageFeed = <NavLink
-      to="/"
+      to="/cmput404-group-project/"
       className={({ isActive }) =>
         "nav-links" + (isActive ? " activated" : "")
       }
@@ -99,7 +99,7 @@ function Navbar() {
   } else {
     console.log("USER IS NOT NULL", localStorage.getItem('user'));
     signInSignOut = <NavLink
-      to="/"
+      to="/cmput404-group-project/"
       className={({ isActive }) =>
         "nav-links" + (isActive ? " activated" : "")
       }
@@ -109,7 +109,7 @@ function Navbar() {
       Sign Out
     </NavLink>
     homePageFeed = <NavLink
-      to="/feed"
+      to="/cmput404-group-project/feed"
       className={({ isActive }) =>
         "nav-links" + (isActive ? " activated" : "")
       }
@@ -194,7 +194,7 @@ function Navbar() {
     <>
       <nav className="navbar">
         <div className="navbar-container container">
-          <Link to="/" className="navbar-logo" onClick={closeMobileMenu} style={{ textDecoration: 'none' }}>
+          <Link to="/cmput404-group-project/" className="navbar-logo" onClick={closeMobileMenu} style={{ textDecoration: 'none' }}>
             Social Distribution
           </Link>
           <ul className={click ? "nav-menu active" : "nav-menu"}>
@@ -219,7 +219,7 @@ function Navbar() {
               <li className="nav-item">
 
                 <NavLink
-                  to="/profile"
+                  to="/cmput404-group-project/profile"
                   className={({ isActive }) =>
                     "nav-links" + (isActive ? " activated" : "")
                   }

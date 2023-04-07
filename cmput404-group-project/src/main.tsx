@@ -18,7 +18,7 @@ import EditPost from "./components/EditPost";
 import Profile from "./routes/profile";
 
 
-const basename = "cmput404-group-project/" || '';
+const basename = "cmput404-group-project" || '';
 
 const router = createBrowserRouter([
   {
