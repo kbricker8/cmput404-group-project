@@ -117,7 +117,7 @@ describe('EditPost', () => {
              origin: "https://social-distribution-group21.herokuapp.com/",
              source: "https://social-distribution-group21.herokuapp.com/",
              title: "Test Title",
-             unlisted: false,
+             unlisted: false
         },
         {
           headers: { Authorization: 'Token testToken' },
