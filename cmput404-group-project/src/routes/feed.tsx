@@ -1176,8 +1176,8 @@ export default function Album() {
                                                 variant="contained"
                                                 onClick={() => {
                                                     handleDelete(selectedPost);
-                                                    // handleClose();
-                                                    // window.location.reload(true);
+                                                    handleClose();
+                                                    window.location.reload(true);
                                                 }}
                                                 sx={{ height: 50, width: 100 }}
                                             >
