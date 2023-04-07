@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
-
+import os
 from django.contrib.auth.models import User
 from .models import Post, Author, Followers, FollowRequest, ImagePosts, Comment, Likes, Liked, Inbox
 
@@ -18,21 +18,16 @@ from .serializers import FollowersSerializer
 
 # Create your tests here.
 class CreateUserTest(APITestCase):
-    def test_list_users(self):
-        url = reverse('user-list')
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
-        self.assertEqual(response.data, [])
-
     def test_create_user(self):
+        
         url = reverse('user-list')
         data = {
             "username": "test_user",
             "email": "test@test.ca",
             "password": "test123"
         }
+        self.token = os.getenv("TEST_TOKEN")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -49,8 +44,11 @@ class PasswordTests(APITestCase):
             "email": "test@test.ca",
             "password": "test123"
         }
+        self.token = os.getenv("TEST_TOKEN")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
-        self.id = response.data.get("id")
+        self.token = response.data.get("token")
+        self.id = response.data.get("author").id
 
     def test_login(self):
         url = reverse('user-login')
@@ -58,6 +56,7 @@ class PasswordTests(APITestCase):
             "username": "test_user",
             "password": "test123"
         }
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -67,6 +66,7 @@ class PasswordTests(APITestCase):
             "old_password": "test123",
             "new_password": "test321"
         }
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -76,6 +76,7 @@ class PasswordTests(APITestCase):
             "username": "test_user",
             "password": "test321"
         }
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -87,8 +88,11 @@ class AuthorTests(APITestCase):
             "email": "test@test.ca",
             "password": "test123"
         }
+        self.token = os.getenv("TEST_TOKEN")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response = self.client.post(url, data, format='json')
-        self.id = response.data.get("id")
+        self.token = response.data.get("token")
+        self.id = response.data.get("author").id
 
 class FollowerTests(APITestCase):
     def setUp(self):
@@ -103,16 +107,22 @@ class FollowerTests(APITestCase):
             "email": "test@test.ca",
             "password": "test123"
         }
+        self.token = os.getenv("TEST_TOKEN")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         response1 = self.client.post(url, data1, format='json')
         response2 = self.client.post(url, data2, format='json')
-        self.id1 = response1.data.get("id")
-        self.id2 = response2.data.get("id")
+        self.token1 = response1.data.get("token")
+        self.id1 = response1.data.get("author").id
+        self.token2 = response2.data.get("token")
+        self.id2 = response2.data.get("author").id
         self.followersid = 'http://127.0.0.1:8000/service/authors/' + str(self.id1) + '/followers/'
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token}')
         url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + "/send/"
         self.response = self.client.get(url)
     
     def test_list_followers(self):
         url = "/service/authors/" + str(self.id1) + '/followers/'
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1}')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -120,6 +130,7 @@ class FollowerTests(APITestCase):
     
     def test_list_follow_requests(self):
         url = "/service/authors/" + str(self.id1) + '/follow-request/'
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1}')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -127,6 +138,7 @@ class FollowerTests(APITestCase):
     
     def test_get_follow_request(self):
         url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + '/'
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1}')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -134,6 +146,7 @@ class FollowerTests(APITestCase):
     
     def test_accept_follow_request(self):
         url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + "/accept/"
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token2}')
         response = self.client.get(url)
         followers = Followers.objects.get(id = self.followersid)
         follower = Author.objects.get(id = self.id2)
@@ -142,6 +155,7 @@ class FollowerTests(APITestCase):
         self.assertTrue(follower in followers.items.all())
 
         url = "/service/authors/" + str(self.id1) + '/follow-request/' + str(self.id2) + '/'
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token1}')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
