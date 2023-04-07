@@ -41,7 +41,9 @@ jobs:
         run: npm install
       - name: Build
         working-directory: ./cmput404-group-project
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
