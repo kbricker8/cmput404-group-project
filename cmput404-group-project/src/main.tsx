@@ -17,42 +17,43 @@ import NewPost from "./components/NewPost";
 import EditPost from "./components/EditPost";
 import Profile from "./routes/profile";
 
+const basename = process.env.PUBLIC_URL || '';
+
 const router = createBrowserRouter([
   {
     element: <Root />,
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "/",
+        path: `${basename}/`,
         element: <HomePage />,
       },
       // {
-      //   path: "AboutUs",
+      //   path: `${basename}/AboutUs`,
       //   element: <AboutUs />,
       // },
       {
-        path: "SignIn",
+        path: `${basename}/SignIn`,
         element: <SignIn />,
       },
       {
-        path: "Feed",
+        path: `${basename}/Feed`,
         element: <FeedPage />,
       },
       {
-        path: "newPost",
+        path: `${basename}/newPost`,
         element: <NewPost />,
       },
       {
-        path: "profile",
+        path: `${basename}/profile`,
         element: <Profile />,
       },
       {
-        path: "editPost",
+        path: `${basename}/editPost`,
         element: <EditPost />,
       },
     ]
   },
-
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
