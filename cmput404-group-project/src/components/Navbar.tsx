@@ -201,20 +201,6 @@ function Navbar() {
             <li className="nav-item">
               {homePageFeed}
             </li>
-            {/* <li className="nav-item">
-
-              <NavLink
-                to="/AboutUs"
-                className={({ isActive }) =>
-                  "nav-links" + (isActive ? " activated" : "")
-                }
-                onClick={closeMobileMenu}
-                style={{ textDecoration: 'none' }}
-              >
-                About
-              </NavLink>
-
-            </li> */}
             {user !== null ?
               <li className="nav-item">
 
