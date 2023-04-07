@@ -192,7 +192,7 @@ export default function SignIn() {
                           required
                           fullWidth
                           id="username"
-                          label="Username"
+                          label="New Username"
                           name="username"
                           autoComplete="username"
                           onChange={(e) => { setSignUpUsername(e.target.value) }}
@@ -205,7 +205,7 @@ export default function SignIn() {
                           id="email"
                           label="Email Address"
                           name="email"
-                          autoComplete="email"
+                          autoComplete="new-email"
                           onChange={(e) => { setSignUpEmail(e.target.value) }}
                         />
                       </Grid>
@@ -214,7 +214,7 @@ export default function SignIn() {
                           required
                           fullWidth
                           name="password"
-                          label="Password"
+                          label="New Password"
                           type="password"
                           id="password"
                           autoComplete="new-password"

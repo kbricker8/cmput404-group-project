@@ -373,11 +373,8 @@ export default function Album() {
         });
       }, [posts, token]);
     const handleDelete = (clickedPost: { id: any; } | null) => {
-        // clickedPost.preventDefault();
-        console.log(JSON.parse(localStorage.getItem('user')!).id)
-        // console.log(clickedPost.id);
 
-        axios.delete(`http://127.0.0.1:8000/service/authors/${(JSON.parse(localStorage.getItem('user')!).id)}/posts/${clickedPost.id}/`, {
+        axios.delete(`${OUR_API_URL}service/authors/${USER_ID}/posts/${clickedPost.id.split('/').pop()}/`, {
             headers: {
                 'Authorization': `Token ${token}`
             }
@@ -1179,8 +1176,8 @@ export default function Album() {
                                                 variant="contained"
                                                 onClick={() => {
                                                     handleDelete(selectedPost);
-                                                    handleClose();
-                                                    window.location.reload(true);
+                                                    // handleClose();
+                                                    // window.location.reload(true);
                                                 }}
                                                 sx={{ height: 50, width: 100 }}
                                             >
