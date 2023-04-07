@@ -17,7 +17,8 @@ import NewPost from "./components/NewPost";
 import EditPost from "./components/EditPost";
 import Profile from "./routes/profile";
 
-const basename = "cmput404-group-project/" || '';
+
+const basename = "cmput404-group-project" || '';
 
 const router = createBrowserRouter([
   {
@@ -56,8 +57,9 @@ const router = createBrowserRouter([
   },
 ]);
 
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <RouterProvider router={router}  />
   </React.StrictMode>
 );

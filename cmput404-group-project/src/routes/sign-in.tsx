@@ -44,7 +44,7 @@ export default function SignIn() {
           localStorage.setItem('token', JSON.stringify(response.data.token));
           localStorage.setItem('refreshed', 'false')
           console.log("GOD BRUH PLS", localStorage.getItem('USER_ID'));
-          nav("/feed");
+          nav("/cmput404-group-project/feed");
         }
       }).catch((error) => {
         console.log("ERROR:", error);
@@ -75,7 +75,7 @@ export default function SignIn() {
         console.log("TOKEN:", response.data.token);
         console.log("USER:", response.data.author);
         console.log("USER ID:", response.data.author.id.toString().split(/[/]+/).pop());
-        nav("/feed");
+        nav("/cmput404-group-project/feed");
       } else {
         console.log("Sign Up Error", response);
       }
