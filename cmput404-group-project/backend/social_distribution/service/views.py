@@ -422,6 +422,9 @@ class PostsViewSet(viewsets.GenericViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+    def perform_destroy(self, instance):
+        instance.delete()
+    
     @action(detail=True)
     def image(self, request, author_pk, pk, *args, **kwargs):
         post = Post.objects.get(uuid=pk)
@@ -583,6 +586,9 @@ class CommentsViewSet(viewsets.GenericViewSet):
         #                     status=status.HTTP_401_UNAUTHORIZED)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def perform_destroy(self, instance):
+        instance.delete()
     
     @action(detail=True)
     def likes(self, request, author_pk, post_pk, pk, *args, **kwargs):
